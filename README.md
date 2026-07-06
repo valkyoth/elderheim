@@ -96,9 +96,10 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.4.0` is the active compiler pipeline skeleton workstream. It adds shared
-stage boundaries, fail-fast ordering checks, error propagation, report sink
-events, and IR boundary markers used by later language and backend phases.
+`0.5.0` is the active source normalization workstream. It normalizes line
+endings, enforces the first source byte/control-character policy, applies a
+blank-line policy, preserves source-size limits, and produces stable source IDs
+over normalized bytes.
 
 No Dartmouth BASIC parser or executable writer is implemented yet. The roadmap
 intentionally starts with compiler substrate, then makes BASIC 1 complete,
@@ -113,6 +114,7 @@ then BASIC 2 complete, then BASIC 4 complete.
 | License | Working | EUPL-1.2. |
 | no_std library skeletons | Working | Core/facade crates are prepared for no_std production logic. |
 | Source and diagnostics core | Working | `elderheim-core` validates source byte and line limits, maps byte offsets to one-based line/column locations, checks spans, and renders compact stable diagnostics. |
+| Source normalization core | Working | `elderheim-core` normalizes LF/CRLF/CR into LF, rejects invalid control/non-ASCII bytes under the current policy, enforces blank-line policy, and returns stable normalized source IDs. |
 | Compiler pipeline skeleton | Working | `elderheim-core` exposes ordered source-to-diagnostic, HIR-to-MIR, MIR-to-LIR, and LIR-to-target stages with fail-fast diagnostics and report sink events. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
@@ -165,7 +167,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.4.0
+scripts/validate-release-candidate.sh v0.5.0
 ```
 
 Run the dependency and advisory gates:
@@ -229,6 +231,7 @@ elderheim/
 | [Tag Stops](docs/RELEASE_PLAN.md#stop-gates-and-pentest-classes) | Stop gate and pentest class for every planned tag. |
 | [Target Matrix](docs/target-matrix.md) | Supported 1.0 target names and rejection diagnostics. |
 | [Source Diagnostics](docs/source-diagnostics.md) | Source byte, span, limit, and diagnostic rendering contract. |
+| [Source Normalization](docs/source-normalization.md) | Line ending, byte policy, blank-line, and source ID contract. |
 | [Pipeline Contract](docs/pipeline-contract.md) | Compiler stage ordering, error propagation, and report sink contract. |
 | [Modularity Policy](docs/modularity-policy.md) | Crate split rules and 500-line source-file policy. |
 | [Unsafe Policy](docs/unsafe-policy.md) | Unsafe admission rules and serialization safety policy. |

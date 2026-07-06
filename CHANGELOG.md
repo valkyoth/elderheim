@@ -2,6 +2,17 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.5.0 - Unreleased
+
+- Added no_std source normalization over caller-provided sinks.
+- Added LF, CRLF, and CR line-ending normalization to LF.
+- Added strict printable-ASCII/control-byte policy for current source input.
+- Added blank-line policy with strict BASIC rejection and preserve modes.
+- Added stable normalized source IDs.
+- Split source handling into location and normalization modules.
+- Refreshed the project overview image.
+- Added `0.5.0` release notes and pentest draft.
+
 ## 0.4.0 - 2026-07-06
 
 - Added the no_std compiler pipeline skeleton.

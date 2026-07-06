@@ -12,6 +12,8 @@ pub enum DiagnosticCode {
     TooManyLines,
     InvalidSpan,
     SourceOffsetOutOfBounds,
+    InvalidSourceByte,
+    BlankSourceLine,
 }
 
 impl DiagnosticCode {
@@ -26,6 +28,8 @@ impl DiagnosticCode {
             Self::TooManyLines => "E-CORE-SOURCE-LINES",
             Self::InvalidSpan => "E-CORE-SOURCE-SPAN",
             Self::SourceOffsetOutOfBounds => "E-CORE-SOURCE-OFFSET",
+            Self::InvalidSourceByte => "E-CORE-SOURCE-BYTE",
+            Self::BlankSourceLine => "E-CORE-SOURCE-BLANK-LINE",
         }
     }
 
@@ -40,6 +44,8 @@ impl DiagnosticCode {
             Self::TooManyLines => "source exceeds configured line limit",
             Self::InvalidSpan => "source span is invalid",
             Self::SourceOffsetOutOfBounds => "source offset is outside the source byte range",
+            Self::InvalidSourceByte => "source contains a byte outside the source policy",
+            Self::BlankSourceLine => "source contains a blank line rejected by policy",
         }
     }
 }
@@ -120,6 +126,8 @@ impl From<SourceError> for DiagnosticCode {
             SourceError::OffsetOutOfBounds => Self::SourceOffsetOutOfBounds,
             SourceError::InvalidSpan => Self::InvalidSpan,
             SourceError::LocationOverflow => Self::ProgramTooLarge,
+            SourceError::InvalidByte { .. } => Self::InvalidSourceByte,
+            SourceError::BlankLine { .. } => Self::BlankSourceLine,
         }
     }
 }
@@ -179,6 +187,18 @@ mod tests {
         assert_eq!(
             DiagnosticCode::from(SourceError::TooManyLines).code(),
             "E-CORE-SOURCE-LINES"
+        );
+        assert_eq!(
+            DiagnosticCode::from(SourceError::InvalidByte {
+                offset: 7,
+                byte: 0xff,
+            })
+            .code(),
+            "E-CORE-SOURCE-BYTE"
+        );
+        assert_eq!(
+            DiagnosticCode::from(SourceError::BlankLine { line: 2 }).code(),
+            "E-CORE-SOURCE-BLANK-LINE"
         );
     }
 

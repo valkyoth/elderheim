@@ -1,0 +1,290 @@
+use super::SourceError;
+use crate::CompileLimits;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SourceId(pub u64);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BlankLinePolicy {
+    Preserve,
+    Reject,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NormalizationPolicy {
+    pub blank_lines: BlankLinePolicy,
+}
+
+impl NormalizationPolicy {
+    pub const BASIC_STRICT: Self = Self {
+        blank_lines: BlankLinePolicy::Reject,
+    };
+
+    pub const PRESERVE_BLANK_LINES: Self = Self {
+        blank_lines: BlankLinePolicy::Preserve,
+    };
+}
+
+pub trait NormalizedSourceSink {
+    fn push_byte(&mut self, byte: u8) -> Result<(), SourceError>;
+}
+
+pub fn normalize_source(
+    bytes: &[u8],
+    limits: CompileLimits,
+    policy: NormalizationPolicy,
+    sink: &mut dyn NormalizedSourceSink,
+) -> Result<SourceId, SourceError> {
+    validate_len(bytes, limits)?;
+
+    let mut id = SourceId(FNV_OFFSET);
+    let mut index = 0_usize;
+    let mut line = 1_u32;
+    let mut line_has_text = false;
+    let mut normalized_lines = if bytes.is_empty() { 0_u32 } else { 1_u32 };
+    let max_lines = u32::try_from(limits.max_lines).map_err(|_| SourceError::LimitTooLarge)?;
+    if normalized_lines > max_lines {
+        return Err(SourceError::TooManyLines);
+    }
+    let mut ended_with_line_ending = false;
+
+    while let Some(byte) = bytes.get(index).copied() {
+        let offset = u32::try_from(index).map_err(|_| SourceError::SourceTooLarge)?;
+
+        match byte {
+            b'\r' => {
+                let next_index = index.saturating_add(1);
+                if matches!(bytes.get(next_index), Some(b'\n')) {
+                    index = next_index;
+                }
+                finish_line(policy, line, line_has_text)?;
+                push_normalized(b'\n', sink, &mut id)?;
+                normalized_lines = normalized_lines
+                    .checked_add(1)
+                    .ok_or(SourceError::LocationOverflow)?;
+                if normalized_lines > max_lines {
+                    return Err(SourceError::TooManyLines);
+                }
+                line = line.checked_add(1).ok_or(SourceError::LocationOverflow)?;
+                line_has_text = false;
+                ended_with_line_ending = true;
+            }
+            b'\n' => {
+                finish_line(policy, line, line_has_text)?;
+                push_normalized(b'\n', sink, &mut id)?;
+                normalized_lines = normalized_lines
+                    .checked_add(1)
+                    .ok_or(SourceError::LocationOverflow)?;
+                if normalized_lines > max_lines {
+                    return Err(SourceError::TooManyLines);
+                }
+                line = line.checked_add(1).ok_or(SourceError::LocationOverflow)?;
+                line_has_text = false;
+                ended_with_line_ending = true;
+            }
+            0x20..=0x7e => {
+                push_normalized(byte, sink, &mut id)?;
+                if byte != b' ' {
+                    line_has_text = true;
+                }
+                ended_with_line_ending = false;
+            }
+            _ => {
+                return Err(SourceError::InvalidByte { offset, byte });
+            }
+        }
+
+        index = index.saturating_add(1);
+    }
+
+    if !bytes.is_empty() && !ended_with_line_ending {
+        finish_line(policy, line, line_has_text)?;
+    }
+
+    Ok(id)
+}
+
+const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
+
+fn validate_len(bytes: &[u8], limits: CompileLimits) -> Result<(), SourceError> {
+    let max_supported_len = usize::try_from(u32::MAX).map_err(|_| SourceError::LimitTooLarge)?;
+    if bytes.len() > max_supported_len {
+        return Err(SourceError::SourceTooLarge);
+    }
+
+    if bytes.len() > limits.max_source_bytes {
+        return Err(SourceError::SourceTooLarge);
+    }
+
+    Ok(())
+}
+
+fn finish_line(
+    policy: NormalizationPolicy,
+    line: u32,
+    line_has_text: bool,
+) -> Result<(), SourceError> {
+    if policy.blank_lines == BlankLinePolicy::Reject && !line_has_text {
+        Err(SourceError::BlankLine { line })
+    } else {
+        Ok(())
+    }
+}
+
+fn push_normalized(
+    byte: u8,
+    sink: &mut dyn NormalizedSourceSink,
+    id: &mut SourceId,
+) -> Result<(), SourceError> {
+    sink.push_byte(byte)?;
+    id.0 ^= u64::from(byte);
+    id.0 = id.0.wrapping_mul(FNV_PRIME);
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use std::vec::Vec;
+
+    use super::{
+        BlankLinePolicy, NormalizationPolicy, NormalizedSourceSink, SourceError, SourceId,
+        normalize_source,
+    };
+    use crate::CompileLimits;
+
+    #[derive(Default)]
+    struct VecSink {
+        bytes: Vec<u8>,
+    }
+
+    impl NormalizedSourceSink for VecSink {
+        fn push_byte(&mut self, byte: u8) -> Result<(), SourceError> {
+            self.bytes.push(byte);
+            Ok(())
+        }
+    }
+
+    fn normalize(input: &[u8]) -> Result<(Vec<u8>, SourceId), SourceError> {
+        let mut sink = VecSink::default();
+        let id = normalize_source(
+            input,
+            CompileLimits::DEFAULT,
+            NormalizationPolicy::BASIC_STRICT,
+            &mut sink,
+        )?;
+        Ok((sink.bytes, id))
+    }
+
+    #[test]
+    fn normalizes_lf_crlf_and_cr_to_lf() {
+        assert_eq!(
+            normalize(b"10 PRINT\n20 END").map(|value| value.0),
+            Ok(b"10 PRINT\n20 END".to_vec())
+        );
+        assert_eq!(
+            normalize(b"10 PRINT\r\n20 END").map(|value| value.0),
+            Ok(b"10 PRINT\n20 END".to_vec())
+        );
+        assert_eq!(
+            normalize(b"10 PRINT\r20 END").map(|value| value.0),
+            Ok(b"10 PRINT\n20 END".to_vec())
+        );
+    }
+
+    #[test]
+    fn rejects_non_ascii_and_control_bytes() {
+        assert_eq!(
+            normalize(b"10 PRINT \xff"),
+            Err(SourceError::InvalidByte {
+                offset: 9,
+                byte: 0xff,
+            })
+        );
+        assert_eq!(
+            normalize(b"10\tPRINT"),
+            Err(SourceError::InvalidByte {
+                offset: 2,
+                byte: b'\t',
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_blank_lines_in_basic_strict_policy() {
+        assert_eq!(
+            normalize(b"10 PRINT\n\n20 END"),
+            Err(SourceError::BlankLine { line: 2 })
+        );
+        assert_eq!(
+            normalize(b"10 PRINT\n   \n20 END"),
+            Err(SourceError::BlankLine { line: 2 })
+        );
+    }
+
+    #[test]
+    fn trailing_line_ending_is_not_a_blank_line() {
+        assert_eq!(
+            normalize(b"10 PRINT\n").map(|value| value.0),
+            Ok(b"10 PRINT\n".to_vec())
+        );
+    }
+
+    #[test]
+    fn can_preserve_blank_lines_when_policy_allows() {
+        let mut sink = VecSink::default();
+        let policy = NormalizationPolicy {
+            blank_lines: BlankLinePolicy::Preserve,
+        };
+        assert_eq!(
+            normalize_source(
+                b"10 PRINT\n\n20 END",
+                CompileLimits::DEFAULT,
+                policy,
+                &mut sink
+            )
+            .map(|_| sink.bytes),
+            Ok(b"10 PRINT\n\n20 END".to_vec())
+        );
+    }
+
+    #[test]
+    fn source_id_is_stable_after_line_ending_normalization() {
+        let lf = normalize(b"10 PRINT\n20 END").map(|value| value.1);
+        let crlf = normalize(b"10 PRINT\r\n20 END").map(|value| value.1);
+        assert_eq!(lf, crlf);
+    }
+
+    #[test]
+    fn source_size_limit_is_checked_before_writing() {
+        let mut sink = VecSink::default();
+        let limits = CompileLimits::with_source_limits(4, 10);
+        assert_eq!(
+            normalize_source(
+                b"12345",
+                limits,
+                NormalizationPolicy::BASIC_STRICT,
+                &mut sink,
+            ),
+            Err(SourceError::SourceTooLarge)
+        );
+        assert!(sink.bytes.is_empty());
+    }
+
+    #[test]
+    fn normalized_line_limit_is_enforced() {
+        let mut sink = VecSink::default();
+        let limits = CompileLimits::with_source_limits(64, 2);
+        assert_eq!(
+            normalize_source(
+                b"10 PRINT\n20 PRINT\n30 END",
+                limits,
+                NormalizationPolicy::BASIC_STRICT,
+                &mut sink,
+            ),
+            Err(SourceError::TooManyLines)
+        );
+    }
+}
