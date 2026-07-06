@@ -15,6 +15,7 @@ README.internal.md
 logs/
 release-reports/
 *.pid
+/PENTEST.md
 
 # Local licensed standards/reference documents
 ISO_IEC_*.pdf

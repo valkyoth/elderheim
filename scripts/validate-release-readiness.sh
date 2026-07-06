@@ -39,8 +39,27 @@ if [ ! -f "$pentest_report" ]; then
     exit 1
 fi
 
-grep -Eq '^Status: (PASS|DRAFT)$' "$pentest_report"
-grep -Eq '^Commit: (TBD|[0-9a-f]{40})$' "$pentest_report"
-grep -Eq '^Tester: .+' "$pentest_report"
-grep -Eq '^CodeQL: (TBD|PASS|FINDINGS)$' "$pentest_report"
-grep -Eq '^Scope:' "$pentest_report"
+grep -Eq '^Status: PASS$' "$pentest_report" || {
+    echo "pentest report is not PASS: ${pentest_report}" >&2
+    exit 1
+}
+
+grep -Eq '^Commit: [0-9a-f]{40}$' "$pentest_report" || {
+    echo "pentest report does not name the exact release commit: ${pentest_report}" >&2
+    exit 1
+}
+
+grep -Eq '^Tester: .+' "$pentest_report" || {
+    echo "pentest report is missing tester identity: ${pentest_report}" >&2
+    exit 1
+}
+
+grep -Eq '^CodeQL: (PASS|FINDINGS)$' "$pentest_report" || {
+    echo "CodeQL findings have not been reviewed in: ${pentest_report}" >&2
+    exit 1
+}
+
+grep -Eq '^Scope:' "$pentest_report" || {
+    echo "pentest report is missing scope: ${pentest_report}" >&2
+    exit 1
+}

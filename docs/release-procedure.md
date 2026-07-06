@@ -65,3 +65,7 @@ Result:
 
 `Status: PASS` is allowed only after release-blocking pentest and CodeQL
 findings are fixed, verified, and documented.
+
+`scripts/validate-release-readiness.sh` is intentionally stricter than the draft
+format. It accepts only `Status: PASS`, an exact commit hash, and reviewed
+CodeQL state.
