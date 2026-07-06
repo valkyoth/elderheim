@@ -2,7 +2,7 @@
 
 All notable Elderheim changes are documented here.
 
-## 0.6.0 - Unreleased
+## 0.6.0 - 2026-07-06
 
 - Added a stable diagnostic code registry.
 - Added source snippet diagnostic rendering.
@@ -10,7 +10,9 @@ All notable Elderheim changes are documented here.
 - Added report sections and report events for pipeline and diagnostic reports.
 - Added golden tests for diagnostic snippets and report rendering.
 - Split diagnostic tests out of the production diagnostic module.
-- Added `0.6.0` release notes and pentest draft.
+- Addressed the `0.6.0` pentest findings around snippet rendering complexity,
+  cursor source binding, diagnostic source binding semantics, and diagnostic
+  registry completeness.
 
 ## 0.5.0 - 2026-07-06
 
