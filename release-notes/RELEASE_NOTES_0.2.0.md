@@ -29,6 +29,7 @@ lowering, code generation, executable writing, or Dartmouth BASIC semantics.
 - Unit tests proving the 1.0 target matrix and unsupported target diagnostics.
 - CLI integration tests for target listing, validation, and unsupported target
   rejection.
+- CLI rejection for missing target names and trailing arguments.
 - Target matrix documentation under `docs/target-matrix.md`.
 
 ## Scope Exclusions

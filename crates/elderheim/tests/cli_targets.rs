@@ -28,6 +28,8 @@ fn list_targets_prints_the_supported_one_zero_matrix() {
         for target in expected {
             assert!(stdout.lines().any(|line| line == target));
         }
+
+        assert_eq!(stdout.lines().count(), expected.len());
     }
 }
 
@@ -55,5 +57,52 @@ fn target_validation_rejects_unsupported_combination() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(stderr.contains("E-TARGET-UNSUPPORTED"));
         assert!(stderr.contains("target combination is not supported for 1.0"));
+    }
+}
+
+#[test]
+fn target_validation_rejects_unknown_architecture() {
+    let output = run_elderheim(&["--target", "linux-riscv64-elf64"]);
+    assert!(output.is_some(), "elderheim binary should run");
+
+    if let Some(output) = output {
+        assert!(!output.status.success());
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("E-TARGET-ARCH"));
+        assert!(stderr.contains("target architecture is not recognized"));
+    }
+}
+
+#[test]
+fn target_cli_rejects_missing_or_extra_arguments() {
+    let missing = run_elderheim(&["--target"]);
+    assert!(missing.is_some(), "elderheim binary should run");
+
+    if let Some(output) = missing {
+        assert!(!output.status.success());
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("E-CLI-MISSING-TARGET"));
+    }
+
+    let extra_target = run_elderheim(&["--target", "linux-x86_64-elf64", "extra"]);
+    assert!(extra_target.is_some(), "elderheim binary should run");
+
+    if let Some(output) = extra_target {
+        assert!(!output.status.success());
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("E-CLI-TRAILING-ARG"));
+    }
+
+    let extra_list = run_elderheim(&["--list-targets", "extra"]);
+    assert!(extra_list.is_some(), "elderheim binary should run");
+
+    if let Some(output) = extra_list {
+        assert!(!output.status.success());
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("E-CLI-TRAILING-ARG"));
     }
 }

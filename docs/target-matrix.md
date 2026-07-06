@@ -31,6 +31,13 @@ Unsupported target strings fail closed with stable diagnostics:
 | `E-TARGET-FORMAT` | Executable format component is not recognized. |
 | `E-TARGET-UNSUPPORTED` | Components are recognized, but the combination is not part of the 1.0 matrix. |
 
+Target CLI argument handling also fails closed:
+
+| Code | Meaning |
+| --- | --- |
+| `E-CLI-MISSING-TARGET` | `--target` was provided without a target name. |
+| `E-CLI-TRAILING-ARG` | A target command received extra arguments. |
+
 ## CLI Checks
 
 List the supported matrix:
