@@ -96,9 +96,9 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.1.0` is the active foundation. It initializes the workspace, security
-policy, release planning, target identifiers, crate boundaries, and local
-verification gates.
+`0.2.0` is the active target-matrix workstream. It makes the 1.0 target matrix
+explicit, gives every supported target a stable CLI-visible name, and rejects
+unsupported target strings with stable diagnostics.
 
 No Dartmouth BASIC parser or executable writer is implemented yet. The roadmap
 intentionally starts with compiler substrate, then makes BASIC 1 complete,
@@ -112,7 +112,7 @@ then BASIC 2 complete, then BASIC 4 complete.
 | Rust toolchain pin | Working | Stable Rust `1.96.1`, edition 2024, workspace resolver `3`. |
 | License | Working | EUPL-1.2. |
 | no_std library skeletons | Working | Core/facade crates are prepared for no_std production logic. |
-| Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented. |
+| Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
 | ELF writer | Scaffolded | `elderheim-format-elf` is present for future ELF32/ELF64 work. |
@@ -163,7 +163,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.1.0
+scripts/validate-release-candidate.sh v0.2.0
 ```
 
 Run the dependency and advisory gates:
@@ -183,6 +183,18 @@ Run the current CLI scaffold:
 
 ```bash
 cargo run -p elderheim --bin elderheim
+```
+
+List supported 1.0 target names:
+
+```bash
+cargo run -p elderheim --bin elderheim -- --list-targets
+```
+
+Validate a target name:
+
+```bash
+cargo run -p elderheim --bin elderheim -- --target linux-x86_64-elf64
 ```
 
 ## Workspace
