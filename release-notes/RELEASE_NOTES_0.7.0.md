@@ -1,6 +1,6 @@
 # Elderheim 0.7.0 Release Notes
 
-Status: development
+Status: released
 
 ## Scope
 

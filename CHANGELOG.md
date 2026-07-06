@@ -2,7 +2,7 @@
 
 All notable Elderheim changes are documented here.
 
-## 0.7.0 - Unreleased
+## 0.7.0 - 2026-07-06
 
 - Added HIR node and symbol ID contracts.
 - Added MIR value and label ID contracts.
@@ -15,6 +15,8 @@ All notable Elderheim changes are documented here.
 - Added IR error-code uniqueness regression coverage.
 - Split the IR crate into focused modules.
 - Added `0.7.0` release notes and pentest draft.
+- Addressed the `0.7.0` pentest findings around bounded MIR/LIR validation,
+  validated lowering boundaries, and IR diagnostic-code uniqueness.
 
 ## 0.6.0 - 2026-07-06
 
