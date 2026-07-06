@@ -1623,12 +1623,12 @@ Make target selection stable and testable.
 
 Deliverables:
 
-- `--target linux-x86`.
-- `--target linux-x86_64`.
-- `--target linux-aarch32`.
-- `--target linux-aarch64`.
-- `--target windows-x86_64`.
-- `--target macos-aarch64`.
+- `--target linux-x86-elf32`.
+- `--target linux-x86_64-elf64`.
+- `--target linux-aarch32-elf32`.
+- `--target linux-aarch64-elf64`.
+- `--target windows-x86_64-pe64`.
+- `--target macos-aarch64-macho64`.
 - Default target policy.
 - Output path policy.
 

@@ -1,6 +1,6 @@
 # Elderheim 0.2.0 Release Notes
 
-Status: release-candidate scaffold
+Status: release-candidate ready
 
 ## Scope
 
