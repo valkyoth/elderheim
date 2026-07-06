@@ -1,13 +1,13 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-06T12:33:56Z",
+    "created": "2026-07-06T12:51:42Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/elderheim-9cab822b-3e15-47a8-b17a-d4bae8fbb79d",
+  "documentNamespace": "https://spdx.org/spdxdocs/elderheim-fef920cf-d5f5-49c9-9ef4-8b41264e6122",
   "files": [
     {
       "SPDXID": "SPDXRef-File-elderheim",
@@ -139,16 +139,6 @@
   "name": "elderheim",
   "packages": [
     {
-      "SPDXID": "SPDXRef-Package-elderheim-backend-x86-0.3.0",
-      "description": "x86 backend contracts for Elderheim.",
-      "downloadLocation": "NONE",
-      "homepage": "https://github.com/valkyoth/elderheim",
-      "licenseConcluded": "EUPL-1.2",
-      "licenseDeclared": "EUPL-1.2",
-      "name": "elderheim-backend-x86",
-      "versionInfo": "0.3.0"
-    },
-    {
       "SPDXID": "SPDXRef-Package-elderheim-format-elf-0.3.0",
       "description": "ELF writer contracts for Elderheim.",
       "downloadLocation": "NONE",
@@ -169,22 +159,13 @@
       "versionInfo": "0.3.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-elderheim-ir-0.3.0",
-      "description": "no_std intermediate representation contracts for Elderheim.",
+      "SPDXID": "SPDXRef-Package-elderheim-backend-x86-0.3.0",
+      "description": "x86 backend contracts for Elderheim.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/elderheim",
       "licenseConcluded": "EUPL-1.2",
       "licenseDeclared": "EUPL-1.2",
-      "name": "elderheim-ir",
-      "versionInfo": "0.3.0"
-    },
-    {
-      "SPDXID": "SPDXRef-Package-xtask-0.3.0",
-      "description": "Local automation shell for Elderheim.",
-      "downloadLocation": "NONE",
-      "licenseConcluded": "EUPL-1.2",
-      "licenseDeclared": "EUPL-1.2",
-      "name": "xtask",
+      "name": "elderheim-backend-x86",
       "versionInfo": "0.3.0"
     },
     {
@@ -198,13 +179,13 @@
       "versionInfo": "0.3.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-elderheim-dartmouth-basic-0.3.0",
-      "description": "Dartmouth BASIC dialect contracts for Elderheim.",
+      "SPDXID": "SPDXRef-Package-elderheim-ir-0.3.0",
+      "description": "no_std intermediate representation contracts for Elderheim.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/elderheim",
       "licenseConcluded": "EUPL-1.2",
       "licenseDeclared": "EUPL-1.2",
-      "name": "elderheim-dartmouth-basic",
+      "name": "elderheim-ir",
       "versionInfo": "0.3.0"
     },
     {
@@ -216,58 +197,32 @@
       "licenseDeclared": "EUPL-1.2",
       "name": "elderheim",
       "versionInfo": "0.3.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-elderheim-dartmouth-basic-0.3.0",
+      "description": "Dartmouth BASIC dialect contracts for Elderheim.",
+      "downloadLocation": "NONE",
+      "homepage": "https://github.com/valkyoth/elderheim",
+      "licenseConcluded": "EUPL-1.2",
+      "licenseDeclared": "EUPL-1.2",
+      "name": "elderheim-dartmouth-basic",
+      "versionInfo": "0.3.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-xtask-0.3.0",
+      "description": "Local automation shell for Elderheim.",
+      "downloadLocation": "NONE",
+      "licenseConcluded": "EUPL-1.2",
+      "licenseDeclared": "EUPL-1.2",
+      "name": "xtask",
+      "versionInfo": "0.3.0"
     }
   ],
   "relationships": [
     {
-      "relatedSpdxElement": "SPDXRef-File-elderheim_format_elf",
-      "relationshipType": "DESCRIBES",
-      "spdxElementId": "SPDXRef-DOCUMENT"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-target-0.3.0",
-      "relationshipType": "DEPENDS_ON",
-      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-File-elderheim",
-      "relationshipType": "DESCRIBES",
-      "spdxElementId": "SPDXRef-DOCUMENT"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-format-elf-0.3.0",
-      "relationshipType": "GENERATED_FROM",
-      "spdxElementId": "SPDXRef-File-elderheim_format_elf"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-backend-x86-0.3.0",
-      "relationshipType": "DEPENDS_ON",
-      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
-    },
-    {
       "relatedSpdxElement": "SPDXRef-Package-elderheim-ir-0.3.0",
-      "relationshipType": "DEPENDS_ON",
-      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-dartmouth-basic-0.3.0",
       "relationshipType": "GENERATED_FROM",
-      "spdxElementId": "SPDXRef-File-elderheim_dartmouth_basic"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-target-0.3.0",
-      "relationshipType": "GENERATED_FROM",
-      "spdxElementId": "SPDXRef-File-elderheim_target"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-backend-x86-0.3.0",
-      "relationshipType": "GENERATED_FROM",
-      "spdxElementId": "SPDXRef-File-elderheim_backend_x86"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-File-elderheim_dartmouth_basic",
-      "relationshipType": "DESCRIBES",
-      "spdxElementId": "SPDXRef-DOCUMENT"
+      "spdxElementId": "SPDXRef-File-elderheim_ir"
     },
     {
       "relatedSpdxElement": "SPDXRef-File-elderheim_ir",
@@ -275,34 +230,9 @@
       "spdxElementId": "SPDXRef-DOCUMENT"
     },
     {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-core-0.3.0",
-      "relationshipType": "DEPENDS_ON",
-      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-File-xtask",
-      "relationshipType": "DESCRIBES",
-      "spdxElementId": "SPDXRef-DOCUMENT"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-File-elderheim_core",
-      "relationshipType": "DESCRIBES",
-      "spdxElementId": "SPDXRef-DOCUMENT"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-File-elderheim_backend_x86",
-      "relationshipType": "DESCRIBES",
-      "spdxElementId": "SPDXRef-DOCUMENT"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-format-elf-0.3.0",
-      "relationshipType": "DEPENDS_ON",
-      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
-    },
-    {
-      "relatedSpdxElement": "SPDXRef-Package-elderheim-ir-0.3.0",
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-target-0.3.0",
       "relationshipType": "GENERATED_FROM",
-      "spdxElementId": "SPDXRef-File-elderheim_ir"
+      "spdxElementId": "SPDXRef-File-elderheim_target"
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-xtask-0.3.0",
@@ -315,9 +245,39 @@
       "spdxElementId": "SPDXRef-File-elderheim_core"
     },
     {
-      "relatedSpdxElement": "SPDXRef-File-elderheim_target",
+      "relatedSpdxElement": "SPDXRef-File-elderheim_backend_x86",
       "relationshipType": "DESCRIBES",
       "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-File-xtask",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-format-elf-0.3.0",
+      "relationshipType": "GENERATED_FROM",
+      "spdxElementId": "SPDXRef-File-elderheim_format_elf"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-dartmouth-basic-0.3.0",
+      "relationshipType": "GENERATED_FROM",
+      "spdxElementId": "SPDXRef-File-elderheim_dartmouth_basic"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-core-0.3.0",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-File-elderheim",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-backend-x86-0.3.0",
+      "relationshipType": "GENERATED_FROM",
+      "spdxElementId": "SPDXRef-File-elderheim_backend_x86"
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-elderheim-0.3.0",
@@ -325,9 +285,49 @@
       "spdxElementId": "SPDXRef-File-elderheim"
     },
     {
+      "relatedSpdxElement": "SPDXRef-File-elderheim_target",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-ir-0.3.0",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-backend-x86-0.3.0",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-File-elderheim_format_elf",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
       "relatedSpdxElement": "SPDXRef-Package-elderheim-dartmouth-basic-0.3.0",
       "relationshipType": "DEPENDS_ON",
       "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-format-elf-0.3.0",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-elderheim-target-0.3.0",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-elderheim-0.3.0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-File-elderheim_core",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-File-elderheim_dartmouth_basic",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
     }
   ],
   "spdxVersion": "SPDX-2.3"

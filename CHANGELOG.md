@@ -2,15 +2,18 @@
 
 All notable Elderheim changes are documented here.
 
-## 0.3.0 - Unreleased
+## 0.3.0 - 2026-07-06
 
 - Added the no_std source byte model.
-- Added checked spans and one-based line/column lookup.
+- Added checked spans, one-based line/column lookup, and cursor-based lookup
+  for batched diagnostics.
 - Added stable diagnostic codes, severity labels, and compact diagnostic
   rendering.
 - Added source byte and line limit enforcement tests.
 - Added source/diagnostic contract documentation.
-- Added `0.3.0` release notes and pentest draft.
+- Addressed the `0.3.0` pentest findings around diagnostic lookup complexity,
+  source validation ordering, release-readiness temp-file handling, and span
+  invariants.
 
 ## 0.2.0 - 2026-07-06
 
