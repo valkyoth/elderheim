@@ -18,6 +18,23 @@ pub struct HirProgram<'a> {
     pub nodes: &'a [HirNode],
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ValidatedHir<'a> {
+    program: HirProgram<'a>,
+}
+
+impl<'a> ValidatedHir<'a> {
+    pub fn new(program: HirProgram<'a>) -> Result<Self, IrError> {
+        validate_hir(program)?;
+        Ok(Self { program })
+    }
+
+    #[must_use]
+    pub const fn program(self) -> HirProgram<'a> {
+        self.program
+    }
+}
+
 pub fn validate_hir(program: HirProgram<'_>) -> Result<(), IrError> {
     if program.nodes.is_empty() {
         return Err(IrError::EmptyProgram {
@@ -44,7 +61,7 @@ pub fn validate_hir(program: HirProgram<'_>) -> Result<(), IrError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{HirNode, HirNodeKind, HirProgram, validate_hir};
+    use super::{HirNode, HirNodeKind, HirProgram, ValidatedHir, validate_hir};
     use crate::{HirNodeId, IrError, IrLayer};
 
     #[test]
@@ -85,6 +102,23 @@ mod tests {
                 layer: IrLayer::Hir,
                 expected: 0,
                 actual: 2,
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn validated_hir_requires_successful_validation() -> Result<(), IrError> {
+        let nodes = [HirNode {
+            id: HirNodeId::new(0)?,
+            kind: HirNodeKind::Program,
+        }];
+        let program = HirProgram { nodes: &nodes };
+        assert_eq!(ValidatedHir::new(program)?.program(), program);
+        assert_eq!(
+            ValidatedHir::new(HirProgram { nodes: &[] }),
+            Err(IrError::EmptyProgram {
+                layer: IrLayer::Hir,
             })
         );
         Ok(())

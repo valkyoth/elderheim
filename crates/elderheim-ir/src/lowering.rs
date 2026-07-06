@@ -1,4 +1,4 @@
-use crate::{HirProgram, IrError, LirOp, MirOp, MirProgram};
+use crate::{IrError, LirOp, MirOp, ValidatedHir, ValidatedMir};
 
 pub trait MirSink {
     fn push_mir(&mut self, op: MirOp) -> Result<(), IrError>;
@@ -11,7 +11,7 @@ pub trait LirSink {
 pub trait HirToMirLowerer {
     fn lower_hir_to_mir(
         &self,
-        program: HirProgram<'_>,
+        program: ValidatedHir<'_>,
         sink: &mut dyn MirSink,
     ) -> Result<(), IrError>;
 }
@@ -19,7 +19,7 @@ pub trait HirToMirLowerer {
 pub trait MirToLirLowerer {
     fn lower_mir_to_lir(
         &self,
-        program: MirProgram<'_>,
+        program: ValidatedMir<'_>,
         sink: &mut dyn LirSink,
     ) -> Result<(), IrError>;
 }
@@ -27,7 +27,9 @@ pub trait MirToLirLowerer {
 #[cfg(test)]
 mod tests {
     use super::{HirToMirLowerer, MirSink};
-    use crate::{HirProgram, IrError, IrLayer, MirOp};
+    use crate::{
+        HirNode, HirNodeId, HirNodeKind, HirProgram, IrError, IrLayer, MirOp, ValidatedHir,
+    };
 
     struct RejectingMirSink;
 
@@ -44,7 +46,7 @@ mod tests {
     impl HirToMirLowerer for EmptyLowerer {
         fn lower_hir_to_mir(
             &self,
-            _program: HirProgram<'_>,
+            _program: ValidatedHir<'_>,
             sink: &mut dyn MirSink,
         ) -> Result<(), IrError> {
             sink.push_mir(MirOp::Exit { code: 0 })
@@ -52,13 +54,19 @@ mod tests {
     }
 
     #[test]
-    fn lowering_interfaces_propagate_sink_errors() {
+    fn lowering_interfaces_propagate_sink_errors() -> Result<(), IrError> {
+        let nodes = [HirNode {
+            id: HirNodeId::new(0)?,
+            kind: HirNodeKind::Program,
+        }];
+        let program = ValidatedHir::new(HirProgram { nodes: &nodes })?;
         let mut sink = RejectingMirSink;
         assert_eq!(
-            EmptyLowerer.lower_hir_to_mir(HirProgram { nodes: &[] }, &mut sink),
+            EmptyLowerer.lower_hir_to_mir(program, &mut sink),
             Err(IrError::SinkRejected {
                 layer: IrLayer::Mir,
             })
         );
+        Ok(())
     }
 }

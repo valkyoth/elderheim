@@ -8,11 +8,11 @@ mod lowering;
 mod mir;
 
 pub use error::{IrError, IrLayer};
-pub use hir::{HirNode, HirNodeKind, HirProgram, validate_hir};
+pub use hir::{HirNode, HirNodeKind, HirProgram, ValidatedHir, validate_hir};
 pub use ids::{DataId, HirNodeId, HirSymbolId, LirLabelId, LirSymbolId, MirLabelId, MirValueId};
-pub use lir::{LirOp, LirProgram, validate_lir};
+pub use lir::{LirOp, LirProgram, MAX_LIR_OPS, ValidatedLir, validate_lir};
 pub use lowering::{HirToMirLowerer, LirSink, MirSink, MirToLirLowerer};
-pub use mir::{MirOp, MirProgram, validate_mir};
+pub use mir::{MAX_MIR_OPS, MirOp, MirProgram, ValidatedMir, validate_mir};
 
 use elderheim_core::PipelineStage;
 

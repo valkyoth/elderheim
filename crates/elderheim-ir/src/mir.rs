@@ -1,5 +1,7 @@
 use crate::{DataId, IrError, IrLayer, MirLabelId, MirValueId};
 
+pub const MAX_MIR_OPS: usize = 64 * 1024;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MirOp {
     Label(MirLabelId),
@@ -25,10 +27,34 @@ pub struct MirProgram<'a> {
     pub ops: &'a [MirOp],
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ValidatedMir<'a> {
+    program: MirProgram<'a>,
+}
+
+impl<'a> ValidatedMir<'a> {
+    pub fn new(program: MirProgram<'a>) -> Result<Self, IrError> {
+        validate_mir(program)?;
+        Ok(Self { program })
+    }
+
+    #[must_use]
+    pub const fn program(self) -> MirProgram<'a> {
+        self.program
+    }
+}
+
 pub fn validate_mir(program: MirProgram<'_>) -> Result<(), IrError> {
     if program.ops.is_empty() {
         return Err(IrError::EmptyProgram {
             layer: IrLayer::Mir,
+        });
+    }
+    if program.ops.len() > MAX_MIR_OPS {
+        return Err(IrError::ProgramTooLarge {
+            layer: IrLayer::Mir,
+            len: len_to_u32(program.ops.len()),
+            max: len_to_u32(MAX_MIR_OPS),
         });
     }
 
@@ -115,9 +141,13 @@ fn require_value(value: MirValueId, ops: &[MirOp]) -> Result<(), IrError> {
     }
 }
 
+fn len_to_u32(len: usize) -> u32 {
+    u32::try_from(len).unwrap_or(u32::MAX)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{MirOp, MirProgram, validate_mir};
+    use super::{MAX_MIR_OPS, MirOp, MirProgram, ValidatedMir, validate_mir};
     use crate::{DataId, IrError, IrLayer, MirLabelId, MirValueId};
 
     #[test]
@@ -162,6 +192,33 @@ mod tests {
             Err(IrError::UndefinedId {
                 layer: IrLayer::Mir,
                 id: 7,
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn mir_rejects_oversized_programs() {
+        static OPS: [MirOp; MAX_MIR_OPS + 1] = [MirOp::Exit { code: 0 }; MAX_MIR_OPS + 1];
+        assert_eq!(
+            validate_mir(MirProgram { ops: &OPS }),
+            Err(IrError::ProgramTooLarge {
+                layer: IrLayer::Mir,
+                len: 65_537,
+                max: 65_536,
+            })
+        );
+    }
+
+    #[test]
+    fn validated_mir_requires_successful_validation() -> Result<(), IrError> {
+        let ops = [MirOp::Exit { code: 0 }];
+        let program = MirProgram { ops: &ops };
+        assert_eq!(ValidatedMir::new(program)?.program(), program);
+        assert_eq!(
+            ValidatedMir::new(MirProgram { ops: &[] }),
+            Err(IrError::EmptyProgram {
+                layer: IrLayer::Mir,
             })
         );
         Ok(())

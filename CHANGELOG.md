@@ -8,7 +8,11 @@ All notable Elderheim changes are documented here.
 - Added MIR value and label ID contracts.
 - Added LIR label and symbol ID contracts.
 - Added no_std HIR, MIR, and LIR validation entry points.
+- Added validated HIR, MIR, and LIR wrapper types.
+- Added MIR and LIR program size caps for bounded validation.
 - Added version-neutral lowering sink traits for HIR-to-MIR and MIR-to-LIR.
+- Required validated IR at lowering trait boundaries.
+- Added IR error-code uniqueness regression coverage.
 - Split the IR crate into focused modules.
 - Added `0.7.0` release notes and pentest draft.
 
