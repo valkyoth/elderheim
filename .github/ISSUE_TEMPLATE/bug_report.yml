@@ -1,0 +1,72 @@
+name: Bug Report
+description: Report a bug, missing behavior, or unexpected infrastructure issue in Elderheim.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Thanks for helping improve Elderheim.
+        CRITICAL SECURITY NOTICE: If this is an exploitable security vulnerability, DO NOT open a public issue. Please follow the disclosure guidelines in [SECURITY.md](https://github.com/valkyoth/elderheim/blob/main/SECURITY.md) instead.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug, missing behavior, or confusing documentation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: What did you expect to happen?
+      description: Describe the compiler, report, diagnostic, or generated-output behavior you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How can we reproduce it?
+      description: Provide clear steps, source snippets, flags, or commands to trigger the issue.
+      placeholder: |
+        1. Create code.bas with...
+        2. Run elderheim --dartmouth-basic-4 code.bas -o code
+        3. See unexpected diagnostic or output...
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Source Or Flags
+      description: Paste relevant source code, dialect flags, target flags, or output report excerpts.
+      render: text
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and Build Environment
+      description: Please provide technical details about your exact environment configuration.
+      placeholder: |
+        - Elderheim version or commit hash:
+        - Rust toolchain version (if building from source):
+        - Host Operating System / Kernel:
+        - Target operating system/architecture:
+        - Dialect profile:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Console Output
+      description: Paste relevant output here. Strip out secrets, private paths, or sensitive source before posting.
+      render: text
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Extra Context
+      description: Add any other context or architectural edge cases regarding the issue here.

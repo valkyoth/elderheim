@@ -1,0 +1,21 @@
+[package]
+name = "elderheim"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme = "../../README.md"
+description = "Facade and CLI shell for the Elderheim historic-language compiler platform."
+
+[dependencies]
+elderheim-backend-x86.workspace = true
+elderheim-core.workspace = true
+elderheim-dartmouth-basic.workspace = true
+elderheim-format-elf.workspace = true
+elderheim-ir.workspace = true
+elderheim-target.workspace = true
+
+[lints]
+workspace = true

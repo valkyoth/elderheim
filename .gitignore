@@ -1,0 +1,64 @@
+# Rust build output
+target/
+/fuzz/target/
+/fuzz/artifacts/
+/fuzz/corpus/
+
+# Local tool/runtime state
+/.agents/
+/.codex/
+/.cargo-deny-advisory-dbs/
+README.internal.md
+
+# Logs and diagnostics
+*.log
+logs/
+release-reports/
+*.pid
+
+# Local licensed standards/reference documents
+ISO_IEC_*.pdf
+
+# Python local bytecode
+__pycache__/
+*.py[cod]
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.secret
+*.token
+*.key
+*.pem
+*.p12
+*.pfx
+*.der
+
+# Elderheim generated/runtime data
+cache/
+acme/
+snapshots/
+runtime/
+data/
+tmp/
+temp/
+
+# Container/local generated artifacts
+/dist/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.zst
+*.img
+*.qcow2
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.idea/
+.vscode/

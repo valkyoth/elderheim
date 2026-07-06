@@ -1,0 +1,51 @@
+[workspace]
+members = [
+    "crates/elderheim",
+    "crates/elderheim-core",
+    "crates/elderheim-ir",
+    "crates/elderheim-target",
+    "crates/elderheim-backend-x86",
+    "crates/elderheim-format-elf",
+    "crates/languages/elderheim-dartmouth-basic",
+    "tools/xtask",
+]
+default-members = ["crates/elderheim"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96.1"
+license = "EUPL-1.2"
+homepage = "https://github.com/valkyoth/elderheim"
+repository = "https://github.com/valkyoth/elderheim"
+readme = "README.md"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unsafe_op_in_unsafe_fn = "forbid"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+panic = "forbid"
+unwrap_used = "forbid"
+expect_used = "forbid"
+undocumented_unsafe_blocks = "forbid"
+indexing_slicing = "forbid"
+arithmetic_side_effects = "forbid"
+cast_possible_truncation = "deny"
+cast_sign_loss = "deny"
+
+[workspace.dependencies]
+elderheim-backend-x86 = { path = "crates/elderheim-backend-x86", version = "0.1.0" }
+elderheim-core = { path = "crates/elderheim-core", version = "0.1.0" }
+elderheim-dartmouth-basic = { path = "crates/languages/elderheim-dartmouth-basic", version = "0.1.0" }
+elderheim-format-elf = { path = "crates/elderheim-format-elf", version = "0.1.0" }
+elderheim-ir = { path = "crates/elderheim-ir", version = "0.1.0" }
+elderheim-target = { path = "crates/elderheim-target", version = "0.1.0" }
+
+[profile.release]
+overflow-checks = true
+panic = "abort"
+lto = true
+codegen-units = 1
