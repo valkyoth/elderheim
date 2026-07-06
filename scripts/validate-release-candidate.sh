@@ -34,23 +34,23 @@ if [ ! -f "$pentest_report" ]; then
     exit 1
 fi
 
-grep -Eq '^Status: (DRAFT|READY|PASS)$' "$pentest_report" || {
+grep -Eq '^Status: (DRAFT|PASS)$' "$pentest_report" || {
     echo "pentest report status is invalid: ${pentest_report}" >&2
     exit 1
 }
 
-grep -Eq '^Commit: (TBD|[0-9a-f]{40})$' "$pentest_report" || {
-    echo "pentest report commit field is invalid: ${pentest_report}" >&2
+grep -Eq '^Reviewed-Commit: (TBD|[0-9a-f]{40})$' "$pentest_report" || {
+    echo "pentest report reviewed commit field is invalid: ${pentest_report}" >&2
+    exit 1
+}
+
+grep -Eq '^Remediation-Commit: (TBD|[0-9a-f]{40})$' "$pentest_report" || {
+    echo "pentest report remediation commit field is invalid: ${pentest_report}" >&2
     exit 1
 }
 
 grep -Eq '^Tester: .+' "$pentest_report" || {
     echo "pentest report is missing tester identity: ${pentest_report}" >&2
-    exit 1
-}
-
-grep -Eq '^CodeQL: (TBD|PENDING|PASS|FINDINGS)$' "$pentest_report" || {
-    echo "CodeQL state is invalid in: ${pentest_report}" >&2
     exit 1
 }
 

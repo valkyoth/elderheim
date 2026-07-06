@@ -19,8 +19,9 @@ GitHub Actions run normal Rust CI. GitHub CodeQL default setup should be enabled
 in the repository security settings. Keep only one active CodeQL configuration:
 do not add an advanced CodeQL workflow while default setup is active.
 
-Before tagging, CodeQL default setup findings must be reviewed and reflected in
-the matching `security/pentest/<version>.md` report.
+After the release-candidate commit is pushed, GitHub CodeQL default setup runs
+on that commit. If CodeQL reports findings, fix them, update the matching
+`security/pentest/<version>.md` report, and make a new release-candidate commit.
 
 ## Dependency Policy
 

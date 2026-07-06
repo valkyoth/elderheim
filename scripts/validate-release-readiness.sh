@@ -44,18 +44,18 @@ grep -Eq '^Status: PASS$' "$pentest_report" || {
     exit 1
 }
 
-grep -Eq '^Commit: [0-9a-f]{40}$' "$pentest_report" || {
-    echo "pentest report does not name the exact release commit: ${pentest_report}" >&2
+grep -Eq '^Reviewed-Commit: [0-9a-f]{40}$' "$pentest_report" || {
+    echo "pentest report does not name the reviewed commit: ${pentest_report}" >&2
+    exit 1
+}
+
+grep -Eq '^Remediation-Commit: [0-9a-f]{40}$' "$pentest_report" || {
+    echo "pentest report does not name the remediation commit: ${pentest_report}" >&2
     exit 1
 }
 
 grep -Eq '^Tester: .+' "$pentest_report" || {
     echo "pentest report is missing tester identity: ${pentest_report}" >&2
-    exit 1
-}
-
-grep -Eq '^CodeQL: (PASS|FINDINGS)$' "$pentest_report" || {
-    echo "CodeQL findings have not been reviewed in: ${pentest_report}" >&2
     exit 1
 }
 

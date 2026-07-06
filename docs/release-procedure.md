@@ -23,9 +23,7 @@ Before a tag:
 
 - release notes must exist under `release-notes/`;
 - the final pentest report must exist under `security/pentest/`;
-- the report must cover the exact release commit or say `Commit: TBD` while it
-  is still a draft;
-- CodeQL default setup findings must be reviewed and reflected in the report;
+- the report must name the reviewed commit and remediation commit;
 - any release-blocking finding must be fixed before `Status: PASS`;
 - any non-blocking finding must have an explicit follow-up release;
 - root `PENTEST.md` must be removed after its contents are incorporated.
@@ -45,9 +43,10 @@ The normal loop is:
    full release-candidate check.
 6. A release-candidate commit is made locally and pushed by the maintainer.
 7. GitHub Actions and CodeQL run on that pushed commit.
-8. If CodeQL reports findings, they are fixed, the report is updated, and a new
-   release-candidate commit is made.
-9. Only after CodeQL and the pentest report are final does the tag gate run.
+8. If CodeQL reports findings, they are fixed, the report is updated with the
+   security finding, and a new release-candidate commit is made.
+9. If GitHub checks are clean, the pushed release-candidate commit is the tag
+   target.
 
 The final release evidence lives in:
 
@@ -58,10 +57,10 @@ security/pentest/<version>.md
 The report must summarize:
 
 - supplied `PENTEST.md` findings;
-- CodeQL default setup findings;
 - local security-gate results;
 - release-blocking fixes;
 - scheduled follow-up releases for accepted non-blocking findings.
+- CodeQL findings only when GitHub reports them after the ready commit.
 
 ## Required Pentest Report Fields
 
@@ -69,11 +68,16 @@ Each report must include:
 
 ```text
 Status: DRAFT|PASS
-Commit: TBD|<40 hex commit>
+Reviewed-Commit: TBD|<40 hex commit>
+Remediation-Commit: TBD|<40 hex commit>
 Tester: <name or team>
-Date: <date or TBD>
-CodeQL: TBD|PASS|FINDINGS
 Scope:
+Date: <date or TBD>
+Summary:
+Remediation:
+Retest:
+Verification:
+Decision:
 Result:
 ```
 
@@ -81,21 +85,12 @@ Report statuses:
 
 - `DRAFT`: pentest input has been incorporated, but more retest or release
   work is expected.
-- `READY`: local full release checks passed and the commit is ready to push so
-  GitHub Actions and CodeQL can review that exact state.
-- `PASS`: release-blocking pentest and CodeQL findings are fixed, verified, and
-  documented.
+- `PASS`: the pentest and retest are clean, release-blocking findings are
+  fixed, and the release-candidate commit is ready for final GitHub checks.
 
-CodeQL statuses:
-
-- `TBD`: CodeQL has not been checked for the current release work.
-- `PENDING`: the ready commit is waiting for GitHub CodeQL results.
-- `PASS`: CodeQL was reviewed and has no release-blocking findings.
-- `FINDINGS`: CodeQL produced findings that are documented in the report.
-
-`scripts/validate-release-candidate.sh` accepts draft and ready states for the
-local ready-commit workflow.
+`scripts/validate-release-candidate.sh` accepts draft and pass states for the
+local release-candidate workflow.
 
 `scripts/validate-release-readiness.sh` is intentionally stricter than the draft
-format. It accepts only `Status: PASS`, an exact commit hash, and reviewed
-CodeQL state.
+format. It accepts only `Status: PASS` plus exact reviewed and remediation
+commit hashes.
