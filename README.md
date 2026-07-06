@@ -193,7 +193,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh elderheim-v0.10.0
+scripts/validate-release-candidate.sh v0.10.0-elderheim
 ```
 
 Run the dependency and advisory gates:

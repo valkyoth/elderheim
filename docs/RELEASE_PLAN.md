@@ -119,17 +119,17 @@ The new repository already has immutable releases for these tag names:
 - `v0.80.0`
 - `v0.90.0`
 
-Use `elderheim-vX.Y.Z` project-prefixed tags for those exact milestones:
+Use `vX.Y.Z-elderheim` version-suffixed tags for those exact milestones:
 
-- `elderheim-v0.10.0`
-- `elderheim-v0.20.0`
-- `elderheim-v0.30.0`
-- `elderheim-v0.40.0`
-- `elderheim-v0.50.0`
-- `elderheim-v0.60.0`
-- `elderheim-v0.70.0`
-- `elderheim-v0.80.0`
-- `elderheim-v0.90.0`
+- `v0.10.0-elderheim`
+- `v0.20.0-elderheim`
+- `v0.30.0-elderheim`
+- `v0.40.0-elderheim`
+- `v0.50.0-elderheim`
+- `v0.60.0-elderheim`
+- `v0.70.0-elderheim`
+- `v0.80.0-elderheim`
+- `v0.90.0-elderheim`
 
 This workaround applies only to those exact `0.x.0` milestones. Other
 pre-1.0 tags keep the normal `vX.Y.Z` form. `v1.0.0` has not been tagged and
@@ -173,7 +173,7 @@ Pentest classes:
 | v0.7.0 | HIR/MIR/LIR contracts and validators are testable. | P1 |
 | v0.8.0 | Runtime fragment model selects dependencies without emitting executables. | P1 |
 | v0.9.0 | Manual fixture corpus is controlled and local-manual absence is handled. | P0 |
-| elderheim-v0.10.0 | BASIC 1 line table behavior is stable. | P2 |
+| v0.10.0-elderheim | BASIC 1 line table behavior is stable. | P2 |
 | v0.11.0 | BASIC 1 lexer fixtures pass. | P2 |
 | v0.12.0 | BASIC 1 HIR snapshots are stable. | P2 |
 | v0.13.0 | BASIC 1 minimal parser fixtures pass. | P2 |
@@ -183,7 +183,7 @@ Pentest classes:
 | v0.17.0 | BASIC 1 MIR golden tests pass. | P2 |
 | v0.18.0 | BASIC 1 runtime requirements are fully inventoried. | P3 |
 | v0.19.0 | BASIC 1 host model executes semantic fixtures. | P2 |
-| elderheim-v0.20.0 | BASIC 1 compatibility sweep passes before BASIC 2 starts. | P2 |
+| v0.20.0-elderheim | BASIC 1 compatibility sweep passes before BASIC 2 starts. | P2 |
 | v0.21.0 | BASIC 2 delta is documented and BASIC 1 remains green. | P2 |
 | v0.22.0 | BASIC 2 lexer delta passes and BASIC 1 rejects BASIC 2-only tokens. | P2 |
 | v0.23.0 | BASIC 2 parser delta passes without BASIC 1 regressions. | P2 |
@@ -193,7 +193,7 @@ Pentest classes:
 | v0.27.0 | BASIC 2 compatibility sweep passes before BASIC 4 starts. | P2 |
 | v0.28.0 | BASIC 4 delta is documented and older versions remain green. | P2 |
 | v0.29.0 | BASIC 4 lexer delta passes and older modes reject BASIC 4-only tokens. | P2 |
-| elderheim-v0.30.0 | BASIC 4 parser delta passes without older-version regressions. | P2 |
+| v0.30.0-elderheim | BASIC 4 parser delta passes without older-version regressions. | P2 |
 | v0.31.0 | BASIC 4 semantic validation passes without older-version regressions. | P2 |
 | v0.32.0 | BASIC 4 MIR/runtime delta passes without older-version regressions. | P2 |
 | v0.33.0 | BASIC 4 host model executes semantic fixtures. | P2 |
@@ -203,7 +203,7 @@ Pentest classes:
 | v0.37.0 | Integer formatting runtime passes bounds and golden tests. | P3 |
 | v0.38.0 | Input runtime passes valid and invalid input tests. | P3 |
 | v0.39.0 | DATA and array runtime passes bounds tests. | P3 |
-| elderheim-v0.40.0 | ELF writer core passes exact-byte and invalid-layout tests. | P4 |
+| v0.40.0-elderheim | ELF writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.41.0 | ELF64 tiny profile is layout-verified. | P4 |
 | v0.42.0 | ELF32 tiny profile is layout-verified. | P4 |
 | v0.43.0 | Secure ELF64 profile enforces segment permissions. | P4 |
@@ -213,7 +213,7 @@ Pentest classes:
 | v0.47.0 | Linux x86_64 hello-world binary smoke passes. | P5 |
 | v0.48.0 | Linux x86_64 Dartmouth core fixture suite passes. | P5 |
 | v0.49.0 | x86 32-bit encoder exact-byte tests pass. | P5 |
-| elderheim-v0.50.0 | x86 32-bit relocation boundary tests pass. | P5 |
+| v0.50.0-elderheim | x86 32-bit relocation boundary tests pass. | P5 |
 | v0.51.0 | Linux x86 32-bit hello-world binary smoke passes. | P5 |
 | v0.52.0 | Linux x86 32-bit Dartmouth core fixture suite passes. | P5 |
 | v0.53.0 | AArch64 encoder exact-word tests pass. | P5 |
@@ -223,7 +223,7 @@ Pentest classes:
 | v0.57.0 | AArch32 encoder exact-word tests pass. | P5 |
 | v0.58.0 | AArch32 relocation boundary tests pass. | P5 |
 | v0.59.0 | Linux AArch32 hello-world binary smoke passes. | P5 |
-| elderheim-v0.60.0 | Linux AArch32 Dartmouth core fixture suite passes. | P5 |
+| v0.60.0-elderheim | Linux AArch32 Dartmouth core fixture suite passes. | P5 |
 | v0.61.0 | PE writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.62.0 | PE64 tiny profile is layout-verified. | P4 |
 | v0.63.0 | Windows x86_64 ABI lowering tests pass. | P5 |
@@ -233,7 +233,7 @@ Pentest classes:
 | v0.67.0 | Mach-O AArch64 tiny profile is layout-verified. | P4 |
 | v0.68.0 | macOS AArch64 ABI lowering tests pass. | P5 |
 | v0.69.0 | macOS AArch64 hello-world binary smoke passes. | P5 |
-| elderheim-v0.70.0 | macOS AArch64 Dartmouth core fixture suite passes. | P5 |
+| v0.70.0-elderheim | macOS AArch64 Dartmouth core fixture suite passes. | P5 |
 | v0.71.0 | Cross-platform runtime policy passes output-equivalence tests. | P6 |
 | v0.72.0 | Cross-platform output matrix is represented and documented. | P6 |
 | v0.73.0 | CLI target selection tests pass for every 1.0 target. | P6 |
@@ -243,7 +243,7 @@ Pentest classes:
 | v0.77.0 | User-facing diagnostic golden tests pass. | P6 |
 | v0.78.0 | BASIC 1 compatibility sweep passes on implemented targets. | P2 |
 | v0.79.0 | BASIC 2 compatibility sweep passes on implemented targets. | P2 |
-| elderheim-v0.80.0 | BASIC 4 compatibility sweep passes on implemented targets. | P2 |
+| v0.80.0-elderheim | BASIC 4 compatibility sweep passes on implemented targets. | P2 |
 | v0.81.0 | Cross-version compatibility matrix passes. | P6 |
 | v0.82.0 | Cross-target output matrix passes. | P6 |
 | v0.83.0 | Parser abuse hardening corpus passes without panics. | P7 |
@@ -253,7 +253,7 @@ Pentest classes:
 | v0.87.0 | Reproducible generated-output tests pass. | P7 |
 | v0.88.0 | Documentation freeze candidate has complete links and examples. | P7 |
 | v0.89.0 | Feature freeze candidate has complete fixture and target matrices. | P7 |
-| elderheim-v0.90.0 | Performance and size baselines are recorded. | P7 |
+| v0.90.0-elderheim | Performance and size baselines are recorded. | P7 |
 | v0.91.0 | Security review handoff evidence is complete. | P7 |
 | v0.92.0 | Pentest fixes have regression tests and follow-up review. | P7 |
 | v0.93.0 | Final 1.0 candidate has no known release blockers. | P7 |
@@ -466,7 +466,7 @@ Verification:
 
 ## Phase 2: Dartmouth BASIC 1 Complete Frontend
 
-### elderheim-v0.10.0 - BASIC 1 Line Table
+### v0.10.0-elderheim - BASIC 1 Line Table
 
 Goal:
 
@@ -657,7 +657,7 @@ Verification:
 - BASIC 1 semantic fixture suite passes in the host model.
 - No native executable output is claimed by this tag.
 
-### elderheim-v0.20.0 - BASIC 1 Compatibility Sweep
+### v0.20.0-elderheim - BASIC 1 Compatibility Sweep
 
 Goal:
 
@@ -841,7 +841,7 @@ Verification:
 - BASIC 4 lexer fixtures.
 - BASIC 1 and BASIC 2 lexer regression suites.
 
-### elderheim-v0.30.0 - BASIC 4 Parser Expansion
+### v0.30.0-elderheim - BASIC 4 Parser Expansion
 
 Goal:
 
@@ -1023,7 +1023,7 @@ Verification:
 
 ## Phase 6: ELF Writers
 
-### elderheim-v0.40.0 - ELF Writer Core
+### v0.40.0-elderheim - ELF Writer Core
 
 Goal:
 
@@ -1202,7 +1202,7 @@ Verification:
 - Exact-byte instruction tests.
 - ABI documentation tests.
 
-### elderheim-v0.50.0 - x86 32-bit Relocations
+### v0.50.0-elderheim - x86 32-bit Relocations
 
 Goal:
 
@@ -1377,7 +1377,7 @@ Verification:
 
 - Generated binary prints `HELLO` on AArch32 Linux or emulator.
 
-### elderheim-v0.60.0 - Linux AArch32 Dartmouth Core
+### v0.60.0-elderheim - Linux AArch32 Dartmouth Core
 
 Goal:
 
@@ -1562,7 +1562,7 @@ Verification:
 - Generated executable prints `HELLO` on Apple Silicon macOS or an approved
   macOS CI path.
 
-### elderheim-v0.70.0 - macOS AArch64 Dartmouth Core
+### v0.70.0-elderheim - macOS AArch64 Dartmouth Core
 
 Goal:
 
@@ -1751,7 +1751,7 @@ Verification:
 
 - Version 2 fixtures pass on all implemented targets.
 
-### elderheim-v0.80.0 - Dartmouth BASIC 4 Compatibility Sweep
+### v0.80.0-elderheim - Dartmouth BASIC 4 Compatibility Sweep
 
 Goal:
 
@@ -1932,7 +1932,7 @@ Verification:
 
 - Full fixture matrix passes.
 
-### elderheim-v0.90.0 - Performance And Size Baseline
+### v0.90.0-elderheim - Performance And Size Baseline
 
 Goal:
 

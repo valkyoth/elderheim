@@ -8,7 +8,7 @@ Status: released
 stable line-table layer. It represents numbered BASIC 1 source before later
 lexer and parser stages.
 
-The release tag for this milestone is `elderheim-v0.10.0` because the plain
+The release tag for this milestone is `v0.10.0-elderheim` because the plain
 `v0.10.0` tag is unavailable in the repository.
 
 This release does not add a BASIC lexer, full parser, semantic validator, MIR

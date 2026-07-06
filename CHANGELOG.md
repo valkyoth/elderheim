@@ -99,7 +99,7 @@ All notable Elderheim changes are documented here.
 - Added pipeline tests for empty pipelines, stage ordering, missing stages,
   and error propagation.
 - Added IR boundary markers mapped to shared pipeline stages.
-- Updated locked milestone tag guidance to use `elderheim-vX.Y.Z`.
+- Updated locked milestone tag guidance to use version-suffixed tags.
 - Addressed the `0.4.0` pentest findings around skipped pipeline stages,
   release tag validation, supply-chain gate enforcement, and module size.
 

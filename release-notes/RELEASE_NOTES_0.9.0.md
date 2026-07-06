@@ -34,7 +34,7 @@ lowering, runtime execution, or executable output.
 
 ## Scope Exclusions
 
-- BASIC 1 parsing starts in the `elderheim-v0.10.0` line-table stop.
+- BASIC 1 parsing starts in the `v0.10.0-elderheim` line-table stop.
 - Dartmouth BASIC 2 and 4 language reference documents remain future corpus
   work.
 - Dartmouth BASIC 3 remains reserved until official documentation is available.

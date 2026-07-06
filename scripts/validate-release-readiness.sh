@@ -4,14 +4,17 @@ set -eu
 tag="${1:-}"
 case "$tag" in
     v0.10.0 | v0.20.0 | v0.30.0 | v0.40.0 | v0.50.0 | v0.60.0 | v0.70.0 | v0.80.0 | v0.90.0)
-        echo "immutable release tag already exists: ${tag}; use elderheim-${tag}" >&2
+        echo "immutable release tag already exists: ${tag}; use ${tag}-elderheim" >&2
         exit 2
         ;;
-    elderheim-v*) version="${tag#elderheim-v}" ;;
+    v0.10.0-elderheim | v0.20.0-elderheim | v0.30.0-elderheim | v0.40.0-elderheim | v0.50.0-elderheim | v0.60.0-elderheim | v0.70.0-elderheim | v0.80.0-elderheim | v0.90.0-elderheim)
+        version="${tag#v}"
+        version="${version%-elderheim}"
+        ;;
     v*) version="${tag#v}" ;;
     *)
         echo "usage: scripts/validate-release-readiness.sh vX.Y.Z" >&2
-        echo "       locked milestones use elderheim-vX.Y.Z" >&2
+        echo "       locked milestones use vX.Y.Z-elderheim" >&2
         exit 2
         ;;
 esac

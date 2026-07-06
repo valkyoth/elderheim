@@ -23,7 +23,7 @@ because the code compiles.
 Most tags use the normal `vX.Y.Z` form. The repository already has immutable
 tags for the exact `v0.10.0`, `v0.20.0`, `v0.30.0`, `v0.40.0`, `v0.50.0`,
 `v0.60.0`, `v0.70.0`, `v0.80.0`, and `v0.90.0` names. Those exact milestones
-use project-prefixed tags such as `elderheim-v0.10.0` instead.
+use version-suffixed tags such as `v0.10.0-elderheim` instead.
 
 Before a tag:
 

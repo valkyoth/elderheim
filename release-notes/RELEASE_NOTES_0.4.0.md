@@ -23,8 +23,8 @@ behavior.
 - Tests for empty pipelines, stage ordering, error propagation, and IR
   boundary mapping.
 - Pipeline contract documentation under `docs/pipeline-contract.md`.
-- Locked milestone tag guidance changed from `vX.Y.Z-release` to
-  `elderheim-vX.Y.Z`.
+- Locked milestone tag guidance changed from `vX.Y.Z-release`; the current
+  workaround uses version-suffixed tags.
 - Release tag validators now require strict numeric `X.Y.Z` version segments.
 - `scripts/checks.sh` now enforces `cargo deny check` and `cargo audit`.
 
