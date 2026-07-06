@@ -96,10 +96,9 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.7.0` is the active HIR/MIR/LIR contract workstream. It adds no_std IR ID
-models, HIR/MIR/LIR program contracts, validation entry points, and
-version-neutral lowering interfaces without committing to Dartmouth BASIC
-syntax yet.
+`0.8.0` is the active runtime fragment selection workstream. It adds a no_std
+runtime requirement and fragment inventory model that selects dependencies
+without emitting executable bytes, object files, or platform runtime blobs.
 
 No Dartmouth BASIC parser or executable writer is implemented yet. The roadmap
 intentionally starts with compiler substrate, then makes BASIC 1 complete,
@@ -118,6 +117,7 @@ then BASIC 2 complete, then BASIC 4 complete.
 | Compiler pipeline skeleton | Working | `elderheim-core` exposes ordered source-to-diagnostic, HIR-to-MIR, MIR-to-LIR, and LIR-to-target stages with fail-fast diagnostics and report sink events. |
 | Reporting core | Working | `elderheim-core` exposes stable report sections and report events for section headers, pipeline stages, and diagnostics. |
 | IR contracts | Working | `elderheim-ir` exposes HIR node IDs, MIR value/label IDs, LIR label/symbol IDs, validators, and lowering sink traits. |
+| Runtime fragment selection | Working | `elderheim-runtime` maps high-level runtime requirements to fragment dependencies without executable emission. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
@@ -169,7 +169,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.7.0
+scripts/validate-release-candidate.sh v0.8.0
 ```
 
 Run the dependency and advisory gates:
@@ -211,6 +211,7 @@ elderheim/
 │   ├── elderheim/                  # no_std facade library and CLI shell
 │   ├── elderheim-core/             # source, spans, diagnostics, pipeline, limits
 │   ├── elderheim-ir/               # HIR/MIR/LIR and pipeline boundary contracts
+│   ├── elderheim-runtime/          # runtime fragment inventory and selection
 │   ├── elderheim-target/           # target and format identifiers
 │   ├── elderheim-backend-x86/      # x86 32-bit and x86_64 backend contracts
 │   ├── elderheim-format-elf/       # ELF32/ELF64 writer contracts
@@ -236,6 +237,7 @@ elderheim/
 | [Source Normalization](docs/source-normalization.md) | Line ending, byte policy, blank-line, and source ID contract. |
 | [Diagnostics Reporting](docs/diagnostics-reporting.md) | Diagnostic registry, snippet rendering, and report section/event contract. |
 | [IR Contracts](docs/ir-contracts.md) | HIR/MIR/LIR IDs, validators, and lowering interface contract. |
+| [Runtime Fragments](docs/runtime-fragments.md) | Runtime requirement, fragment inventory, and dependency selection contract. |
 | [Pipeline Contract](docs/pipeline-contract.md) | Compiler stage ordering, error propagation, and report sink contract. |
 | [Modularity Policy](docs/modularity-policy.md) | Crate split rules and 500-line source-file policy. |
 | [Unsafe Policy](docs/unsafe-policy.md) | Unsafe admission rules and serialization safety policy. |

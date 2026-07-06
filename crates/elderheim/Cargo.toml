@@ -15,6 +15,7 @@ elderheim-core.workspace = true
 elderheim-dartmouth-basic.workspace = true
 elderheim-format-elf.workspace = true
 elderheim-ir.workspace = true
+elderheim-runtime.workspace = true
 elderheim-target.workspace = true
 
 [lints]

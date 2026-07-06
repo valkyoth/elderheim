@@ -64,6 +64,9 @@ crates/elderheim-core
 crates/elderheim-ir
   HIR/MIR/LIR contracts, validators, lowering contracts
 
+crates/elderheim-runtime
+  runtime fragment inventory, dependency selection, inclusion reports
+
 crates/elderheim-target
   target triples, ABI identifiers, executable-format choices
 

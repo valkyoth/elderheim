@@ -437,6 +437,8 @@ Verification:
 
 - Fragment selection tests.
 - No-unused-fragment tests.
+- Fragment inclusion report tests.
+- Non-emission contract tests.
 
 ### v0.9.0 - Manual Corpus Setup
 

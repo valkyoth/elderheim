@@ -2,6 +2,18 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.8.0 - Unreleased
+
+- Added the `elderheim-runtime` no_std crate.
+- Added runtime requirement identifiers for output, input, failure paths, and
+  program exit.
+- Added runtime fragment identifiers for static output, integer formatting,
+  line input, integer parsing, bounds failure, division failure, and exit.
+- Added allocation-free runtime fragment dependency selection.
+- Added an explicit non-emission contract for runtime plans.
+- Added runtime fragment inclusion reports and no-unused-fragment tests.
+- Added runtime fragment documentation, release notes, and pentest draft.
+
 ## 0.7.0 - 2026-07-06
 
 - Added HIR node and symbol ID contracts.

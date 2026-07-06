@@ -22,6 +22,7 @@ test -f docs/source-diagnostics.md
 test -f docs/source-normalization.md
 test -f docs/diagnostics-reporting.md
 test -f docs/ir-contracts.md
+test -f docs/runtime-fragments.md
 test -f docs/pipeline-contract.md
 test -f docs/modularity-policy.md
 test -f docs/unsafe-policy.md
@@ -29,10 +30,10 @@ test -f docs/threat-model.md
 test -f docs/security-controls.md
 test -f docs/supply-chain-security.md
 test -f docs/toolchain-policy.md
-test -f release-notes/RELEASE_NOTES_0.7.0.md
-test -f security/pentest/0.7.0.md
-grep -Eq '^Reviewed-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.7.0.md
-grep -Eq '^Remediation-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.7.0.md
+test -f release-notes/RELEASE_NOTES_0.8.0.md
+test -f security/pentest/0.8.0.md
+grep -Eq '^Reviewed-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.8.0.md
+grep -Eq '^Remediation-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.8.0.md
 
 grep -q 'license = "EUPL-1.2"' Cargo.toml
 grep -q 'repository = "https://github.com/valkyoth/elderheim"' Cargo.toml

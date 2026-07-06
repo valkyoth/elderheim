@@ -4,43 +4,48 @@ version = 4
 
 [[package]]
 name = "elderheim"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "elderheim-backend-x86",
  "elderheim-core",
  "elderheim-dartmouth-basic",
  "elderheim-format-elf",
  "elderheim-ir",
+ "elderheim-runtime",
  "elderheim-target",
 ]
 
 [[package]]
 name = "elderheim-backend-x86"
-version = "0.7.0"
+version = "0.8.0"
 
 [[package]]
 name = "elderheim-core"
-version = "0.7.0"
+version = "0.8.0"
 
 [[package]]
 name = "elderheim-dartmouth-basic"
-version = "0.7.0"
+version = "0.8.0"
 
 [[package]]
 name = "elderheim-format-elf"
-version = "0.7.0"
+version = "0.8.0"
 
 [[package]]
 name = "elderheim-ir"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "elderheim-core",
 ]
 
 [[package]]
+name = "elderheim-runtime"
+version = "0.8.0"
+
+[[package]]
 name = "elderheim-target"
-version = "0.7.0"
+version = "0.8.0"
 
 [[package]]
 name = "xtask"
-version = "0.7.0"
+version = "0.8.0"
