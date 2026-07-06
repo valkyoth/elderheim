@@ -9,6 +9,7 @@ repository.workspace = true
 description = "Dartmouth BASIC dialect contracts for Elderheim."
 
 [dependencies]
+elderheim-core = { workspace = true }
 
 [lints]
 workspace = true

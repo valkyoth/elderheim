@@ -1,13 +1,16 @@
-use alloc::vec::Vec;
+use alloc::{collections::BTreeSet, vec::Vec};
+
+use elderheim_core::CompileLimits;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Basic1LineNumber(u32);
 
 impl Basic1LineNumber {
     pub const MAX: u32 = 99_999;
+    pub const MAX_DIGITS: usize = 5;
 
     pub fn parse(text: &str) -> Result<Self, LineTableErrorKind> {
-        if text.is_empty() || text.len() > 5 || text.starts_with('0') {
+        if text.is_empty() || text.len() > Self::MAX_DIGITS || text.starts_with('0') {
             return Err(LineTableErrorKind::InvalidLineNumber);
         }
 
@@ -32,6 +35,10 @@ impl Basic1LineNumber {
                 .ok_or(LineTableErrorKind::InvalidLineNumber)?;
         }
 
+        if value > Self::MAX {
+            return Err(LineTableErrorKind::InvalidLineNumber);
+        }
+
         Ok(Self(value))
     }
 
@@ -43,6 +50,8 @@ impl Basic1LineNumber {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LineTableErrorKind {
     EmptySource,
+    SourceTooLarge,
+    TooManyLines,
     EmptyPhysicalLine,
     MissingLineNumber,
     InvalidLineNumber,
@@ -75,6 +84,13 @@ impl<'source> Basic1LineTable<'source> {
         parse_basic1_line_table(source)
     }
 
+    pub fn parse_with_limits(
+        source: &'source str,
+        limits: CompileLimits,
+    ) -> Result<Self, LineTableError> {
+        parse_basic1_line_table_with_limits(source, limits)
+    }
+
     pub fn entries(&self) -> &[LineTableEntry<'source>] {
         &self.entries
     }
@@ -93,14 +109,29 @@ impl<'source> Basic1LineTable<'source> {
 }
 
 pub fn parse_basic1_line_table(source: &str) -> Result<Basic1LineTable<'_>, LineTableError> {
+    parse_basic1_line_table_with_limits(source, CompileLimits::DEFAULT)
+}
+
+pub fn parse_basic1_line_table_with_limits(
+    source: &str,
+    limits: CompileLimits,
+) -> Result<Basic1LineTable<'_>, LineTableError> {
     if source.is_empty() {
         return Err(error(LineTableErrorKind::EmptySource, 0));
     }
+    if source.len() > limits.max_source_bytes {
+        return Err(error(LineTableErrorKind::SourceTooLarge, 0));
+    }
 
     let mut entries = Vec::new();
+    let mut seen_numbers = BTreeSet::new();
     let mut previous_number = None;
 
     for (physical_line_index, raw_line) in source.lines().enumerate() {
+        if physical_line_index >= limits.max_lines {
+            return Err(error(LineTableErrorKind::TooManyLines, physical_line_index));
+        }
+
         let line = raw_line.trim_end();
         if line.is_empty() {
             return Err(error(
@@ -110,10 +141,7 @@ pub fn parse_basic1_line_table(source: &str) -> Result<Basic1LineTable<'_>, Line
         }
 
         let (number, statement) = parse_line(line, physical_line_index)?;
-        if entries
-            .iter()
-            .any(|entry: &LineTableEntry<'_>| entry.number == number)
-        {
+        if !seen_numbers.insert(number.get()) {
             return Err(error(
                 LineTableErrorKind::DuplicateLineNumber,
                 physical_line_index,
@@ -202,6 +230,8 @@ const fn error(kind: LineTableErrorKind, physical_line_index: usize) -> LineTabl
 #[cfg(test)]
 mod tests {
     use super::{Basic1LineNumber, LineTableError, LineTableErrorKind, parse_basic1_line_table};
+    use crate::parse_basic1_line_table_with_limits;
+    use elderheim_core::CompileLimits;
 
     #[test]
     fn parses_increasing_numbered_lines() {
@@ -283,6 +313,34 @@ mod tests {
             Err(LineTableError {
                 kind: LineTableErrorKind::MissingStatementSeparator,
                 physical_line_index: 0,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_sources_over_compile_byte_limit() {
+        assert_eq!(
+            parse_basic1_line_table_with_limits(
+                "10 PRINT 1\n20 END\n",
+                CompileLimits::with_source_limits(8, 10),
+            ),
+            Err(LineTableError {
+                kind: LineTableErrorKind::SourceTooLarge,
+                physical_line_index: 0,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_sources_over_compile_line_limit() {
+        assert_eq!(
+            parse_basic1_line_table_with_limits(
+                "10 PRINT 1\n20 PRINT 2\n30 END\n",
+                CompileLimits::with_source_limits(128, 2),
+            ),
+            Err(LineTableError {
+                kind: LineTableErrorKind::TooManyLines,
+                physical_line_index: 2,
             })
         );
     }

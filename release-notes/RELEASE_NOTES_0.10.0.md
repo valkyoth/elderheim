@@ -24,7 +24,9 @@ lowering, runtime execution, or executable output.
 - Strictly increasing line-number enforcement for BASIC 1 source order.
 - Empty numbered line rejection.
 - Missing statement-separator rejection.
+- Compile byte-limit and line-limit enforcement in the line-table parser.
 - Tests for valid example line tables and malformed line-number cases.
+- Regression tests for oversized source and too-many-lines rejection.
 - Project licensing/output-ownership documentation.
 
 ## Changed
@@ -41,6 +43,10 @@ lowering, runtime execution, or executable output.
 - Malformed line-number handling fails closed before statement-level parsing.
 - Duplicate and out-of-order source lines are rejected deterministically.
 - Empty numbered lines cannot silently pass into later compiler stages.
+- Duplicate line-number detection no longer performs an O(n) scan for each
+  accepted line.
+- The BASIC 1 line-table parser now enforces `CompileLimits` before accepting
+  unbounded source input.
 - The generated-output licensing boundary is documented before runtime material
   is embedded into produced executables.
 

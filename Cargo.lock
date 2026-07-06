@@ -26,6 +26,9 @@ version = "0.10.0"
 [[package]]
 name = "elderheim-dartmouth-basic"
 version = "0.10.0"
+dependencies = [
+ "elderheim-core",
+]
 
 [[package]]
 name = "elderheim-format-elf"

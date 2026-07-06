@@ -3,6 +3,8 @@ use crate::line_table::{Basic1LineTable, LineTableErrorKind};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Basic1CorpusError {
     EmptySource,
+    SourceTooLarge,
+    TooManyLines,
     EmptyLine,
     MissingLineNumber,
     InvalidLineNumber,
@@ -36,6 +38,8 @@ pub fn validate_basic1_corpus_source(source: &str) -> Result<(), Basic1CorpusErr
 fn map_line_table_error(error: crate::line_table::LineTableError) -> Basic1CorpusError {
     match error.kind {
         LineTableErrorKind::EmptySource => Basic1CorpusError::EmptySource,
+        LineTableErrorKind::SourceTooLarge => Basic1CorpusError::SourceTooLarge,
+        LineTableErrorKind::TooManyLines => Basic1CorpusError::TooManyLines,
         LineTableErrorKind::EmptyPhysicalLine => Basic1CorpusError::EmptyLine,
         LineTableErrorKind::MissingLineNumber => Basic1CorpusError::MissingLineNumber,
         LineTableErrorKind::InvalidLineNumber => Basic1CorpusError::InvalidLineNumber,

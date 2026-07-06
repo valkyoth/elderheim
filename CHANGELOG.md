@@ -8,6 +8,8 @@ All notable Elderheim changes are documented here.
 - Added the BASIC 1 line-table model and public parser entry point.
 - Added duplicate, malformed, out-of-order, missing-separator, and empty
   numbered line diagnostics.
+- Enforced compile byte and line limits in the BASIC 1 line-table parser.
+- Replaced duplicate line-number scanning with tree-backed duplicate detection.
 - Wired the BASIC 1 corpus validator through the line-table parser.
 - Added line-table coverage for every committed BASIC 1 example.
 - Split the Dartmouth BASIC crate into focused modules.
