@@ -1,6 +1,6 @@
 # Elderheim 0.9.0 Release Notes
 
-Status: development
+Status: released
 
 ## Scope
 
@@ -30,6 +30,7 @@ lowering, runtime execution, or executable output.
 - Manual PDFs remain local provenance inputs and are not committed.
 - Missing local manual paths warn instead of failing CI.
 - BASIC 1 corpus validation rejects historical session commands as source.
+- BASIC 1 corpus validation now enforces a keyword boundary for `PRINT`.
 
 ## Scope Exclusions
 

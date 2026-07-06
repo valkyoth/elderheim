@@ -2,7 +2,7 @@
 
 All notable Elderheim changes are documented here.
 
-## 0.9.0 - Unreleased
+## 0.9.0 - 2026-07-06
 
 - Added `docs/languages/` for Elderheim-authored language references.
 - Added the Dartmouth BASIC 1 corpus reference.
@@ -11,6 +11,8 @@ All notable Elderheim changes are documented here.
 - Added BASIC 1 corpus validation tests in the Dartmouth BASIC crate.
 - Added manual corpus validation to the normal local check gate.
 - Added `0.9.0` release notes and pentest draft.
+- Addressed the `0.9.0` pentest finding around `PRINT` keyword-boundary
+  validation.
 
 ## 0.8.0 - 2026-07-06
 
