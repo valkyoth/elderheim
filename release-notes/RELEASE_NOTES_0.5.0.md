@@ -1,6 +1,6 @@
 # Elderheim 0.5.0 Release Notes
 
-Status: development
+Status: release-candidate ready
 
 ## Scope
 
@@ -34,3 +34,14 @@ behavior.
 - Source normalization does not parse Dartmouth BASIC line numbers.
 - Profile-specific lexical validation remains a later frontend concern.
 - Diagnostic/report rendering expansion remains planned for `0.6.0`.
+
+## Security Review Fixes
+
+- Removed the public raw `Source::from_bytes` construction path.
+- Added public normalized-source construction that enforces the source byte,
+  line-limit, and blank-line policies.
+- Centralized normalized source policy in one shared scanner used by both
+  normalization and source view construction.
+- Made diagnostic location-resolution failures visible as
+  `E-CORE-INTERNAL-LOCATION`.
+- Documented sink error invalidation and the non-security role of `SourceId`.

@@ -2,7 +2,7 @@
 
 All notable Elderheim changes are documented here.
 
-## 0.5.0 - Unreleased
+## 0.5.0 - 2026-07-06
 
 - Added no_std source normalization over caller-provided sinks.
 - Added LF, CRLF, and CR line-ending normalization to LF.
@@ -14,7 +14,9 @@ All notable Elderheim changes are documented here.
 - Added visible diagnostic-location failure rendering.
 - Split source handling into location and normalization modules.
 - Refreshed the project overview image.
-- Added `0.5.0` release notes and pentest draft.
+- Addressed the `0.5.0` pentest findings around raw source construction,
+  diagnostic location failures, sink error contracts, `SourceId` trust
+  boundaries, and duplicated source policy state machines.
 
 ## 0.4.0 - 2026-07-06
 
