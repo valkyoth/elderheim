@@ -15,9 +15,9 @@ Pipeline stages have a fixed order:
 3. `mir-to-lir`
 4. `lir-to-target`
 
-`run_pipeline` rejects duplicate or out-of-order stages before running the
-invalid stage. This keeps later compiler passes from silently bypassing an
-earlier validation boundary.
+`run_pipeline` rejects duplicate, out-of-order, and non-adjacent stages before
+running the invalid stage. This keeps later compiler passes from silently
+bypassing an earlier validation boundary.
 
 ## Stage Contract
 
@@ -63,5 +63,6 @@ The `0.4.0` stop requires:
 
 - empty pipeline tests;
 - stage ordering tests;
+- missing-stage tests;
 - error propagation tests;
 - IR boundary mapping tests.

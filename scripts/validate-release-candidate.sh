@@ -7,7 +7,8 @@ case "$tag" in
         echo "immutable release tag already exists: ${tag}; use elderheim-${tag}" >&2
         exit 2
         ;;
-    v[0-9]*.[0-9]*.[0-9]* | elderheim-v[0-9]*.[0-9]*.[0-9]*) ;;
+    elderheim-v*) version="${tag#elderheim-v}" ;;
+    v*) version="${tag#v}" ;;
     *)
         echo "usage: scripts/validate-release-candidate.sh vX.Y.Z" >&2
         echo "       locked milestones use elderheim-vX.Y.Z" >&2
@@ -15,10 +16,11 @@ case "$tag" in
         ;;
 esac
 
-case "$tag" in
-    elderheim-v*) version="${tag#elderheim-v}" ;;
-    *) version="${tag#v}" ;;
-esac
+printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
+    echo "invalid version segment: ${version}" >&2
+    exit 2
+}
+
 release_notes="release-notes/RELEASE_NOTES_${version}.md"
 pentest_report="security/pentest/${version}.md"
 

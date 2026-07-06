@@ -8,5 +8,6 @@ Policy:
 - Prefer no_std-compatible crates when a dependency is unavoidable.
 - Keep generated Dartmouth BASIC programs free of external compiler, linker,
   runtime, libc, LLVM, Cranelift, and BASIC runtime dependencies.
-- Use `cargo deny`, release metadata checks, and SBOM generation once release
-  artifacts exist.
+- Run `cargo deny check` and `cargo audit` through `scripts/checks.sh`.
+- Use release metadata checks and SBOM generation before release-candidate
+  commits.

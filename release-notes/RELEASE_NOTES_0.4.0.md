@@ -15,6 +15,7 @@ behavior.
   stage boundaries.
 - Allocation-free pipeline runner over caller-supplied stage slices.
 - Fail-fast stage ordering validation.
+- Fail-fast missing-stage validation.
 - Fail-fast diagnostic error propagation.
 - Report sink contract for stage start, stage finish, and diagnostics.
 - `NullReportSink` for report-free callers.
@@ -24,6 +25,16 @@ behavior.
 - Pipeline contract documentation under `docs/pipeline-contract.md`.
 - Locked milestone tag guidance changed from `vX.Y.Z-release` to
   `elderheim-vX.Y.Z`.
+- Release tag validators now require strict numeric `X.Y.Z` version segments.
+- `scripts/checks.sh` now enforces `cargo deny check` and `cargo audit`.
+
+## Security Review Fixes
+
+- Pipeline ordering validation now rejects skipped intermediate stages.
+- Pipeline code was split into smaller stage, report, and runner modules.
+- Release tag validation rejects path separators and non-numeric version
+  segments before building release-note or pentest-report paths.
+- Supply-chain checks are part of the standard local gate.
 
 ## Scope Exclusions
 

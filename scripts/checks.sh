@@ -9,3 +9,5 @@ scripts/validate-release-metadata.sh
 cargo check --workspace --all-targets
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+cargo deny check
+cargo audit

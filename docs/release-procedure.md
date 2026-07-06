@@ -12,7 +12,8 @@ Every commit should keep the repository in a reviewable state:
 - scoped change set;
 - no secrets, local manuals, or scratch pentest inputs;
 - tests or documentation updated for behavior changes;
-- `scripts/checks.sh` passing before release-related commits.
+- `scripts/checks.sh` passing before release-related commits, including
+  dependency policy and advisory checks.
 
 ## Tag Policy
 
