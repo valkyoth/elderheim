@@ -41,6 +41,12 @@ The normalizer checks the configured source byte limit before writing to the
 sink. It also enforces the configured line limit after line-ending
 normalization.
 
+## Sink Error Contract
+
+Any `Err` returned by `normalize_source` invalidates all bytes written to the
+sink during that call. Callers must discard or reset partial sink contents
+before using the sink again.
+
 ## Source IDs
 
 `SourceId` is computed over normalized bytes. Inputs that differ only by LF,
@@ -48,6 +54,15 @@ CRLF, or CR line endings therefore produce the same source ID.
 
 The ID is intended as a stable compiler-internal identity for reports and
 fixtures. It is not a cryptographic digest.
+
+`SourceId` must not be used as a security boundary, cache-integrity boundary,
+or proof that two source inputs are identical.
+
+## Source Construction
+
+`Source::from_normalized` is the public constructor for diagnostic source
+views. It accepts only normalized bytes and re-checks the normalized source
+byte, line-limit, and blank-line policy before returning a `Source`.
 
 ## Verification
 
@@ -57,4 +72,6 @@ The `0.5.0` stop requires:
 - invalid byte fixtures;
 - blank-line policy fixtures;
 - large source rejection tests;
-- source ID stability tests.
+- source ID stability tests;
+- public source construction rejection tests;
+- sink error propagation tests.

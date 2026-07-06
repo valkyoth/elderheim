@@ -19,6 +19,8 @@ Elderheim treats compiler output as security-sensitive.
   runtimes.
 - Dialect confusion where one Dartmouth BASIC version silently accepts another
   version's semantics.
+- Cache or report logic treating non-cryptographic source identifiers as proof
+  that two source byte streams are identical.
 
 ## Controls
 
@@ -26,5 +28,6 @@ Elderheim treats compiler output as security-sensitive.
 - No third-party dependencies in the foundation.
 - Explicit target and format layers.
 - Explicit Dartmouth BASIC version profiles.
+- `SourceId` is not a security, cache-integrity, or source-equality boundary.
 - Local checks for formatting, linting, tests, docs, and file-size policy.
 - Release gates that require security review before tags.

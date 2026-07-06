@@ -8,23 +8,27 @@ does not allocate in production APIs.
 
 ## Source Bytes
 
-`Source::from_bytes` accepts borrowed source bytes and configured
-`CompileLimits`. It checks:
+`Source::from_normalized` accepts borrowed normalized source bytes, configured
+`CompileLimits`, and a `NormalizationPolicy`. It checks:
 
 - whether source length fits the supported `u32` span model;
 - total source byte length;
 - total line count;
+- printable-ASCII normalized source byte policy;
+- selected blank-line policy.
 
-The source model is byte-oriented. Later language frontends decide which byte
-patterns are legal for a specific source profile.
+The public `Source` constructor is for already-normalized bytes only. Raw file
+bytes must first pass through `normalize_source`; later language frontends then
+apply profile-specific lexical rules.
 
 ## Locations
 
 Line and column values are one-based. Offset `0` is line `1`, column `1`.
 The EOF offset is valid and maps to the column after the final byte.
 
-Line counting treats `\n` as the line separator. A trailing newline creates a
-final empty line for limit accounting.
+Line counting treats normalized `\n` as the line separator. A trailing newline
+creates a final empty line for limit accounting, but it is not treated as a
+blank source line by the strict BASIC normalization policy.
 
 `Source::line_column` is the one-off lookup path. Batched diagnostics should
 use `LineCursor` through `Source::line_column_from` or
@@ -60,7 +64,10 @@ The compact rendering contract is:
 <severity> <code> <line>:<column> <message>
 ```
 
-When no source is available, the renderer uses `0:0` as the location.
+When no source is available, the renderer uses `0:0` as the location. When a
+source is supplied but the diagnostic span cannot be resolved against that
+source, rendering emits `E-CORE-INTERNAL-LOCATION` instead of silently
+fabricating a source location.
 Batch rendering with source context should use `Diagnostic::render_with_cursor`
 so repeated diagnostics do not rescan the source from byte zero.
 
@@ -76,6 +83,9 @@ so repeated diagnostics do not rescan the source from byte zero.
 | `E-CORE-SOURCE-LINES` | source exceeds configured line limit |
 | `E-CORE-SOURCE-SPAN` | source span is invalid |
 | `E-CORE-SOURCE-OFFSET` | source offset is outside the source byte range |
+| `E-CORE-SOURCE-BYTE` | source byte is outside the current source policy |
+| `E-CORE-SOURCE-BLANK-LINE` | source blank line is rejected by policy |
+| `E-CORE-INTERNAL-LOCATION` | diagnostic location could not be resolved |
 
 ## Verification
 

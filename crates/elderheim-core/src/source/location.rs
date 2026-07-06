@@ -1,3 +1,4 @@
+use super::{BlankLinePolicy, NormalizationPolicy};
 use crate::{CompileLimits, Span};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -7,7 +8,11 @@ pub struct Source<'a> {
 }
 
 impl<'a> Source<'a> {
-    pub fn from_bytes(bytes: &'a [u8], limits: CompileLimits) -> Result<Self, SourceError> {
+    pub fn from_normalized(
+        bytes: &'a [u8],
+        limits: CompileLimits,
+        policy: NormalizationPolicy,
+    ) -> Result<Self, SourceError> {
         let max_supported_len =
             usize::try_from(u32::MAX).map_err(|_| SourceError::LimitTooLarge)?;
         if bytes.len() > max_supported_len {
@@ -18,7 +23,7 @@ impl<'a> Source<'a> {
             return Err(SourceError::SourceTooLarge);
         }
 
-        let line_count = count_lines(bytes)?;
+        let line_count = count_normalized_lines(bytes, policy)?;
         let max_lines = u32::try_from(limits.max_lines).map_err(|_| SourceError::LimitTooLarge)?;
 
         if line_count > max_lines {
@@ -186,55 +191,96 @@ impl SourceError {
     }
 }
 
-fn count_lines(bytes: &[u8]) -> Result<u32, SourceError> {
+fn count_normalized_lines(bytes: &[u8], policy: NormalizationPolicy) -> Result<u32, SourceError> {
     if bytes.is_empty() {
         return Ok(0);
     }
 
     let mut lines = 1_u32;
-    for byte in bytes {
-        if *byte == b'\n' {
-            lines = lines.checked_add(1).ok_or(SourceError::LocationOverflow)?;
+    let mut line_has_text = false;
+    let mut ended_with_line_ending = false;
+
+    for (index, byte) in bytes.iter().copied().enumerate() {
+        match byte {
+            b'\n' => {
+                finish_line(policy, lines, line_has_text)?;
+                lines = lines.checked_add(1).ok_or(SourceError::LocationOverflow)?;
+                line_has_text = false;
+                ended_with_line_ending = true;
+            }
+            0x20..=0x7e => {
+                if byte != b' ' {
+                    line_has_text = true;
+                }
+                ended_with_line_ending = false;
+            }
+            _ => {
+                return Err(SourceError::InvalidByte {
+                    offset: u32::try_from(index).map_err(|_| SourceError::SourceTooLarge)?,
+                    byte,
+                });
+            }
         }
     }
+
+    if !ended_with_line_ending {
+        finish_line(policy, lines, line_has_text)?;
+    }
+
     Ok(lines)
+}
+
+fn finish_line(
+    policy: NormalizationPolicy,
+    line: u32,
+    line_has_text: bool,
+) -> Result<(), SourceError> {
+    if policy.blank_lines == BlankLinePolicy::Reject && !line_has_text {
+        Err(SourceError::BlankLine { line })
+    } else {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{LineColumn, LineCursor, Source, SourceError, SourceSpanLines};
-    use crate::{CompileLimits, Span, SpanError};
+    use crate::{CompileLimits, NormalizationPolicy, Span, SpanError};
+
+    fn source(bytes: &[u8]) -> Result<Source<'_>, SourceError> {
+        Source::from_normalized(
+            bytes,
+            CompileLimits::DEFAULT,
+            NormalizationPolicy::PRESERVE_BLANK_LINES,
+        )
+    }
 
     #[test]
     fn source_counts_lines_without_allocating() {
-        let source = Source::from_bytes(b"10 PRINT\n20 END\n", CompileLimits::DEFAULT);
-        assert_eq!(source.map(Source::line_count), Ok(3));
+        assert_eq!(source(b"10 PRINT\n20 END\n").map(Source::line_count), Ok(3));
     }
 
     #[test]
     fn line_column_lookup_is_one_based() {
-        let source = Source::from_bytes(b"10 PRINT\n20 END", CompileLimits::DEFAULT);
         assert_eq!(
-            source.and_then(|value| value.line_column(9)),
+            source(b"10 PRINT\n20 END").and_then(|value| value.line_column(9)),
             Ok(LineColumn { line: 2, column: 1 })
         );
     }
 
     #[test]
     fn eof_location_is_valid() {
-        let source = Source::from_bytes(b"10 END", CompileLimits::DEFAULT);
         assert_eq!(
-            source.and_then(|value| value.line_column(6)),
+            source(b"10 END").and_then(|value| value.line_column(6)),
             Ok(LineColumn { line: 1, column: 7 })
         );
     }
 
     #[test]
     fn span_lines_cover_start_and_last_byte() -> Result<(), SpanError> {
-        let source = Source::from_bytes(b"10 PRINT\n20 END", CompileLimits::DEFAULT);
         let span = Span::checked(3, 12)?;
         assert_eq!(
-            source.and_then(|value| value.span_lines(span)),
+            source(b"10 PRINT\n20 END").and_then(|value| value.span_lines(span)),
             Ok(SourceSpanLines {
                 start: LineColumn { line: 1, column: 4 },
                 end: LineColumn { line: 2, column: 3 },
@@ -245,34 +291,35 @@ mod tests {
 
     #[test]
     fn line_cursor_reuses_forward_progress() {
-        let source = Source::from_bytes(b"10 PRINT\n20 GOTO 10\n30 END", CompileLimits::DEFAULT);
         let mut cursor = LineCursor::new();
 
         assert_eq!(
-            source.and_then(|value| value.line_column_from(&mut cursor, 0)),
+            source(b"10 PRINT\n20 GOTO 10\n30 END")
+                .and_then(|value| value.line_column_from(&mut cursor, 0)),
             Ok(LineColumn { line: 1, column: 1 })
         );
         assert_eq!(
-            source.and_then(|value| value.line_column_from(&mut cursor, 9)),
+            source(b"10 PRINT\n20 GOTO 10\n30 END")
+                .and_then(|value| value.line_column_from(&mut cursor, 9)),
             Ok(LineColumn { line: 2, column: 1 })
         );
         assert_eq!(
-            source.and_then(|value| value.line_column_from(&mut cursor, 20)),
+            source(b"10 PRINT\n20 GOTO 10\n30 END")
+                .and_then(|value| value.line_column_from(&mut cursor, 20)),
             Ok(LineColumn { line: 3, column: 1 })
         );
     }
 
     #[test]
     fn line_cursor_resets_for_out_of_order_lookup() {
-        let source = Source::from_bytes(b"10 PRINT\n20 END", CompileLimits::DEFAULT);
         let mut cursor = LineCursor::new();
 
         assert_eq!(
-            source.and_then(|value| value.line_column_from(&mut cursor, 9)),
+            source(b"10 PRINT\n20 END").and_then(|value| value.line_column_from(&mut cursor, 9)),
             Ok(LineColumn { line: 2, column: 1 })
         );
         assert_eq!(
-            source.and_then(|value| value.line_column_from(&mut cursor, 3)),
+            source(b"10 PRINT\n20 END").and_then(|value| value.line_column_from(&mut cursor, 3)),
             Ok(LineColumn { line: 1, column: 4 })
         );
     }
@@ -281,7 +328,7 @@ mod tests {
     fn source_size_limit_is_enforced() {
         let limits = CompileLimits::with_source_limits(4, 10);
         assert_eq!(
-            Source::from_bytes(b"12345", limits),
+            Source::from_normalized(b"12345", limits, NormalizationPolicy::PRESERVE_BLANK_LINES,),
             Err(SourceError::SourceTooLarge)
         );
     }
@@ -290,17 +337,47 @@ mod tests {
     fn source_line_limit_is_enforced() {
         let limits = CompileLimits::with_source_limits(64, 2);
         assert_eq!(
-            Source::from_bytes(b"1\n2\n3", limits),
+            Source::from_normalized(
+                b"1\n2\n3",
+                limits,
+                NormalizationPolicy::PRESERVE_BLANK_LINES
+            ),
             Err(SourceError::TooManyLines)
         );
     }
 
     #[test]
     fn out_of_bounds_offset_is_rejected() {
-        let source = Source::from_bytes(b"10 END", CompileLimits::DEFAULT);
         assert_eq!(
-            source.and_then(|value| value.line_column(7)),
+            source(b"10 END").and_then(|value| value.line_column(7)),
             Err(SourceError::OffsetOutOfBounds)
+        );
+    }
+
+    #[test]
+    fn public_source_constructor_rejects_raw_control_bytes() {
+        assert_eq!(
+            Source::from_normalized(
+                b"10 PRINT\r20 END",
+                CompileLimits::DEFAULT,
+                NormalizationPolicy::PRESERVE_BLANK_LINES,
+            ),
+            Err(SourceError::InvalidByte {
+                offset: 8,
+                byte: b'\r',
+            })
+        );
+    }
+
+    #[test]
+    fn public_source_constructor_enforces_blank_line_policy() {
+        assert_eq!(
+            Source::from_normalized(
+                b"10 PRINT\n\n20 END",
+                CompileLimits::DEFAULT,
+                NormalizationPolicy::BASIC_STRICT,
+            ),
+            Err(SourceError::BlankLine { line: 2 })
         );
     }
 }

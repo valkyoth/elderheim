@@ -18,8 +18,12 @@ behavior.
 - Strict BASIC blank-line rejection policy.
 - Optional blank-line preservation policy for tests and future profiles.
 - Stable `SourceId` over normalized bytes.
+- Public `Source::from_normalized` construction that rejects unnormalized or
+  policy-invalid source bytes.
+- Visible internal diagnostic-location failure reporting.
 - Tests for line-ending normalization, invalid byte rejection, blank-line
-  policy, source-size rejection, and source ID stability.
+  policy, source-size rejection, source ID stability, public source
+  construction rejection, and diagnostic location-failure rendering.
 - Source normalization documentation under `docs/source-normalization.md`.
 - Refreshed the project overview image under `.github/images/elderheim.webp`.
 

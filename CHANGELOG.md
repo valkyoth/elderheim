@@ -9,6 +9,8 @@ All notable Elderheim changes are documented here.
 - Added strict printable-ASCII/control-byte policy for current source input.
 - Added blank-line policy with strict BASIC rejection and preserve modes.
 - Added stable normalized source IDs.
+- Added public normalized-source construction that rejects unnormalized bytes.
+- Added visible diagnostic-location failure rendering.
 - Split source handling into location and normalization modules.
 - Refreshed the project overview image.
 - Added `0.5.0` release notes and pentest draft.

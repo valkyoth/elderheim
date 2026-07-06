@@ -26,6 +26,7 @@ impl NormalizationPolicy {
 }
 
 pub trait NormalizedSourceSink {
+    /// An error invalidates all bytes written to the sink during this call.
     fn push_byte(&mut self, byte: u8) -> Result<(), SourceError>;
 }
 
@@ -160,10 +161,26 @@ mod tests {
         bytes: Vec<u8>,
     }
 
+    struct FailingSink {
+        fail_after: usize,
+        bytes: Vec<u8>,
+    }
+
     impl NormalizedSourceSink for VecSink {
         fn push_byte(&mut self, byte: u8) -> Result<(), SourceError> {
             self.bytes.push(byte);
             Ok(())
+        }
+    }
+
+    impl NormalizedSourceSink for FailingSink {
+        fn push_byte(&mut self, byte: u8) -> Result<(), SourceError> {
+            if self.bytes.len() == self.fail_after {
+                Err(SourceError::SourceTooLarge)
+            } else {
+                self.bytes.push(byte);
+                Ok(())
+            }
         }
     }
 
@@ -286,5 +303,24 @@ mod tests {
             ),
             Err(SourceError::TooManyLines)
         );
+    }
+
+    #[test]
+    fn sink_errors_are_propagated_and_partial_bytes_are_not_success() {
+        let mut sink = FailingSink {
+            fail_after: 4,
+            bytes: Vec::new(),
+        };
+
+        assert_eq!(
+            normalize_source(
+                b"10 PRINT",
+                CompileLimits::DEFAULT,
+                NormalizationPolicy::BASIC_STRICT,
+                &mut sink,
+            ),
+            Err(SourceError::SourceTooLarge)
+        );
+        assert_eq!(sink.bytes, b"10 P".to_vec());
     }
 }
