@@ -1,14 +1,15 @@
 # Dartmouth BASIC 1
 
-Status: active 0.9.0 corpus reference
+Status: active 0.10.0 corpus and line-table reference
 
 This document is Elderheim's own short reference for the Dartmouth BASIC First
 Edition source-language corpus. It is based on the local May 1964 manual scan,
 but the wording and examples here are written for Elderheim. The original scan
 is not committed to this repository.
 
-The 0.9.0 scope is documentation and fixture control. It does not claim that
-Elderheim can parse or compile these programs yet.
+The 0.10.0 scope is documentation, fixture control, and line-table validation.
+It does not claim that Elderheim can lex, fully parse, or compile these
+programs yet.
 
 ## Source
 
@@ -36,6 +37,26 @@ can be inserted. The final source statement is `END`.
 Teletype and time-sharing commands such as `HELLO`, `RUN`, `LIST`, `SAVE`, and
 `STOP` are not compiler source statements for Elderheim. They belong to the
 historical operating environment, not to the compiled language profile.
+
+## Line Table Policy
+
+Elderheim represents Dartmouth BASIC 1 source as an ordered table of numbered
+source lines before later lexer and parser stages run.
+
+The current policy is:
+
+- every physical source line must be non-empty;
+- every source line must begin with a positive decimal line number;
+- line numbers must be one to five digits;
+- line numbers must not begin with `0`;
+- a line number must be followed by a space or tab before the statement text;
+- the statement text after the line number must be non-empty;
+- line numbers must be unique;
+- line numbers must be strictly increasing in source order.
+
+Malformed, duplicate, out-of-order, or empty numbered lines are rejected before
+statement parsing. This gives later BASIC 1 parser work a stable source order
+and branch-target model.
 
 ## Values And Formulas
 

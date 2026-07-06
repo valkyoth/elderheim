@@ -18,6 +18,8 @@
   ·
   <a href="docs/supply-chain-security.md">Supply Chain</a>
   ·
+  <a href="docs/licensing.md">Licensing</a>
+  ·
   <a href="SECURITY.md">Security</a>
 </div>
 
@@ -70,7 +72,26 @@ This rule does not turn out-of-scope work into a deferral: Dartmouth BASIC 4
 means the documented source programming language, not Dartmouth timesharing
 session, editor, account, file, paper-tape, or operating-system commands.
 
-elderheim is licensed under `EUPL-1.2`.
+elderheim source code is licensed under `EUPL-1.2`.
+
+## Licensing and Output Ownership
+
+The `EUPL-1.2` license applies to Elderheim itself: its source code,
+documentation, scripts, tests, and other project files unless a file states a
+different license.
+
+Source programs compiled with Elderheim, and executable or object artifacts
+produced from those source programs, remain owned and licensed by their original
+authors, companies, or rights holders. Using Elderheim to compile a program does
+not by itself apply `EUPL-1.2` to that source program or to the generated output.
+
+If a generated artifact includes Elderheim-provided runtime, startup, or support
+code, that included Elderheim component remains covered by the project license
+or by any explicit runtime/output exception published for that component. The
+project will keep this boundary documented before generated executables include
+Elderheim runtime material.
+
+See [Licensing](docs/licensing.md) for the full project policy.
 
 ## Historical Documentation
 
@@ -96,13 +117,14 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.9.0` is the active manual corpus setup workstream. It adds the first
-Elderheim-authored Dartmouth BASIC 1 language reference, controlled BASIC 1
-examples, and tests that validate the committed example corpus.
+`0.10.0` is the active Dartmouth BASIC 1 line-table workstream. It adds a
+tested no_std line-number parser and line-table model for numbered BASIC 1
+source, including duplicate, malformed, out-of-order, and empty numbered line
+rejection.
 
-No Dartmouth BASIC parser or executable writer is implemented yet. The roadmap
-intentionally starts with compiler substrate, then makes BASIC 1 complete,
-then BASIC 2 complete, then BASIC 4 complete.
+No Dartmouth BASIC lexer, full parser, semantic validator, or executable writer
+is implemented yet. The roadmap intentionally starts with compiler substrate,
+then makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 
 ### Compiler Foundation
 
@@ -119,6 +141,7 @@ then BASIC 2 complete, then BASIC 4 complete.
 | IR contracts | Working | `elderheim-ir` exposes HIR node IDs, MIR value/label IDs, LIR label/symbol IDs, validators, and lowering sink traits. |
 | Runtime fragment selection | Working | `elderheim-runtime` maps high-level runtime requirements to fragment dependencies without executable emission. |
 | Manual corpus | Working | `docs/languages/dartmouth-basic-1.md` and `examples/dartmouth-basic-1/` define the first controlled BASIC 1 corpus. |
+| BASIC 1 line table | Working | The Dartmouth BASIC crate parses increasing numbered source lines, rejects malformed line numbers, duplicate line numbers, out-of-order lines, missing statement separators, and empty numbered lines. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
@@ -170,7 +193,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.9.0
+scripts/validate-release-candidate.sh elderheim-v0.10.0
 ```
 
 Run the dependency and advisory gates:
@@ -240,6 +263,7 @@ elderheim/
 | [Diagnostics Reporting](docs/diagnostics-reporting.md) | Diagnostic registry, snippet rendering, and report section/event contract. |
 | [IR Contracts](docs/ir-contracts.md) | HIR/MIR/LIR IDs, validators, and lowering interface contract. |
 | [Runtime Fragments](docs/runtime-fragments.md) | Runtime requirement, fragment inventory, and dependency selection contract. |
+| [Licensing](docs/licensing.md) | Project license scope, generated-output ownership, and runtime boundary policy. |
 | [Manual Corpus](docs/manual-corpus.md) | Local manual provenance and committed corpus policy. |
 | [Dartmouth BASIC 1](docs/languages/dartmouth-basic-1.md) | Elderheim-authored BASIC 1 corpus reference. |
 | [Pipeline Contract](docs/pipeline-contract.md) | Compiler stage ordering, error propagation, and report sink contract. |

@@ -2,6 +2,18 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.10.0 - 2026-07-06
+
+- Added the no_std Dartmouth BASIC 1 line-number parser.
+- Added the BASIC 1 line-table model and public parser entry point.
+- Added duplicate, malformed, out-of-order, missing-separator, and empty
+  numbered line diagnostics.
+- Wired the BASIC 1 corpus validator through the line-table parser.
+- Added line-table coverage for every committed BASIC 1 example.
+- Split the Dartmouth BASIC crate into focused modules.
+- Added project licensing/output-ownership documentation.
+- Added `0.10.0` release notes and pentest draft.
+
 ## 0.9.0 - 2026-07-06
 
 - Added `docs/languages/` for Elderheim-authored language references.
