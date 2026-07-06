@@ -24,6 +24,9 @@ Before a tag:
 - release notes must exist under `release-notes/`;
 - the final pentest report must exist under `security/pentest/`;
 - the report must name the reviewed commit and remediation commit;
+- the remediation commit must already contain the `Status: PASS` report and be
+  the exact commit that will be tagged;
+- the remediation commit must already be pushed and green in GitHub checks;
 - any release-blocking finding must be fixed before `Status: PASS`;
 - any non-blocking finding must have an explicit follow-up release;
 - root `PENTEST.md` must be removed after its contents are incorporated.
@@ -41,12 +44,16 @@ The normal loop is:
 4. Blocking findings are fixed and committed locally.
 5. The maintainer retests and either supplies a new `PENTEST.md` or asks for a
    full release-candidate check.
-6. A release-candidate commit is made locally and pushed by the maintainer.
-7. GitHub Actions and CodeQL run on that pushed commit.
-8. If CodeQL reports findings, they are fixed, the report is updated with the
-   security finding, and a new release-candidate commit is made.
-9. If GitHub checks are clean, the pushed release-candidate commit is the tag
-   target.
+6. A release-candidate commit is made locally with the final `Status: PASS`
+   report and the correct remediation commit field.
+7. The maintainer pushes that release-candidate commit.
+8. GitHub Actions and CodeQL run on that pushed commit.
+9. If CodeQL reports findings, they are fixed, the report is updated with the
+   security finding and new remediation commit, and a new release-candidate
+   commit is made.
+10. If GitHub checks are clean, tag that same already-pushed commit. Do not make
+    a final report-only commit immediately before tagging, because that creates
+    a new commit that GitHub has not checked yet.
 
 The final release evidence lives in:
 
@@ -60,7 +67,8 @@ The report must summarize:
 - local security-gate results;
 - release-blocking fixes;
 - scheduled follow-up releases for accepted non-blocking findings.
-- CodeQL findings only when GitHub reports them after the ready commit.
+- CodeQL findings only when GitHub reports them after the pushed
+  release-candidate commit.
 
 ## Required Pentest Report Fields
 
@@ -86,7 +94,7 @@ Report statuses:
 - `DRAFT`: pentest input has been incorporated, but more retest or release
   work is expected.
 - `PASS`: the pentest and retest are clean, release-blocking findings are
-  fixed, and the release-candidate commit is ready for final GitHub checks.
+  fixed, and the report is ready to be included in a release-candidate commit.
 
 `scripts/validate-release-candidate.sh` accepts draft and pass states for the
 local release-candidate workflow.
@@ -94,3 +102,9 @@ local release-candidate workflow.
 `scripts/validate-release-readiness.sh` is intentionally stricter than the draft
 format. It accepts only `Status: PASS` plus exact reviewed and remediation
 commit hashes.
+
+When used for the final tag decision, `scripts/validate-release-readiness.sh`
+must be run on the same commit that was already pushed and green in GitHub. If a
+CodeQL finding creates another fix, update the report with that finding and the
+new remediation commit, push that new release-candidate commit, wait for green
+GitHub checks, and only then tag it.

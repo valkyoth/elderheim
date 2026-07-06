@@ -63,3 +63,16 @@ grep -Eq '^Scope:' "$pentest_report" || {
     echo "pentest report is missing scope: ${pentest_report}" >&2
     exit 1
 }
+
+branch="$(git branch --show-current)"
+if [ -z "$branch" ]; then
+    echo "release readiness must run on a named branch before tagging" >&2
+    exit 1
+fi
+
+local_head="$(git rev-parse HEAD)"
+remote_head="$(git ls-remote --heads origin "$branch" | cut -f1)"
+if [ "$local_head" != "$remote_head" ]; then
+    echo "release commit is not pushed to origin/${branch}: ${local_head}" >&2
+    exit 1
+fi
