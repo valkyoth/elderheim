@@ -2,6 +2,16 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.7.0 - Unreleased
+
+- Added HIR node and symbol ID contracts.
+- Added MIR value and label ID contracts.
+- Added LIR label and symbol ID contracts.
+- Added no_std HIR, MIR, and LIR validation entry points.
+- Added version-neutral lowering sink traits for HIR-to-MIR and MIR-to-LIR.
+- Split the IR crate into focused modules.
+- Added `0.7.0` release notes and pentest draft.
+
 ## 0.6.0 - 2026-07-06
 
 - Added a stable diagnostic code registry.

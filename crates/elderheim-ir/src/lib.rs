@@ -1,41 +1,20 @@
 #![no_std]
 
+mod error;
+mod hir;
+mod ids;
+mod lir;
+mod lowering;
+mod mir;
+
+pub use error::{IrError, IrLayer};
+pub use hir::{HirNode, HirNodeKind, HirProgram, validate_hir};
+pub use ids::{DataId, HirNodeId, HirSymbolId, LirLabelId, LirSymbolId, MirLabelId, MirValueId};
+pub use lir::{LirOp, LirProgram, validate_lir};
+pub use lowering::{HirToMirLowerer, LirSink, MirSink, MirToLirLowerer};
+pub use mir::{MirOp, MirProgram, validate_mir};
+
 use elderheim_core::PipelineStage;
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct LabelId(pub u32);
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct DataId(pub u32);
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum MirOp {
-    Label(LabelId),
-    WriteStatic(DataId),
-    Exit { code: u8 },
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum LirOp {
-    Label(LabelId),
-    SysWriteStatic(DataId),
-    SysExit { code: u8 },
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct HirProgram {
-    pub statement_count: u32,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct MirProgram {
-    pub op_count: u32,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct LirProgram {
-    pub op_count: u32,
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TargetProgram {
@@ -62,13 +41,8 @@ impl IrBoundary {
 
 #[cfg(test)]
 mod tests {
-    use super::{DataId, IrBoundary, MirOp};
+    use super::IrBoundary;
     use elderheim_core::PipelineStage;
-
-    #[test]
-    fn write_static_is_target_neutral() {
-        assert_eq!(MirOp::WriteStatic(DataId(7)), MirOp::WriteStatic(DataId(7)));
-    }
 
     #[test]
     fn ir_boundaries_map_to_pipeline_stages() {
