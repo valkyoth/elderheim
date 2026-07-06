@@ -71,7 +71,8 @@ if [ -z "$branch" ]; then
 fi
 
 local_head="$(git rev-parse HEAD)"
-remote_head="$(git ls-remote --heads origin "$branch" | cut -f1)"
+remote_line="$(git ls-remote --heads origin -- "$branch")"
+remote_head="${remote_line%%	*}"
 if [ "$local_head" != "$remote_head" ]; then
     echo "release commit is not pushed to origin/${branch}: ${local_head}" >&2
     exit 1
