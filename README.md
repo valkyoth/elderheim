@@ -1,5 +1,5 @@
 <p align="center">
-  <b>Rust-native compiler platform for legacy languages, starting with Dartmouth BASIC.</b><br>
+  <b>Rust-native compiler platform for legacy languages.</b><br>
   Multi-frontend by design. Direct machine-code and executable-format output. Built for standalone release binaries.
 </p>
 
