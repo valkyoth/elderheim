@@ -18,6 +18,30 @@ pub enum DiagnosticCode {
 }
 
 impl DiagnosticCode {
+    pub const ALL: &'static [Self] = &[
+        Self::UnsupportedFeature,
+        Self::InvalidDialect,
+        Self::ProgramTooLarge,
+        Self::InvalidExecutableLayout,
+        Self::SourceTooLarge,
+        Self::TooManyLines,
+        Self::InvalidSpan,
+        Self::SourceOffsetOutOfBounds,
+        Self::InvalidSourceByte,
+        Self::BlankSourceLine,
+        Self::InternalLocation,
+    ];
+
+    #[must_use]
+    pub const fn descriptor(self) -> DiagnosticDescriptor {
+        DiagnosticDescriptor {
+            code: self,
+            identifier: self.code(),
+            message: self.message(),
+            default_severity: Severity::Error,
+        }
+    }
+
     #[must_use]
     pub const fn code(self) -> &'static str {
         match self {
@@ -51,6 +75,14 @@ impl DiagnosticCode {
             Self::InternalLocation => "diagnostic location could not be resolved",
         }
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DiagnosticDescriptor {
+    pub code: DiagnosticCode,
+    pub identifier: &'static str,
+    pub message: &'static str,
+    pub default_severity: Severity,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -99,6 +131,7 @@ impl Diagnostic {
     ) -> fmt::Result {
         match style {
             RenderStyle::Compact => render_compact(self, source, writer),
+            RenderStyle::Snippet => render_snippet(self, source, writer),
         }
     }
 
@@ -111,6 +144,7 @@ impl Diagnostic {
     ) -> fmt::Result {
         match style {
             RenderStyle::Compact => render_compact_with_cursor(self, source, cursor, writer),
+            RenderStyle::Snippet => render_snippet_with_cursor(self, source, cursor, writer),
         }
     }
 }
@@ -118,6 +152,7 @@ impl Diagnostic {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RenderStyle {
     Compact,
+    Snippet,
 }
 
 impl From<SourceError> for DiagnosticCode {
@@ -159,6 +194,50 @@ fn render_compact_with_cursor<W: Write>(
     }
 }
 
+fn render_snippet<W: Write>(
+    diagnostic: Diagnostic,
+    source: Option<Source<'_>>,
+    writer: &mut W,
+) -> fmt::Result {
+    let Some(source) = source else {
+        return render_compact_at(diagnostic, LineColumn { line: 0, column: 0 }, writer);
+    };
+
+    match source.line_column(diagnostic.span.start()) {
+        Ok(location) => render_snippet_at(diagnostic, source, location, writer),
+        Err(_) => render_location_error(writer),
+    }
+}
+
+fn render_snippet_with_cursor<W: Write>(
+    diagnostic: Diagnostic,
+    source: Source<'_>,
+    cursor: &mut LineCursor,
+    writer: &mut W,
+) -> fmt::Result {
+    match source.line_column_from(cursor, diagnostic.span.start()) {
+        Ok(location) => render_snippet_at(diagnostic, source, location, writer),
+        Err(_) => render_location_error(writer),
+    }
+}
+
+fn render_snippet_at<W: Write>(
+    diagnostic: Diagnostic,
+    source: Source<'_>,
+    location: LineColumn,
+    writer: &mut W,
+) -> fmt::Result {
+    render_compact_at(diagnostic, location, writer)?;
+    writeln!(writer, " --> {}:{}", location.line, location.column)?;
+    writeln!(writer, "  |")?;
+    write!(writer, "{} | ", location.line)?;
+    write_source_line(source, location.line, writer)?;
+    writeln!(writer)?;
+    write!(writer, "  | ")?;
+    write_caret_padding(location.column, writer)?;
+    writeln!(writer, "^")
+}
+
 fn render_compact_at<W: Write>(
     diagnostic: Diagnostic,
     location: LineColumn,
@@ -183,136 +262,32 @@ fn render_location_error<W: Write>(writer: &mut W) -> fmt::Result {
     )
 }
 
-#[cfg(test)]
-mod tests {
-    extern crate std;
-
-    use std::string::String;
-
-    use super::{Diagnostic, DiagnosticCode, RenderStyle, Severity};
-    use crate::{CompileLimits, NormalizationPolicy, Source, SourceError, Span, SpanError};
-
-    fn source(bytes: &[u8]) -> Result<Source<'_>, SourceError> {
-        Source::from_normalized(
-            bytes,
-            CompileLimits::DEFAULT,
-            NormalizationPolicy::PRESERVE_BLANK_LINES,
-        )
+fn write_source_line<W: Write>(source: Source<'_>, line: u32, writer: &mut W) -> fmt::Result {
+    let mut current_line = 1_u32;
+    for byte in source.bytes() {
+        if current_line == line {
+            if *byte == b'\n' {
+                return Ok(());
+            }
+            writer.write_char(char::from(*byte))?;
+        } else if *byte == b'\n' {
+            current_line = match current_line.checked_add(1) {
+                Some(next) => next,
+                None => return Ok(()),
+            };
+        }
     }
-
-    #[test]
-    fn source_errors_map_to_stable_diagnostic_codes() {
-        assert_eq!(
-            DiagnosticCode::from(SourceError::TooManyLines).code(),
-            "E-CORE-SOURCE-LINES"
-        );
-        assert_eq!(
-            DiagnosticCode::from(SourceError::InvalidByte {
-                offset: 7,
-                byte: 0xff,
-            })
-            .code(),
-            "E-CORE-SOURCE-BYTE"
-        );
-        assert_eq!(
-            DiagnosticCode::from(SourceError::BlankLine { line: 2 }).code(),
-            "E-CORE-SOURCE-BLANK-LINE"
-        );
-    }
-
-    #[test]
-    fn diagnostic_compact_rendering_is_golden() -> Result<(), SpanError> {
-        let diagnostic = Diagnostic::new(
-            DiagnosticCode::UnsupportedFeature,
-            Severity::Error,
-            Span::checked(9, 15)?,
-        );
-        let mut rendered = String::new();
-        assert_eq!(
-            source(b"10 PRINT\n20 END").and_then(|value| diagnostic
-                .render(Some(value), RenderStyle::Compact, &mut rendered)
-                .map_err(|_| SourceError::LocationOverflow)),
-            Ok(())
-        );
-        assert_eq!(
-            rendered,
-            "error E-CORE-UNSUPPORTED-FEATURE 2:1 feature is not supported by the selected compiler path\n"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn diagnostic_without_source_uses_zero_location() {
-        let diagnostic = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(0));
-        let mut rendered = String::new();
-        assert_eq!(
-            diagnostic.render(None, RenderStyle::Compact, &mut rendered),
-            Ok(())
-        );
-        assert_eq!(
-            rendered,
-            "error E-CORE-INVALID-DIALECT 0:0 selected language dialect is not recognized\n"
-        );
-    }
-
-    #[test]
-    fn diagnostic_cursor_rendering_is_golden() -> Result<(), SpanError> {
-        let mut cursor = crate::LineCursor::new();
-        let mut rendered = String::new();
-        let first = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(0));
-        let second = Diagnostic::error(DiagnosticCode::UnsupportedFeature, Span::checked(20, 26)?);
-
-        assert_eq!(
-            source(b"10 PRINT\n20 GOTO 10\n30 END").and_then(|value| first
-                .render_with_cursor(value, &mut cursor, RenderStyle::Compact, &mut rendered)
-                .map_err(|_| SourceError::LocationOverflow)),
-            Ok(())
-        );
-        assert_eq!(
-            source(b"10 PRINT\n20 GOTO 10\n30 END").and_then(|value| second
-                .render_with_cursor(value, &mut cursor, RenderStyle::Compact, &mut rendered)
-                .map_err(|_| SourceError::LocationOverflow)),
-            Ok(())
-        );
-        assert_eq!(
-            rendered,
-            "error E-CORE-INVALID-DIALECT 1:1 selected language dialect is not recognized\nerror E-CORE-UNSUPPORTED-FEATURE 3:1 feature is not supported by the selected compiler path\n"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn diagnostic_location_failure_is_visible() {
-        let diagnostic = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(99));
-        let mut rendered = String::new();
-
-        assert_eq!(
-            source(b"10 END").and_then(|value| diagnostic
-                .render(Some(value), RenderStyle::Compact, &mut rendered)
-                .map_err(|_| SourceError::LocationOverflow)),
-            Ok(())
-        );
-        assert_eq!(
-            rendered,
-            "error E-CORE-INTERNAL-LOCATION 0:0 diagnostic location could not be resolved\n"
-        );
-    }
-
-    #[test]
-    fn diagnostic_cursor_location_failure_is_visible() {
-        let mut cursor = crate::LineCursor::new();
-        let diagnostic = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(99));
-        let mut rendered = String::new();
-
-        assert_eq!(
-            source(b"10 END").and_then(|value| diagnostic
-                .render_with_cursor(value, &mut cursor, RenderStyle::Compact, &mut rendered)
-                .map_err(|_| SourceError::LocationOverflow)),
-            Ok(())
-        );
-        assert_eq!(
-            rendered,
-            "error E-CORE-INTERNAL-LOCATION 0:0 diagnostic location could not be resolved\n"
-        );
-    }
+    Ok(())
 }
+
+fn write_caret_padding<W: Write>(column: u32, writer: &mut W) -> fmt::Result {
+    let mut remaining = column.saturating_sub(1);
+    while remaining > 0 {
+        writer.write_char(' ')?;
+        remaining = remaining.saturating_sub(1);
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests;

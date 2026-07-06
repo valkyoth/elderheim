@@ -2,6 +2,16 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.6.0 - Unreleased
+
+- Added a stable diagnostic code registry.
+- Added source snippet diagnostic rendering.
+- Added visible malformed-snippet failure handling.
+- Added report sections and report events for pipeline and diagnostic reports.
+- Added golden tests for diagnostic snippets and report rendering.
+- Split diagnostic tests out of the production diagnostic module.
+- Added `0.6.0` release notes and pentest draft.
+
 ## 0.5.0 - 2026-07-06
 
 - Added no_std source normalization over caller-provided sinks.

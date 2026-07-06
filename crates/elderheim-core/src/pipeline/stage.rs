@@ -43,3 +43,13 @@ pub enum StageOutcome {
     Complete,
     Failed(Diagnostic),
 }
+
+impl StageOutcome {
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Complete => "complete",
+            Self::Failed(_) => "failed",
+        }
+    }
+}

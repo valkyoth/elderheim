@@ -96,10 +96,9 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.5.0` is the active source normalization workstream. It normalizes line
-endings, enforces the first source byte/control-character policy, applies a
-blank-line policy, preserves source-size limits, and produces stable source IDs
-over normalized bytes.
+`0.6.0` is the active diagnostics and reporting workstream. It adds a stable
+diagnostic code registry, source snippet rendering, visible malformed-snippet
+failure handling, and a report section/event model with golden output tests.
 
 No Dartmouth BASIC parser or executable writer is implemented yet. The roadmap
 intentionally starts with compiler substrate, then makes BASIC 1 complete,
@@ -113,9 +112,10 @@ then BASIC 2 complete, then BASIC 4 complete.
 | Rust toolchain pin | Working | Stable Rust `1.96.1`, edition 2024, workspace resolver `3`. |
 | License | Working | EUPL-1.2. |
 | no_std library skeletons | Working | Core/facade crates are prepared for no_std production logic. |
-| Source and diagnostics core | Working | `elderheim-core` validates source byte and line limits, maps byte offsets to one-based line/column locations, checks spans, and renders compact stable diagnostics. |
+| Source and diagnostics core | Working | `elderheim-core` validates source byte and line limits, maps byte offsets to one-based line/column locations, checks spans, exposes a stable diagnostic code registry, and renders compact and snippet diagnostics. |
 | Source normalization core | Working | `elderheim-core` normalizes LF/CRLF/CR into LF, rejects invalid control/non-ASCII bytes under the current policy, enforces blank-line policy, and returns stable normalized source IDs. |
 | Compiler pipeline skeleton | Working | `elderheim-core` exposes ordered source-to-diagnostic, HIR-to-MIR, MIR-to-LIR, and LIR-to-target stages with fail-fast diagnostics and report sink events. |
+| Reporting core | Working | `elderheim-core` exposes stable report sections and report events for section headers, pipeline stages, and diagnostics. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
@@ -167,7 +167,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.5.0
+scripts/validate-release-candidate.sh v0.6.0
 ```
 
 Run the dependency and advisory gates:
@@ -232,6 +232,7 @@ elderheim/
 | [Target Matrix](docs/target-matrix.md) | Supported 1.0 target names and rejection diagnostics. |
 | [Source Diagnostics](docs/source-diagnostics.md) | Source byte, span, limit, and diagnostic rendering contract. |
 | [Source Normalization](docs/source-normalization.md) | Line ending, byte policy, blank-line, and source ID contract. |
+| [Diagnostics Reporting](docs/diagnostics-reporting.md) | Diagnostic registry, snippet rendering, and report section/event contract. |
 | [Pipeline Contract](docs/pipeline-contract.md) | Compiler stage ordering, error propagation, and report sink contract. |
 | [Modularity Policy](docs/modularity-policy.md) | Crate split rules and 500-line source-file policy. |
 | [Unsafe Policy](docs/unsafe-policy.md) | Unsafe admission rules and serialization safety policy. |

@@ -37,7 +37,7 @@ where
 }
 
 fn print_help() {
-    println!("elderheim 0.5.0: source normalization scaffold");
+    println!("elderheim 0.6.0: diagnostics and reporting scaffold");
     println!("usage:");
     println!("  elderheim --list-targets");
     println!("  elderheim --target <os-architecture-format>");

@@ -1,6 +1,6 @@
 # Source And Diagnostics Core
 
-Status: active 0.3.0 contract
+Status: active 0.6.0 contract
 
 `elderheim-core` owns source-byte handling, spans, compile limits, and stable
 diagnostics for all future compiler phases. This crate remains `no_std` and
@@ -64,6 +64,9 @@ The compact rendering contract is:
 <severity> <code> <line>:<column> <message>
 ```
 
+The snippet rendering contract is documented in
+[`diagnostics-reporting.md`](diagnostics-reporting.md).
+
 When no source is available, the renderer uses `0:0` as the location. When a
 source is supplied but the diagnostic span cannot be resolved against that
 source, rendering emits `E-CORE-INTERNAL-LOCATION` instead of silently
@@ -89,11 +92,14 @@ so repeated diagnostics do not rescan the source from byte zero.
 
 ## Verification
 
-The `0.3.0` stop requires:
+The `0.6.0` stop requires:
 
 - span lookup tests;
 - cursor lookup tests;
 - diagnostic golden tests;
+- diagnostic registry tests;
+- snippet diagnostic golden tests;
+- malformed snippet tests;
 - cursor diagnostic rendering golden tests;
 - source byte limit tests;
 - source line limit tests.
