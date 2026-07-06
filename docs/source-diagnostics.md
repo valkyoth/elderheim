@@ -11,9 +11,9 @@ does not allocate in production APIs.
 `Source::from_bytes` accepts borrowed source bytes and configured
 `CompileLimits`. It checks:
 
+- whether source length fits the supported `u32` span model;
 - total source byte length;
 - total line count;
-- whether source offsets fit the supported `u32` span model.
 
 The source model is byte-oriented. Later language frontends decide which byte
 patterns are legal for a specific source profile.
@@ -26,6 +26,12 @@ The EOF offset is valid and maps to the column after the final byte.
 Line counting treats `\n` as the line separator. A trailing newline creates a
 final empty line for limit accounting.
 
+`Source::line_column` is the one-off lookup path. Batched diagnostics should
+use `LineCursor` through `Source::line_column_from` or
+`Diagnostic::render_with_cursor`. Forward lookups resume from the previous
+offset and keep diagnostic rendering linear over a left-to-right pass. An
+out-of-order lookup resets the cursor and remains correct.
+
 ## Spans
 
 `Span` uses half-open byte offsets:
@@ -34,8 +40,10 @@ final empty line for limit accounting.
 start <= offset < end
 ```
 
-`Span::checked` rejects reversed spans. Empty spans are valid and are used for
-point diagnostics.
+Span fields are private. Callers must use `Span::checked`,
+`Span::from_start_len`, or `Span::point`, so reversed spans cannot be built
+through the public API. Empty spans are valid and are used for point
+diagnostics.
 
 ## Diagnostics
 
@@ -53,6 +61,8 @@ The compact rendering contract is:
 ```
 
 When no source is available, the renderer uses `0:0` as the location.
+Batch rendering with source context should use `Diagnostic::render_with_cursor`
+so repeated diagnostics do not rescan the source from byte zero.
 
 ## Current Stable Codes
 
@@ -72,6 +82,8 @@ When no source is available, the renderer uses `0:0` as the location.
 The `0.3.0` stop requires:
 
 - span lookup tests;
+- cursor lookup tests;
 - diagnostic golden tests;
+- cursor diagnostic rendering golden tests;
 - source byte limit tests;
 - source line limit tests.

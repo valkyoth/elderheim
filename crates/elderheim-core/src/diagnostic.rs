@@ -1,6 +1,6 @@
 use core::fmt::{self, Write};
 
-use crate::{LineColumn, Source, SourceError, Span};
+use crate::{LineColumn, LineCursor, Source, SourceError, Span};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DiagnosticCode {
@@ -92,6 +92,18 @@ impl Diagnostic {
             RenderStyle::Compact => render_compact(self, source, writer),
         }
     }
+
+    pub fn render_with_cursor<W: Write>(
+        self,
+        source: Source<'_>,
+        cursor: &mut LineCursor,
+        style: RenderStyle,
+        writer: &mut W,
+    ) -> fmt::Result {
+        match style {
+            RenderStyle::Compact => render_compact_with_cursor(self, source, cursor, writer),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -118,9 +130,30 @@ fn render_compact<W: Write>(
     writer: &mut W,
 ) -> fmt::Result {
     let location = source
-        .and_then(|value| value.line_column(diagnostic.span.start).ok())
+        .and_then(|value| value.line_column(diagnostic.span.start()).ok())
         .unwrap_or(LineColumn { line: 0, column: 0 });
 
+    render_compact_at(diagnostic, location, writer)
+}
+
+fn render_compact_with_cursor<W: Write>(
+    diagnostic: Diagnostic,
+    source: Source<'_>,
+    cursor: &mut LineCursor,
+    writer: &mut W,
+) -> fmt::Result {
+    let location = source
+        .line_column_from(cursor, diagnostic.span.start())
+        .unwrap_or(LineColumn { line: 0, column: 0 });
+
+    render_compact_at(diagnostic, location, writer)
+}
+
+fn render_compact_at<W: Write>(
+    diagnostic: Diagnostic,
+    location: LineColumn,
+    writer: &mut W,
+) -> fmt::Result {
     writeln!(
         writer,
         "{} {} {}:{} {}",
@@ -139,7 +172,7 @@ mod tests {
     use std::string::String;
 
     use super::{Diagnostic, DiagnosticCode, RenderStyle, Severity};
-    use crate::{CompileLimits, Source, SourceError, Span};
+    use crate::{CompileLimits, Source, SourceError, Span, SpanError};
 
     #[test]
     fn source_errors_map_to_stable_diagnostic_codes() {
@@ -150,12 +183,12 @@ mod tests {
     }
 
     #[test]
-    fn diagnostic_compact_rendering_is_golden() {
+    fn diagnostic_compact_rendering_is_golden() -> Result<(), SpanError> {
         let source = Source::from_bytes(b"10 PRINT\n20 END", CompileLimits::DEFAULT);
         let diagnostic = Diagnostic::new(
             DiagnosticCode::UnsupportedFeature,
             Severity::Error,
-            Span::new(9, 15),
+            Span::checked(9, 15)?,
         );
         let mut rendered = String::new();
         assert_eq!(
@@ -168,11 +201,12 @@ mod tests {
             rendered,
             "error E-CORE-UNSUPPORTED-FEATURE 2:1 feature is not supported by the selected compiler path\n"
         );
+        Ok(())
     }
 
     #[test]
     fn diagnostic_without_source_uses_zero_location() {
-        let diagnostic = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::new(0, 0));
+        let diagnostic = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(0));
         let mut rendered = String::new();
         assert_eq!(
             diagnostic.render(None, RenderStyle::Compact, &mut rendered),
@@ -182,5 +216,32 @@ mod tests {
             rendered,
             "error E-CORE-INVALID-DIALECT 0:0 selected language dialect is not recognized\n"
         );
+    }
+
+    #[test]
+    fn diagnostic_cursor_rendering_is_golden() -> Result<(), SpanError> {
+        let source = Source::from_bytes(b"10 PRINT\n20 GOTO 10\n30 END", CompileLimits::DEFAULT);
+        let mut cursor = crate::LineCursor::new();
+        let mut rendered = String::new();
+        let first = Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(0));
+        let second = Diagnostic::error(DiagnosticCode::UnsupportedFeature, Span::checked(20, 26)?);
+
+        assert_eq!(
+            source.and_then(|value| first
+                .render_with_cursor(value, &mut cursor, RenderStyle::Compact, &mut rendered)
+                .map_err(|_| SourceError::LocationOverflow)),
+            Ok(())
+        );
+        assert_eq!(
+            source.and_then(|value| second
+                .render_with_cursor(value, &mut cursor, RenderStyle::Compact, &mut rendered)
+                .map_err(|_| SourceError::LocationOverflow)),
+            Ok(())
+        );
+        assert_eq!(
+            rendered,
+            "error E-CORE-INVALID-DIALECT 1:1 selected language dialect is not recognized\nerror E-CORE-UNSUPPORTED-FEATURE 3:1 feature is not supported by the selected compiler path\n"
+        );
+        Ok(())
     }
 }

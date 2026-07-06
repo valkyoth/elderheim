@@ -71,15 +71,12 @@ if [ -z "$branch" ]; then
 fi
 
 local_head="$(git rev-parse HEAD)"
-remote_file="${TMPDIR:-/tmp}/elderheim-release-readiness.$$"
-trap 'rm -f "$remote_file"' EXIT HUP INT TERM
-
-if ! git ls-remote --heads origin -- "$branch" >"$remote_file"; then
+if ! remote_line="$(git ls-remote --heads origin -- "$branch")"; then
     echo "could not read origin/${branch}" >&2
     exit 1
 fi
 
-if ! read -r remote_line <"$remote_file"; then
+if [ -z "$remote_line" ]; then
     echo "origin/${branch} does not exist" >&2
     exit 1
 fi
