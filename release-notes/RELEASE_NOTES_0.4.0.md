@@ -1,6 +1,6 @@
 # Elderheim 0.4.0 Release Notes
 
-Status: development
+Status: release-candidate ready
 
 ## Scope
 
