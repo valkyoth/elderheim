@@ -35,6 +35,20 @@ Before a tag:
 `PENTEST.md` is temporary scratch input supplied during release review. It must
 not be committed and must not exist when release readiness is checked.
 
+The normal loop is:
+
+1. The maintainer supplies root `PENTEST.md`.
+2. The report is incorporated into `security/pentest/<version>.md`.
+3. Root `PENTEST.md` is removed.
+4. Blocking findings are fixed and committed locally.
+5. The maintainer retests and either supplies a new `PENTEST.md` or asks for a
+   full release-candidate check.
+6. A release-candidate commit is made locally and pushed by the maintainer.
+7. GitHub Actions and CodeQL run on that pushed commit.
+8. If CodeQL reports findings, they are fixed, the report is updated, and a new
+   release-candidate commit is made.
+9. Only after CodeQL and the pentest report are final does the tag gate run.
+
 The final release evidence lives in:
 
 ```text
@@ -63,8 +77,24 @@ Scope:
 Result:
 ```
 
-`Status: PASS` is allowed only after release-blocking pentest and CodeQL
-findings are fixed, verified, and documented.
+Report statuses:
+
+- `DRAFT`: pentest input has been incorporated, but more retest or release
+  work is expected.
+- `READY`: local full release checks passed and the commit is ready to push so
+  GitHub Actions and CodeQL can review that exact state.
+- `PASS`: release-blocking pentest and CodeQL findings are fixed, verified, and
+  documented.
+
+CodeQL statuses:
+
+- `TBD`: CodeQL has not been checked for the current release work.
+- `PENDING`: the ready commit is waiting for GitHub CodeQL results.
+- `PASS`: CodeQL was reviewed and has no release-blocking findings.
+- `FINDINGS`: CodeQL produced findings that are documented in the report.
+
+`scripts/validate-release-candidate.sh` accepts draft and ready states for the
+local ready-commit workflow.
 
 `scripts/validate-release-readiness.sh` is intentionally stricter than the draft
 format. It accepts only `Status: PASS`, an exact commit hash, and reviewed
