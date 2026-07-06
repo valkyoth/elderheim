@@ -2,7 +2,7 @@
 
 All notable Elderheim changes are documented here.
 
-## 0.8.0 - Unreleased
+## 0.8.0 - 2026-07-06
 
 - Added the `elderheim-runtime` no_std crate.
 - Added runtime requirement identifiers for output, input, failure paths, and
@@ -17,6 +17,8 @@ All notable Elderheim changes are documented here.
 - Removed hand-assigned per-fragment bit literals from the runtime fragment
   inventory.
 - Added runtime fragment documentation, release notes, and pentest draft.
+- Addressed the `0.8.0` pentest findings around runtime fragment inventory
+  drift and the retest note around manual bit assignment.
 
 ## 0.7.0 - 2026-07-06
 
