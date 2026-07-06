@@ -9,6 +9,7 @@ repository.workspace = true
 description = "no_std intermediate representation contracts for Elderheim."
 
 [dependencies]
+elderheim-core.workspace = true
 
 [lints]
 workspace = true

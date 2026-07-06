@@ -2,6 +2,17 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.4.0 - Unreleased
+
+- Added the no_std compiler pipeline skeleton.
+- Added ordered source-to-diagnostic, HIR-to-MIR, MIR-to-LIR, and
+  LIR-to-target stage contracts.
+- Added report sink events for stage start, finish, and diagnostics.
+- Added pipeline tests for empty pipelines, stage ordering, and error
+  propagation.
+- Added IR boundary markers mapped to shared pipeline stages.
+- Updated locked milestone tag guidance to use `elderheim-vX.Y.Z`.
+
 ## 0.3.0 - 2026-07-06
 
 - Added the no_std source byte model.
