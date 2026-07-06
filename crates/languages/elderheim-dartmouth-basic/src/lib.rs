@@ -114,7 +114,7 @@ fn validate_basic1_statement(statement: &str) -> Result<(), Basic1CorpusError> {
     }
     if statement == "END"
         || statement.starts_with("LET ")
-        || statement.starts_with("PRINT")
+        || starts_with_keyword(statement, "PRINT")
         || statement.starts_with("FOR ")
         || statement.starts_with("NEXT ")
         || statement.starts_with("GO TO ")
@@ -135,6 +135,13 @@ fn is_session_command(statement: &str) -> bool {
         statement,
         "HELLO" | "RUN" | "LIST" | "SAVE" | "STOP" | "READY"
     )
+}
+
+fn starts_with_keyword(statement: &str, keyword: &str) -> bool {
+    match statement.strip_prefix(keyword) {
+        Some(rest) => rest.is_empty() || rest.starts_with(' '),
+        None => false,
+    }
 }
 
 fn is_if_then(statement: &str) -> bool {
@@ -206,6 +213,18 @@ mod tests {
         assert_eq!(
             validate_basic1_corpus_source("10 RUN\n20 END\n"),
             Err(Basic1CorpusError::SessionCommand)
+        );
+    }
+
+    #[test]
+    fn basic1_corpus_rejects_print_prefix_confusion() {
+        assert_eq!(
+            validate_basic1_corpus_source("10 PRINTED X\n20 END\n"),
+            Err(Basic1CorpusError::UnsupportedStatement)
+        );
+        assert_eq!(
+            validate_basic1_corpus_source("10 PRINTER\n20 END\n"),
+            Err(Basic1CorpusError::UnsupportedStatement)
         );
     }
 
