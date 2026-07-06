@@ -28,5 +28,10 @@ jobs:
       - name: Install Rust toolchain
         run: rustup show
 
+      - name: Install supply-chain tools
+        run: |
+          cargo install --locked cargo-deny@0.19.9
+          cargo install --locked cargo-audit@0.22.2
+
       - name: Run checks
         run: scripts/checks.sh

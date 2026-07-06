@@ -35,6 +35,8 @@ behavior.
 - Release tag validation rejects path separators and non-numeric version
   segments before building release-note or pentest-report paths.
 - Supply-chain checks are part of the standard local gate.
+- GitHub CI installs the required supply-chain tools before running the
+  standard local gate.
 
 ## Scope Exclusions
 
