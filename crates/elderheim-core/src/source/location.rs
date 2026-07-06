@@ -1,10 +1,11 @@
-use super::NormalizationPolicy;
+use super::{NormalizationPolicy, SourceId};
 use crate::{CompileLimits, Span};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Source<'a> {
     bytes: &'a [u8],
     line_count: u32,
+    id: SourceId,
 }
 
 impl<'a> Source<'a> {
@@ -14,8 +15,13 @@ impl<'a> Source<'a> {
         policy: NormalizationPolicy,
     ) -> Result<Self, SourceError> {
         let line_count = super::normalize::validate_normalized_source(bytes, limits, policy)?;
+        let id = super::normalize::source_id_for_normalized(bytes);
 
-        Ok(Self { bytes, line_count })
+        Ok(Self {
+            bytes,
+            line_count,
+            id,
+        })
     }
 
     #[must_use]
@@ -38,6 +44,11 @@ impl<'a> Source<'a> {
         self.line_count
     }
 
+    #[must_use]
+    pub const fn id(self) -> SourceId {
+        self.id
+    }
+
     pub fn line_column(self, offset: u32) -> Result<LineColumn, SourceError> {
         let mut cursor = LineCursor::new();
         self.line_column_from(&mut cursor, offset)
@@ -53,8 +64,12 @@ impl<'a> Source<'a> {
             return Err(SourceError::OffsetOutOfBounds);
         }
 
+        if !cursor.matches_source(self.bytes) {
+            *cursor = LineCursor::new_for_source(self.bytes);
+        }
+
         if offset_usize < cursor.scanned_to {
-            *cursor = LineCursor::new();
+            *cursor = LineCursor::new_for_source(self.bytes);
         }
 
         for (position, byte) in self.bytes.iter().enumerate().skip(cursor.scanned_to) {
@@ -100,6 +115,9 @@ impl<'a> Source<'a> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LineCursor {
+    source_start: *const u8,
+    source_len: usize,
+    source_bound: bool,
     line: u32,
     line_start: usize,
     scanned_to: usize,
@@ -109,10 +127,33 @@ impl LineCursor {
     #[must_use]
     pub const fn new() -> Self {
         Self {
+            source_start: core::ptr::null(),
+            source_len: 0,
+            source_bound: false,
             line: 1,
             line_start: 0,
             scanned_to: 0,
         }
+    }
+
+    #[must_use]
+    pub const fn line_start(self) -> usize {
+        self.line_start
+    }
+
+    fn new_for_source(bytes: &[u8]) -> Self {
+        Self {
+            source_start: bytes.as_ptr(),
+            source_len: bytes.len(),
+            source_bound: true,
+            line: 1,
+            line_start: 0,
+            scanned_to: 0,
+        }
+    }
+
+    fn matches_source(self, bytes: &[u8]) -> bool {
+        self.source_bound && self.source_start == bytes.as_ptr() && self.source_len == bytes.len()
     }
 }
 
@@ -256,6 +297,31 @@ mod tests {
             source(b"10 PRINT\n20 END").and_then(|value| value.line_column_from(&mut cursor, 3)),
             Ok(LineColumn { line: 1, column: 4 })
         );
+    }
+
+    #[test]
+    fn line_cursor_resets_when_source_changes() {
+        let mut cursor = LineCursor::new();
+
+        assert_eq!(
+            source(b"10 PRINT\n20 END").and_then(|value| value.line_column_from(&mut cursor, 9)),
+            Ok(LineColumn { line: 2, column: 1 })
+        );
+        assert_eq!(
+            source(b"30 STOP\n40 END").and_then(|value| value.line_column_from(&mut cursor, 0)),
+            Ok(LineColumn { line: 1, column: 1 })
+        );
+    }
+
+    #[test]
+    fn line_cursor_exposes_resolved_line_start() {
+        let mut cursor = LineCursor::new();
+
+        assert_eq!(
+            source(b"10 PRINT\n20 END").and_then(|value| value.line_column_from(&mut cursor, 10)),
+            Ok(LineColumn { line: 2, column: 2 })
+        );
+        assert_eq!(cursor.line_start(), 9);
     }
 
     #[test]

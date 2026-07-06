@@ -36,7 +36,7 @@ fn source_errors_map_to_stable_diagnostic_codes() {
 #[test]
 fn diagnostic_code_registry_is_stable() {
     let mut registry = DiagnosticCode::ALL.iter();
-    assert_eq!(DiagnosticCode::ALL.len(), 11);
+    assert_eq!(DiagnosticCode::ALL.len(), DiagnosticCode::variant_count());
     assert_eq!(
         registry.next().copied().map(DiagnosticCode::descriptor),
         Some(DiagnosticDescriptor {
@@ -55,6 +55,14 @@ fn diagnostic_code_registry_is_stable() {
             default_severity: Severity::Error,
         })
     );
+
+    for (left_index, left) in DiagnosticCode::ALL.iter().enumerate() {
+        for (right_index, right) in DiagnosticCode::ALL.iter().enumerate() {
+            if left_index != right_index {
+                assert_ne!(left, right);
+            }
+        }
+    }
 }
 
 #[test]
@@ -160,6 +168,27 @@ fn diagnostic_snippet_location_failure_is_visible() {
         source(b"10 END").and_then(|value| diagnostic
             .render(Some(value), RenderStyle::Snippet, &mut rendered)
             .map_err(|_| SourceError::LocationOverflow)),
+        Ok(())
+    );
+    assert_eq!(
+        rendered,
+        "error E-CORE-INTERNAL-LOCATION 0:0 diagnostic location could not be resolved\n"
+    );
+}
+
+#[test]
+fn source_bound_diagnostic_rejects_wrong_source() {
+    let expected_source = source(b"10 END");
+    let wrong_source = source(b"20 END");
+    let diagnostic = expected_source.map(Source::id).map(|id| {
+        Diagnostic::error(DiagnosticCode::InvalidDialect, Span::point(0)).with_source_id(id)
+    });
+    let mut rendered = String::new();
+
+    assert_eq!(
+        diagnostic.and_then(|value| wrong_source.and_then(|source| value
+            .render(Some(source), RenderStyle::Snippet, &mut rendered)
+            .map_err(|_| SourceError::LocationOverflow))),
         Ok(())
     );
     assert_eq!(

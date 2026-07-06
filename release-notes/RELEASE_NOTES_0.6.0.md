@@ -15,6 +15,8 @@ runtime behavior.
   severity.
 - Source snippet diagnostic rendering through `RenderStyle::Snippet`.
 - Explicit malformed-snippet handling with `E-CORE-INTERNAL-LOCATION`.
+- Optional source-ID binding for diagnostics.
+- Cursor source binding and cursor-backed snippet line extraction.
 - `ReportSection` keys for summary, pipeline, and diagnostics output.
 - `ReportEvent` rendering for report sections, pipeline starts, pipeline
   finishes, and diagnostics.
@@ -22,6 +24,16 @@ runtime behavior.
 - Golden tests for diagnostic registry, snippets, malformed snippets, report
   sections, report stage events, and report diagnostics.
 - Diagnostics/reporting documentation under `docs/diagnostics-reporting.md`.
+
+## Security Review Fixes
+
+- Cursor-backed snippet rendering now uses the cursor's resolved line-start
+  offset and copies only the target line.
+- `LineCursor` is bound to the source slice it was advanced against and resets
+  when used with another source.
+- Source-bound diagnostics now fail closed when rendered with the wrong source.
+- Diagnostic registry tests now verify the registry length against an
+  exhaustive variant count and reject duplicate entries.
 
 ## Changed
 

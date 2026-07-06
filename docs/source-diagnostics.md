@@ -34,7 +34,9 @@ blank source line by the strict BASIC normalization policy.
 use `LineCursor` through `Source::line_column_from` or
 `Diagnostic::render_with_cursor`. Forward lookups resume from the previous
 offset and keep diagnostic rendering linear over a left-to-right pass. An
-out-of-order lookup resets the cursor and remains correct.
+out-of-order lookup resets the cursor and remains correct. A cursor is bound to
+the source slice it was advanced against; reusing it with another source resets
+the cursor before lookup.
 
 ## Spans
 
@@ -56,6 +58,7 @@ Diagnostics carry:
 - a stable diagnostic code;
 - severity;
 - source span;
+- an optional normalized source ID binding;
 - a stable message selected by code.
 
 The compact rendering contract is:
@@ -71,6 +74,8 @@ When no source is available, the renderer uses `0:0` as the location. When a
 source is supplied but the diagnostic span cannot be resolved against that
 source, rendering emits `E-CORE-INTERNAL-LOCATION` instead of silently
 fabricating a source location.
+If a diagnostic carries a source ID and is rendered with a different source,
+rendering also emits `E-CORE-INTERNAL-LOCATION`.
 Batch rendering with source context should use `Diagnostic::render_with_cursor`
 so repeated diagnostics do not rescan the source from byte zero.
 
@@ -100,6 +105,7 @@ The `0.6.0` stop requires:
 - diagnostic registry tests;
 - snippet diagnostic golden tests;
 - malformed snippet tests;
+- source-bound diagnostic mismatch tests;
 - cursor diagnostic rendering golden tests;
 - source byte limit tests;
 - source line limit tests.

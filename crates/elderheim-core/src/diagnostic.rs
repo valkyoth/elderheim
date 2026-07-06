@@ -1,6 +1,6 @@
 use core::fmt::{self, Write};
 
-use crate::{LineColumn, LineCursor, Source, SourceError, Span};
+use crate::{LineColumn, LineCursor, Source, SourceError, SourceId, Span};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DiagnosticCode {
@@ -39,6 +39,23 @@ impl DiagnosticCode {
             identifier: self.code(),
             message: self.message(),
             default_severity: Severity::Error,
+        }
+    }
+
+    #[must_use]
+    pub const fn variant_count() -> usize {
+        match Self::UnsupportedFeature {
+            Self::UnsupportedFeature
+            | Self::InvalidDialect
+            | Self::ProgramTooLarge
+            | Self::InvalidExecutableLayout
+            | Self::SourceTooLarge
+            | Self::TooManyLines
+            | Self::InvalidSpan
+            | Self::SourceOffsetOutOfBounds
+            | Self::InvalidSourceByte
+            | Self::BlankSourceLine
+            | Self::InternalLocation => 11,
         }
     }
 
@@ -106,6 +123,7 @@ pub struct Diagnostic {
     pub code: DiagnosticCode,
     pub severity: Severity,
     pub span: Span,
+    pub source_id: Option<SourceId>,
 }
 
 impl Diagnostic {
@@ -115,12 +133,21 @@ impl Diagnostic {
             code,
             severity,
             span,
+            source_id: None,
         }
     }
 
     #[must_use]
     pub const fn error(code: DiagnosticCode, span: Span) -> Self {
         Self::new(code, Severity::Error, span)
+    }
+
+    #[must_use]
+    pub const fn with_source_id(self, source_id: SourceId) -> Self {
+        Self {
+            source_id: Some(source_id),
+            ..self
+        }
     }
 
     pub fn render<W: Write>(
@@ -175,6 +202,10 @@ fn render_compact<W: Write>(
     source: Option<Source<'_>>,
     writer: &mut W,
 ) -> fmt::Result {
+    if source.is_some_and(|value| !diagnostic.matches_source(value)) {
+        return render_location_error(writer);
+    }
+
     match source.map(|value| value.line_column(diagnostic.span.start())) {
         None => render_compact_at(diagnostic, LineColumn { line: 0, column: 0 }, writer),
         Some(Ok(location)) => render_compact_at(diagnostic, location, writer),
@@ -188,6 +219,10 @@ fn render_compact_with_cursor<W: Write>(
     cursor: &mut LineCursor,
     writer: &mut W,
 ) -> fmt::Result {
+    if !diagnostic.matches_source(source) {
+        return render_location_error(writer);
+    }
+
     match source.line_column_from(cursor, diagnostic.span.start()) {
         Ok(location) => render_compact_at(diagnostic, location, writer),
         Err(_) => render_location_error(writer),
@@ -203,8 +238,15 @@ fn render_snippet<W: Write>(
         return render_compact_at(diagnostic, LineColumn { line: 0, column: 0 }, writer);
     };
 
-    match source.line_column(diagnostic.span.start()) {
-        Ok(location) => render_snippet_at(diagnostic, source, location, writer),
+    if !diagnostic.matches_source(source) {
+        return render_location_error(writer);
+    }
+
+    let mut cursor = LineCursor::new();
+    match source.line_column_from(&mut cursor, diagnostic.span.start()) {
+        Ok(location) => {
+            render_snippet_at(diagnostic, source, location, cursor.line_start(), writer)
+        }
         Err(_) => render_location_error(writer),
     }
 }
@@ -215,9 +257,24 @@ fn render_snippet_with_cursor<W: Write>(
     cursor: &mut LineCursor,
     writer: &mut W,
 ) -> fmt::Result {
+    if !diagnostic.matches_source(source) {
+        return render_location_error(writer);
+    }
+
     match source.line_column_from(cursor, diagnostic.span.start()) {
-        Ok(location) => render_snippet_at(diagnostic, source, location, writer),
+        Ok(location) => {
+            render_snippet_at(diagnostic, source, location, cursor.line_start(), writer)
+        }
         Err(_) => render_location_error(writer),
+    }
+}
+
+impl Diagnostic {
+    fn matches_source(self, source: Source<'_>) -> bool {
+        match self.source_id {
+            Some(source_id) => source_id == source.id(),
+            None => true,
+        }
     }
 }
 
@@ -225,13 +282,14 @@ fn render_snippet_at<W: Write>(
     diagnostic: Diagnostic,
     source: Source<'_>,
     location: LineColumn,
+    line_start: usize,
     writer: &mut W,
 ) -> fmt::Result {
     render_compact_at(diagnostic, location, writer)?;
     writeln!(writer, " --> {}:{}", location.line, location.column)?;
     writeln!(writer, "  |")?;
     write!(writer, "{} | ", location.line)?;
-    write_source_line(source, location.line, writer)?;
+    write_source_line(source, line_start, writer)?;
     writeln!(writer)?;
     write!(writer, "  | ")?;
     write_caret_padding(location.column, writer)?;
@@ -262,20 +320,20 @@ fn render_location_error<W: Write>(writer: &mut W) -> fmt::Result {
     )
 }
 
-fn write_source_line<W: Write>(source: Source<'_>, line: u32, writer: &mut W) -> fmt::Result {
-    let mut current_line = 1_u32;
-    for byte in source.bytes() {
-        if current_line == line {
-            if *byte == b'\n' {
-                return Ok(());
-            }
-            writer.write_char(char::from(*byte))?;
-        } else if *byte == b'\n' {
-            current_line = match current_line.checked_add(1) {
-                Some(next) => next,
-                None => return Ok(()),
-            };
+fn write_source_line<W: Write>(
+    source: Source<'_>,
+    line_start: usize,
+    writer: &mut W,
+) -> fmt::Result {
+    let Some(bytes) = source.bytes().get(line_start..) else {
+        return Ok(());
+    };
+
+    for byte in bytes {
+        if *byte == b'\n' {
+            return Ok(());
         }
+        writer.write_char(char::from(*byte))?;
     }
     Ok(())
 }

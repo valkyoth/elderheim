@@ -192,9 +192,21 @@ fn push_normalized(
     id: &mut SourceId,
 ) -> Result<(), SourceError> {
     sink.push_byte(byte)?;
+    update_source_id(id, byte);
+    Ok(())
+}
+
+pub(super) fn source_id_for_normalized(bytes: &[u8]) -> SourceId {
+    let mut id = SourceId(FNV_OFFSET);
+    for byte in bytes {
+        update_source_id(&mut id, *byte);
+    }
+    id
+}
+
+fn update_source_id(id: &mut SourceId, byte: u8) {
     id.0 ^= u64::from(byte);
     id.0 = id.0.wrapping_mul(FNV_PRIME);
-    Ok(())
 }
 
 #[cfg(test)]

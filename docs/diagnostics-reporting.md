@@ -17,6 +17,8 @@ codes. Each code exposes a `DiagnosticDescriptor` containing:
 - the default severity.
 
 New codes must be added deliberately and covered by a registry golden test.
+The registry test checks the hand-maintained registry against an exhaustive
+variant count and rejects duplicate registry entries.
 
 ## Diagnostic Rendering
 
@@ -40,6 +42,12 @@ error E-CORE-UNSUPPORTED-FEATURE 2:4 feature is not supported by the selected co
 When no source is supplied, snippet rendering falls back to the compact `0:0`
 location. When source is supplied but the span cannot be resolved, rendering
 emits `E-CORE-INTERNAL-LOCATION` instead of fabricating a source location.
+Cursor-backed snippet rendering uses the cursor's resolved line-start offset,
+so repeated snippet diagnostics do not rescan source bytes from the beginning.
+
+Diagnostics may carry a normalized `SourceId`. When present, the renderer
+checks that the supplied `Source` has the same ID before rendering a location
+or snippet. Mismatches fail closed with `E-CORE-INTERNAL-LOCATION`.
 
 ## Report Sections
 
@@ -62,5 +70,6 @@ The `0.6.0` stop requires:
 - compact diagnostic golden tests;
 - snippet diagnostic golden tests;
 - malformed snippet failure tests;
+- source-bound diagnostic mismatch tests;
 - report section golden tests;
 - report event golden tests.
