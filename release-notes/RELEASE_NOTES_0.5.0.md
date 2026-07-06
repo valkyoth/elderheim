@@ -20,6 +20,8 @@ behavior.
 - Stable `SourceId` over normalized bytes.
 - Public `Source::from_normalized` construction that rejects unnormalized or
   policy-invalid source bytes.
+- Shared normalized-byte policy scanner used by both `normalize_source` and
+  `Source::from_normalized`.
 - Visible internal diagnostic-location failure reporting.
 - Tests for line-ending normalization, invalid byte rejection, blank-line
   policy, source-size rejection, source ID stability, public source

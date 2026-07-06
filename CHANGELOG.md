@@ -10,6 +10,7 @@ All notable Elderheim changes are documented here.
 - Added blank-line policy with strict BASIC rejection and preserve modes.
 - Added stable normalized source IDs.
 - Added public normalized-source construction that rejects unnormalized bytes.
+- Centralized normalized byte and blank-line policy in one shared scanner.
 - Added visible diagnostic-location failure rendering.
 - Split source handling into location and normalization modules.
 - Refreshed the project overview image.

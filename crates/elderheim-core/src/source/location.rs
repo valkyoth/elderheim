@@ -1,4 +1,4 @@
-use super::{BlankLinePolicy, NormalizationPolicy};
+use super::NormalizationPolicy;
 use crate::{CompileLimits, Span};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -13,22 +13,7 @@ impl<'a> Source<'a> {
         limits: CompileLimits,
         policy: NormalizationPolicy,
     ) -> Result<Self, SourceError> {
-        let max_supported_len =
-            usize::try_from(u32::MAX).map_err(|_| SourceError::LimitTooLarge)?;
-        if bytes.len() > max_supported_len {
-            return Err(SourceError::SourceTooLarge);
-        }
-
-        if bytes.len() > limits.max_source_bytes {
-            return Err(SourceError::SourceTooLarge);
-        }
-
-        let line_count = count_normalized_lines(bytes, policy)?;
-        let max_lines = u32::try_from(limits.max_lines).map_err(|_| SourceError::LimitTooLarge)?;
-
-        if line_count > max_lines {
-            return Err(SourceError::TooManyLines);
-        }
+        let line_count = super::normalize::validate_normalized_source(bytes, limits, policy)?;
 
         Ok(Self { bytes, line_count })
     }
@@ -188,57 +173,6 @@ impl SourceError {
             Self::InvalidByte { .. } => "source contains a byte outside the source policy",
             Self::BlankLine { .. } => "source contains a blank line rejected by policy",
         }
-    }
-}
-
-fn count_normalized_lines(bytes: &[u8], policy: NormalizationPolicy) -> Result<u32, SourceError> {
-    if bytes.is_empty() {
-        return Ok(0);
-    }
-
-    let mut lines = 1_u32;
-    let mut line_has_text = false;
-    let mut ended_with_line_ending = false;
-
-    for (index, byte) in bytes.iter().copied().enumerate() {
-        match byte {
-            b'\n' => {
-                finish_line(policy, lines, line_has_text)?;
-                lines = lines.checked_add(1).ok_or(SourceError::LocationOverflow)?;
-                line_has_text = false;
-                ended_with_line_ending = true;
-            }
-            0x20..=0x7e => {
-                if byte != b' ' {
-                    line_has_text = true;
-                }
-                ended_with_line_ending = false;
-            }
-            _ => {
-                return Err(SourceError::InvalidByte {
-                    offset: u32::try_from(index).map_err(|_| SourceError::SourceTooLarge)?,
-                    byte,
-                });
-            }
-        }
-    }
-
-    if !ended_with_line_ending {
-        finish_line(policy, lines, line_has_text)?;
-    }
-
-    Ok(lines)
-}
-
-fn finish_line(
-    policy: NormalizationPolicy,
-    line: u32,
-    line_has_text: bool,
-) -> Result<(), SourceError> {
-    if policy.blank_lines == BlankLinePolicy::Reject && !line_has_text {
-        Err(SourceError::BlankLine { line })
-    } else {
-        Ok(())
     }
 }
 

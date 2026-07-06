@@ -64,6 +64,11 @@ or proof that two source inputs are identical.
 views. It accepts only normalized bytes and re-checks the normalized source
 byte, line-limit, and blank-line policy before returning a `Source`.
 
+Normalized source validation is intentionally centralized in `source/normalize.rs`.
+The normalizer and `Source::from_normalized` share the same normalized-byte
+scanner so the byte policy, blank-line policy, line count, and line-limit
+checks cannot drift between source ingestion and diagnostic source views.
+
 ## Verification
 
 The `0.5.0` stop requires:

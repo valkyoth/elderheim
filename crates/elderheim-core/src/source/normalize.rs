@@ -39,15 +39,9 @@ pub fn normalize_source(
     validate_len(bytes, limits)?;
 
     let mut id = SourceId(FNV_OFFSET);
-    let mut index = 0_usize;
-    let mut line = 1_u32;
-    let mut line_has_text = false;
-    let mut normalized_lines = if bytes.is_empty() { 0_u32 } else { 1_u32 };
     let max_lines = u32::try_from(limits.max_lines).map_err(|_| SourceError::LimitTooLarge)?;
-    if normalized_lines > max_lines {
-        return Err(SourceError::TooManyLines);
-    }
-    let mut ended_with_line_ending = false;
+    let mut scanner = NormalizedSourceScanner::new(bytes.is_empty(), max_lines)?;
+    let mut index = 0_usize;
 
     while let Some(byte) = bytes.get(index).copied() {
         let offset = u32::try_from(index).map_err(|_| SourceError::SourceTooLarge)?;
@@ -58,49 +52,23 @@ pub fn normalize_source(
                 if matches!(bytes.get(next_index), Some(b'\n')) {
                     index = next_index;
                 }
-                finish_line(policy, line, line_has_text)?;
+                scanner.accept_normalized_byte(b'\n', offset, policy)?;
                 push_normalized(b'\n', sink, &mut id)?;
-                normalized_lines = normalized_lines
-                    .checked_add(1)
-                    .ok_or(SourceError::LocationOverflow)?;
-                if normalized_lines > max_lines {
-                    return Err(SourceError::TooManyLines);
-                }
-                line = line.checked_add(1).ok_or(SourceError::LocationOverflow)?;
-                line_has_text = false;
-                ended_with_line_ending = true;
             }
             b'\n' => {
-                finish_line(policy, line, line_has_text)?;
+                scanner.accept_normalized_byte(b'\n', offset, policy)?;
                 push_normalized(b'\n', sink, &mut id)?;
-                normalized_lines = normalized_lines
-                    .checked_add(1)
-                    .ok_or(SourceError::LocationOverflow)?;
-                if normalized_lines > max_lines {
-                    return Err(SourceError::TooManyLines);
-                }
-                line = line.checked_add(1).ok_or(SourceError::LocationOverflow)?;
-                line_has_text = false;
-                ended_with_line_ending = true;
-            }
-            0x20..=0x7e => {
-                push_normalized(byte, sink, &mut id)?;
-                if byte != b' ' {
-                    line_has_text = true;
-                }
-                ended_with_line_ending = false;
             }
             _ => {
-                return Err(SourceError::InvalidByte { offset, byte });
+                scanner.accept_normalized_byte(byte, offset, policy)?;
+                push_normalized(byte, sink, &mut id)?;
             }
         }
 
         index = index.saturating_add(1);
     }
 
-    if !bytes.is_empty() && !ended_with_line_ending {
-        finish_line(policy, line, line_has_text)?;
-    }
+    scanner.finish(policy)?;
 
     Ok(id)
 }
@@ -119,6 +87,91 @@ fn validate_len(bytes: &[u8], limits: CompileLimits) -> Result<(), SourceError> 
     }
 
     Ok(())
+}
+
+pub(super) fn validate_normalized_source(
+    bytes: &[u8],
+    limits: CompileLimits,
+    policy: NormalizationPolicy,
+) -> Result<u32, SourceError> {
+    validate_len(bytes, limits)?;
+
+    let max_lines = u32::try_from(limits.max_lines).map_err(|_| SourceError::LimitTooLarge)?;
+    let mut scanner = NormalizedSourceScanner::new(bytes.is_empty(), max_lines)?;
+    for (index, byte) in bytes.iter().copied().enumerate() {
+        let offset = u32::try_from(index).map_err(|_| SourceError::SourceTooLarge)?;
+        scanner.accept_normalized_byte(byte, offset, policy)?;
+    }
+    scanner.finish(policy)
+}
+
+struct NormalizedSourceScanner {
+    line: u32,
+    line_count: u32,
+    max_lines: u32,
+    line_has_text: bool,
+    ended_with_line_ending: bool,
+}
+
+impl NormalizedSourceScanner {
+    fn new(is_empty: bool, max_lines: u32) -> Result<Self, SourceError> {
+        let line_count = if is_empty { 0_u32 } else { 1_u32 };
+        if line_count > max_lines {
+            return Err(SourceError::TooManyLines);
+        }
+
+        Ok(Self {
+            line: 1,
+            line_count,
+            max_lines,
+            line_has_text: false,
+            ended_with_line_ending: false,
+        })
+    }
+
+    fn accept_normalized_byte(
+        &mut self,
+        byte: u8,
+        offset: u32,
+        policy: NormalizationPolicy,
+    ) -> Result<(), SourceError> {
+        match byte {
+            b'\n' => self.accept_line_ending(policy),
+            0x20..=0x7e => {
+                if byte != b' ' {
+                    self.line_has_text = true;
+                }
+                self.ended_with_line_ending = false;
+                Ok(())
+            }
+            _ => Err(SourceError::InvalidByte { offset, byte }),
+        }
+    }
+
+    fn accept_line_ending(&mut self, policy: NormalizationPolicy) -> Result<(), SourceError> {
+        finish_line(policy, self.line, self.line_has_text)?;
+        self.line_count = self
+            .line_count
+            .checked_add(1)
+            .ok_or(SourceError::LocationOverflow)?;
+        if self.line_count > self.max_lines {
+            return Err(SourceError::TooManyLines);
+        }
+        self.line = self
+            .line
+            .checked_add(1)
+            .ok_or(SourceError::LocationOverflow)?;
+        self.line_has_text = false;
+        self.ended_with_line_ending = true;
+        Ok(())
+    }
+
+    fn finish(self, policy: NormalizationPolicy) -> Result<u32, SourceError> {
+        if self.line_count != 0 && !self.ended_with_line_ending {
+            finish_line(policy, self.line, self.line_has_text)?;
+        }
+        Ok(self.line_count)
+    }
 }
 
 fn finish_line(
