@@ -1721,7 +1721,8 @@ Deliverables:
 
 - Version 1 feature matrix.
 - Version 1 fixture suite.
-- Known limitations.
+- Completion-blocker register with every committed-scope item fixed or assigned
+  to an explicit follow-up release.
 
 Verification:
 
@@ -1737,7 +1738,8 @@ Deliverables:
 
 - Version 2 feature matrix.
 - Version 2 fixture suite.
-- Known limitations.
+- Completion-blocker register with every committed-scope item fixed or assigned
+  to an explicit follow-up release.
 
 Verification:
 
@@ -1753,7 +1755,8 @@ Deliverables:
 
 - Version 4 feature matrix.
 - Version 4 fixture suite.
-- Known limitations.
+- Completion-blocker register with every committed-scope item fixed or assigned
+  to an explicit follow-up release.
 
 Verification:
 
@@ -1898,7 +1901,7 @@ Deliverables:
 - Dartmouth version reference.
 - Target support matrix.
 - Security model.
-- Known limitations.
+- Scope exclusions and completion-blocker register.
 
 Verification:
 

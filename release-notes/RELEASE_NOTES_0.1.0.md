@@ -22,8 +22,8 @@ Status: release-candidate scaffold
 - Security, modularity, unsafe, toolchain, and supply-chain policy docs.
 - Local check scripts.
 
-## Known Limitations
+## Scope Exclusions
 
-- No parser is implemented yet.
-- No executable writer is implemented yet.
-- Local verification requires Rust `1.96.1`.
+- Parser implementation is not part of the `0.1.0` foundation tag.
+- Executable-writer implementation is not part of the `0.1.0` foundation tag.
+- Local verification intentionally requires Rust `1.96.1`.
