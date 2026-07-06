@@ -71,7 +71,19 @@ if [ -z "$branch" ]; then
 fi
 
 local_head="$(git rev-parse HEAD)"
-remote_line="$(git ls-remote --heads origin -- "$branch")"
+remote_file="${TMPDIR:-/tmp}/elderheim-release-readiness.$$"
+trap 'rm -f "$remote_file"' EXIT HUP INT TERM
+
+if ! git ls-remote --heads origin -- "$branch" >"$remote_file"; then
+    echo "could not read origin/${branch}" >&2
+    exit 1
+fi
+
+if ! read -r remote_line <"$remote_file"; then
+    echo "origin/${branch} does not exist" >&2
+    exit 1
+fi
+
 remote_head="${remote_line%%	*}"
 if [ "$local_head" != "$remote_head" ]; then
     echo "release commit is not pushed to origin/${branch}: ${local_head}" >&2

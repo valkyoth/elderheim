@@ -37,7 +37,7 @@ where
 }
 
 fn print_help() {
-    println!("elderheim 0.2.0: compiler target matrix scaffold");
+    println!("elderheim 0.3.0: source and diagnostics core scaffold");
     println!("usage:");
     println!("  elderheim --list-targets");
     println!("  elderheim --target <os-architecture-format>");

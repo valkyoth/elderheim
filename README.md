@@ -96,9 +96,10 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.2.0` is the active target-matrix workstream. It makes the 1.0 target matrix
-explicit, gives every supported target a stable CLI-visible name, and rejects
-unsupported target strings with stable diagnostics.
+`0.3.0` is the active source and diagnostics core workstream. It adds the
+shared source byte model, checked spans, one-based line/column lookup, stable
+diagnostic codes, compact diagnostic rendering, and source limit enforcement
+used by later compiler phases.
 
 No Dartmouth BASIC parser or executable writer is implemented yet. The roadmap
 intentionally starts with compiler substrate, then makes BASIC 1 complete,
@@ -112,6 +113,7 @@ then BASIC 2 complete, then BASIC 4 complete.
 | Rust toolchain pin | Working | Stable Rust `1.96.1`, edition 2024, workspace resolver `3`. |
 | License | Working | EUPL-1.2. |
 | no_std library skeletons | Working | Core/facade crates are prepared for no_std production logic. |
+| Source and diagnostics core | Working | `elderheim-core` validates source byte and line limits, maps byte offsets to one-based line/column locations, checks spans, and renders compact stable diagnostics. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
@@ -163,7 +165,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.2.0
+scripts/validate-release-candidate.sh v0.3.0
 ```
 
 Run the dependency and advisory gates:
@@ -203,7 +205,7 @@ cargo run -p elderheim --bin elderheim -- --target linux-x86_64-elf64
 elderheim/
 ├── crates/
 │   ├── elderheim/                  # no_std facade library and CLI shell
-│   ├── elderheim-core/             # spans, diagnostics, limits, IDs
+│   ├── elderheim-core/             # source bytes, spans, diagnostics, limits
 │   ├── elderheim-ir/               # HIR/MIR/LIR contracts
 │   ├── elderheim-target/           # target and format identifiers
 │   ├── elderheim-backend-x86/      # x86 32-bit and x86_64 backend contracts
@@ -226,6 +228,7 @@ elderheim/
 | [Release Procedure](docs/release-procedure.md) | Commit, tag, pentest-input, and CodeQL reporting policy. |
 | [Tag Stops](docs/RELEASE_PLAN.md#stop-gates-and-pentest-classes) | Stop gate and pentest class for every planned tag. |
 | [Target Matrix](docs/target-matrix.md) | Supported 1.0 target names and rejection diagnostics. |
+| [Source Diagnostics](docs/source-diagnostics.md) | Source byte, span, limit, and diagnostic rendering contract. |
 | [Modularity Policy](docs/modularity-policy.md) | Crate split rules and 500-line source-file policy. |
 | [Unsafe Policy](docs/unsafe-policy.md) | Unsafe admission rules and serialization safety policy. |
 | [Toolchain Policy](docs/toolchain-policy.md) | Rust version pin and tooling expectations. |
