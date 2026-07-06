@@ -31,7 +31,8 @@ runtime behavior.
   offset and copies only the target line.
 - `LineCursor` is bound to the source slice it was advanced against and resets
   when used with another source.
-- Source-bound diagnostics now fail closed when rendered with the wrong source.
+- Source-bound diagnostics now reject mismatched source IDs as best-effort
+  misuse detection inside one trusted compilation session.
 - Diagnostic registry tests now verify the registry length against an
   exhaustive variant count and reject duplicate entries.
 

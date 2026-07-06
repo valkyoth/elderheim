@@ -64,12 +64,12 @@ impl<'a> Source<'a> {
             return Err(SourceError::OffsetOutOfBounds);
         }
 
-        if !cursor.matches_source(self.bytes) {
-            *cursor = LineCursor::new_for_source(self.bytes);
+        if !cursor.matches_source(self) {
+            *cursor = LineCursor::new_for_source(self);
         }
 
         if offset_usize < cursor.scanned_to {
-            *cursor = LineCursor::new_for_source(self.bytes);
+            *cursor = LineCursor::new_for_source(self);
         }
 
         for (position, byte) in self.bytes.iter().enumerate().skip(cursor.scanned_to) {
@@ -115,9 +115,7 @@ impl<'a> Source<'a> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LineCursor {
-    source_start: *const u8,
-    source_len: usize,
-    source_bound: bool,
+    source_id: Option<SourceId>,
     line: u32,
     line_start: usize,
     scanned_to: usize,
@@ -127,9 +125,7 @@ impl LineCursor {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            source_start: core::ptr::null(),
-            source_len: 0,
-            source_bound: false,
+            source_id: None,
             line: 1,
             line_start: 0,
             scanned_to: 0,
@@ -141,19 +137,17 @@ impl LineCursor {
         self.line_start
     }
 
-    fn new_for_source(bytes: &[u8]) -> Self {
+    fn new_for_source(source: Source<'_>) -> Self {
         Self {
-            source_start: bytes.as_ptr(),
-            source_len: bytes.len(),
-            source_bound: true,
+            source_id: Some(source.id()),
             line: 1,
             line_start: 0,
             scanned_to: 0,
         }
     }
 
-    fn matches_source(self, bytes: &[u8]) -> bool {
-        self.source_bound && self.source_start == bytes.as_ptr() && self.source_len == bytes.len()
+    fn matches_source(self, source: Source<'_>) -> bool {
+        self.source_id == Some(source.id())
     }
 }
 
@@ -314,6 +308,23 @@ mod tests {
     }
 
     #[test]
+    fn line_cursor_resets_when_same_length_source_content_changes() {
+        let mut cursor = LineCursor::new();
+
+        assert_eq!(
+            source(b"AAAA\nBBBB\nCCCC").and_then(|value| value.line_column_from(&mut cursor, 8)),
+            Ok(LineColumn { line: 2, column: 4 })
+        );
+        assert_eq!(
+            source(b"AAAAXBBBBXCCCC").and_then(|value| value.line_column_from(&mut cursor, 10)),
+            Ok(LineColumn {
+                line: 1,
+                column: 11,
+            })
+        );
+    }
+
+    #[test]
     fn line_cursor_exposes_resolved_line_start() {
         let mut cursor = LineCursor::new();
 
@@ -322,6 +333,13 @@ mod tests {
             Ok(LineColumn { line: 2, column: 2 })
         );
         assert_eq!(cursor.line_start(), 9);
+    }
+
+    #[test]
+    fn line_cursor_remains_send_and_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<LineCursor>();
     }
 
     #[test]

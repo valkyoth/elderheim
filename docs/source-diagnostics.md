@@ -74,8 +74,10 @@ When no source is available, the renderer uses `0:0` as the location. When a
 source is supplied but the diagnostic span cannot be resolved against that
 source, rendering emits `E-CORE-INTERNAL-LOCATION` instead of silently
 fabricating a source location.
-If a diagnostic carries a source ID and is rendered with a different source,
-rendering also emits `E-CORE-INTERNAL-LOCATION`.
+If a diagnostic carries a source ID and is rendered with a source that has a
+different ID, rendering also emits `E-CORE-INTERNAL-LOCATION`. This check is
+best-effort misuse detection inside one trusted compilation session, not a
+cryptographic source-equality guarantee.
 Batch rendering with source context should use `Diagnostic::render_with_cursor`
 so repeated diagnostics do not rescan the source from byte zero.
 

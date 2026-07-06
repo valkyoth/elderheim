@@ -45,9 +45,11 @@ emits `E-CORE-INTERNAL-LOCATION` instead of fabricating a source location.
 Cursor-backed snippet rendering uses the cursor's resolved line-start offset,
 so repeated snippet diagnostics do not rescan source bytes from the beginning.
 
-Diagnostics may carry a normalized `SourceId`. When present, the renderer
-checks that the supplied `Source` has the same ID before rendering a location
-or snippet. Mismatches fail closed with `E-CORE-INTERNAL-LOCATION`.
+Diagnostics may carry a normalized `SourceId`. When present, the renderer uses
+that ID as best-effort misuse detection inside one trusted compilation
+session. If the supplied `Source` has a different ID, rendering emits
+`E-CORE-INTERNAL-LOCATION`. This is not an adversarial source-equality
+guarantee and does not make `SourceId` a security boundary.
 
 ## Report Sections
 

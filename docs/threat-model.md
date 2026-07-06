@@ -29,5 +29,7 @@ Elderheim treats compiler output as security-sensitive.
 - Explicit target and format layers.
 - Explicit Dartmouth BASIC version profiles.
 - `SourceId` is not a security, cache-integrity, or source-equality boundary.
+  Diagnostic and cursor source-id checks are best-effort misuse detection
+  inside one trusted compilation session, not adversarial equality proofs.
 - Local checks for formatting, linting, tests, docs, and file-size policy.
 - Release gates that require security review before tags.
