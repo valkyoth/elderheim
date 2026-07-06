@@ -28,6 +28,8 @@ target lowering, BASIC parsing, or BASIC execution behavior.
   dependencies, duplicate requirement idempotence, stable fragment names, and
   non-emission behavior.
 - Added no-unused-fragment and inclusion-report tests.
+- Generated the runtime fragment inventory from one macro source to prevent
+  enum/report drift.
 
 ## Scope Exclusions
 

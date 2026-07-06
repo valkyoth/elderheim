@@ -12,6 +12,8 @@ All notable Elderheim changes are documented here.
 - Added allocation-free runtime fragment dependency selection.
 - Added an explicit non-emission contract for runtime plans.
 - Added runtime fragment inclusion reports and no-unused-fragment tests.
+- Generated the runtime fragment inventory from one macro source to prevent
+  enum/report drift.
 - Added runtime fragment documentation, release notes, and pentest draft.
 
 ## 0.7.0 - 2026-07-06
