@@ -74,16 +74,25 @@ elderheim is licensed under `EUPL-1.2`.
 
 ## Historical Documentation
 
-Elderheim depends on primary historical manuals to keep dialect support
-accurate. The first local reference set is:
+Elderheim depends on primary historical manuals to keep dialect support accurate.
+We are looking for help finding original manuals, scans, specifications, and
+era-appropriate reference texts for older programming languages.
+
+The current priority search is:
+
+- Dartmouth BASIC Third Edition / Version 3.
+- Dartmouth BASIC Versions 5 through 7.
+- SBASIC / Source BASIC / Structured BASIC variants.
+
+The first local reference set is:
 
 - Dartmouth BASIC First Edition, May 1964.
 - Dartmouth BASIC Second Edition, October 1964.
 - Dartmouth BASIC Fourth Edition, January 1968 text export.
 
-If primary documentation for Dartmouth BASIC Third Edition or later Dartmouth
-editions becomes available, those profiles can be planned as explicit future
-compatibility releases. They are not part of the `1.0.0` scope.
+If you have leads, public archive links, scans, or other historical language
+references that may fit Elderheim, please reply here:
+[Seeking historical programming documents for Elderheim](https://github.com/valkyoth/elderheim/discussions/2).
 
 ## What Works Today
 
