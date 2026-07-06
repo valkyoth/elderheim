@@ -1,0 +1,4 @@
+10 DEF FNS(Z) = SIN(Z)
+20 LET X = FNS(.5)
+30 PRINT X
+40 END

@@ -1,0 +1,4 @@
+10 READ A, B, C
+20 PRINT A, B, C
+30 DATA 1, 2, 3
+40 END

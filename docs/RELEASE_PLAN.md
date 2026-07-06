@@ -450,6 +450,9 @@ committing restricted documents.
 Deliverables:
 
 - Fixture directory layout.
+- `docs/languages/` language-reference layout.
+- Dartmouth BASIC 1 reference document written in Elderheim's own words.
+- `examples/dartmouth-basic-1/` committed example corpus.
 - Manual provenance notes for versions 1, 2, and 4.
 - No committed proprietary/manual PDF content unless license allows it.
 - Extracted tiny examples where allowed or handwritten equivalent fixtures.
@@ -458,6 +461,7 @@ Deliverables:
 Verification:
 
 - Fixture manifest validates.
+- Dartmouth BASIC 1 examples are included in tests.
 - Missing manual paths produce clear local-only warnings, not CI failures.
 
 ## Phase 2: Dartmouth BASIC 1 Complete Frontend

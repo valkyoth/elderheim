@@ -37,7 +37,7 @@ where
 }
 
 fn print_help() {
-    println!("elderheim 0.8.0: runtime fragment selection scaffold");
+    println!("elderheim 0.9.0: manual corpus scaffold");
     println!("usage:");
     println!("  elderheim --list-targets");
     println!("  elderheim --target <os-architecture-format>");

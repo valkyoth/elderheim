@@ -142,6 +142,11 @@ Each profile defines line-number rules, statement set, expression rules,
 numeric model, arrays, `DATA` behavior, and diagnostics for constructs outside
 that selected profile.
 
+Every implemented language profile must also have an Elderheim-authored
+reference under `docs/languages/` and runnable source examples under
+`examples/<profile>/`. Examples are part of the test corpus and must be
+validated by automated tests before the profile can advance.
+
 Implementation order:
 
 1. `dartmouth-basic-1`

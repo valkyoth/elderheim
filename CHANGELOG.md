@@ -2,6 +2,16 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.9.0 - Unreleased
+
+- Added `docs/languages/` for Elderheim-authored language references.
+- Added the Dartmouth BASIC 1 corpus reference.
+- Added the manual corpus policy and local manual provenance document.
+- Added committed Dartmouth BASIC 1 examples and a fixture manifest.
+- Added BASIC 1 corpus validation tests in the Dartmouth BASIC crate.
+- Added manual corpus validation to the normal local check gate.
+- Added `0.9.0` release notes and pentest draft.
+
 ## 0.8.0 - 2026-07-06
 
 - Added the `elderheim-runtime` no_std crate.
