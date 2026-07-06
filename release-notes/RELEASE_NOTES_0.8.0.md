@@ -15,7 +15,8 @@ target lowering, BASIC parsing, or BASIC execution behavior.
 - Runtime requirement identifiers for output, input, failure paths, and exit.
 - Runtime fragment identifiers for `write_static`, `print_i64`, `read_line`,
   `parse_i64`, `bounds_fail`, `div_zero_fail`, and `exit`.
-- `FragmentSet` fixed bitset for allocation-free selection.
+- `FragmentSet` fixed-shape generated inventory set for allocation-free
+  selection.
 - `RuntimePlan` with an explicit non-emission contract.
 - `select_runtime` requirement-to-fragment dependency selection.
 - `FragmentInclusionReport` for stable report-facing fragment inclusion
@@ -30,6 +31,8 @@ target lowering, BASIC parsing, or BASIC execution behavior.
 - Added no-unused-fragment and inclusion-report tests.
 - Generated the runtime fragment inventory from one macro source to prevent
   enum/report drift.
+- Removed hand-assigned per-fragment bit literals from the runtime fragment
+  inventory.
 
 ## Scope Exclusions
 

@@ -47,7 +47,8 @@ but this stop only records selection.
 - division-by-zero checks select `write_static`, `div_zero_fail`, and `exit`;
 - program exit selects `exit`.
 
-Duplicate requirements are idempotent because `FragmentSet` is a fixed bitset.
+Duplicate requirements are idempotent because `FragmentSet` is a fixed-shape
+generated inventory set with one boolean field per fragment.
 
 ## Inclusion Report
 

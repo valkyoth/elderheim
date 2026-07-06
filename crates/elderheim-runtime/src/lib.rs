@@ -11,7 +11,7 @@ pub enum RuntimeRequirement {
 }
 
 macro_rules! runtime_fragments {
-    ($(($variant:ident, $name:literal, $bit:literal)),+ $(,)?) => {
+    ($(($variant:ident, $field:ident, $name:literal)),+ $(,)?) => {
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum RuntimeFragment {
             $($variant,)+
@@ -29,10 +29,39 @@ macro_rules! runtime_fragments {
                 }
             }
 
-            const fn bit(self) -> u16 {
-                match self {
-                    $(Self::$variant => $bit,)+
+        }
+
+        #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+        pub struct FragmentSet {
+            $($field: bool,)+
+        }
+
+        impl FragmentSet {
+            #[must_use]
+            pub const fn empty() -> Self {
+                Self {
+                    $($field: false,)+
                 }
+            }
+
+            pub const fn insert(&mut self, fragment: RuntimeFragment) {
+                match fragment {
+                    $(RuntimeFragment::$variant => {
+                        self.$field = true;
+                    })+
+                }
+            }
+
+            #[must_use]
+            pub const fn contains(self, fragment: RuntimeFragment) -> bool {
+                match fragment {
+                    $(RuntimeFragment::$variant => self.$field,)+
+                }
+            }
+
+            #[must_use]
+            pub const fn is_empty(self) -> bool {
+                true $(&& !self.$field)+
             }
         }
     };
@@ -45,39 +74,13 @@ macro_rules! runtime_fragments {
 }
 
 runtime_fragments! {
-    (WriteStatic, "write_static", 0b000_0001),
-    (PrintI64, "print_i64", 0b000_0010),
-    (ReadLine, "read_line", 0b000_0100),
-    (ParseI64, "parse_i64", 0b000_1000),
-    (BoundsFail, "bounds_fail", 0b001_0000),
-    (DivZeroFail, "div_zero_fail", 0b010_0000),
-    (Exit, "exit", 0b100_0000),
-}
-
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct FragmentSet {
-    bits: u16,
-}
-
-impl FragmentSet {
-    #[must_use]
-    pub const fn empty() -> Self {
-        Self { bits: 0 }
-    }
-
-    pub const fn insert(&mut self, fragment: RuntimeFragment) {
-        self.bits |= fragment.bit();
-    }
-
-    #[must_use]
-    pub const fn contains(self, fragment: RuntimeFragment) -> bool {
-        self.bits & fragment.bit() != 0
-    }
-
-    #[must_use]
-    pub const fn is_empty(self) -> bool {
-        self.bits == 0
-    }
+    (WriteStatic, write_static, "write_static"),
+    (PrintI64, print_i64, "print_i64"),
+    (ReadLine, read_line, "read_line"),
+    (ParseI64, parse_i64, "parse_i64"),
+    (BoundsFail, bounds_fail, "bounds_fail"),
+    (DivZeroFail, div_zero_fail, "div_zero_fail"),
+    (Exit, exit, "exit"),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

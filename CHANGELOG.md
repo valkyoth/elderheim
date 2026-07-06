@@ -14,6 +14,8 @@ All notable Elderheim changes are documented here.
 - Added runtime fragment inclusion reports and no-unused-fragment tests.
 - Generated the runtime fragment inventory from one macro source to prevent
   enum/report drift.
+- Removed hand-assigned per-fragment bit literals from the runtime fragment
+  inventory.
 - Added runtime fragment documentation, release notes, and pentest draft.
 
 ## 0.7.0 - 2026-07-06
