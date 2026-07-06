@@ -52,12 +52,23 @@ The final supported release path is meant to be self-contained:
 - No Cranelift or LLVM backend is used.
 - Old source code compiles through `elderheim` itself.
 
+Temporary C, Cranelift, LLVM, system assembler, system linker, or external
+runtime bridges are not part of the implementation strategy.
+
 The first stable goal is `1.0.0`: prove the compiler platform with complete
-Dartmouth BASIC 1, then complete Dartmouth BASIC 2, then complete Dartmouth
-BASIC 4. Dartmouth BASIC 3 stays reserved until official documentation is
-available. Other BASIC variants and non-BASIC language families are future
-frontends under `crates/languages/`, not implementation claims in the
-foundation release.
+manual-backed Dartmouth BASIC 1, then complete manual-backed Dartmouth BASIC 2,
+then complete manual-backed Dartmouth BASIC 4. Dartmouth BASIC 3 stays reserved
+until official documentation is available. Other BASIC variants and non-BASIC
+language families are future frontends under `crates/languages/`, not
+implementation claims in the foundation release.
+
+Committed scope must not be half implemented. If a committed feature, profile,
+target, report, or security control cannot be finished in its current stop, the
+release plan must receive an explicit follow-up version such as `0.1.1`,
+`0.2.1`, or the next minor stop before the current release is treated as done.
+This rule does not turn out-of-scope work into a deferral: Dartmouth BASIC 4
+means the documented source programming language, not Dartmouth timesharing
+session, editor, account, file, paper-tape, or operating-system commands.
 
 elderheim is licensed under `EUPL-1.2`.
 
@@ -108,7 +119,7 @@ fixtures, release gates, and pentest evidence pass.
 
 | Language or dialect | Status | Comment |
 | --- | --- | --- |
-| Dartmouth BASIC First Edition (`dartmouth-basic-1`) | Planned for first implementation line | BASIC 1 must reach a complete supported subset before BASIC 2 begins. |
+| Dartmouth BASIC First Edition (`dartmouth-basic-1`) | Planned for first implementation line | BASIC 1 must reach complete manual-backed language support before BASIC 2 begins. |
 | Dartmouth BASIC Second Edition (`dartmouth-basic-2`) | Planned after BASIC 1 | Added as an explicit compatibility expansion over proven BASIC 1 behavior. |
 | Dartmouth BASIC Third Edition (`dartmouth-basic-3`) | Reserved | No official documentation is available locally; not part of `1.0.0`. |
 | Dartmouth BASIC Fourth Edition (`dartmouth-basic-4`) | Planned after BASIC 2 | Added only after BASIC 2 reaches its compatibility stop. |
@@ -184,6 +195,7 @@ elderheim/
 | --- | --- |
 | [Implementation Plan](docs/IMPLEMENTATION_PLAN.md) | Compiler architecture, workspace shape, Dartmouth sequencing, and output strategy. |
 | [Release Plan](docs/RELEASE_PLAN.md) | Granular roadmap from `0.1.0` through `1.0.0`. |
+| [Release Procedure](docs/release-procedure.md) | Commit, tag, pentest-input, and CodeQL reporting policy. |
 | [Tag Stops](docs/RELEASE_PLAN.md#stop-gates-and-pentest-classes) | Stop gate and pentest class for every planned tag. |
 | [Modularity Policy](docs/modularity-policy.md) | Crate split rules and 500-line source-file policy. |
 | [Unsafe Policy](docs/unsafe-policy.md) | Unsafe admission rules and serialization safety policy. |

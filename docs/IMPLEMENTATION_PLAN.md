@@ -12,6 +12,18 @@ BASIC versions 1, 2, and 4 source into standalone executables for Linux,
 Windows, and macOS. Linux covers `x86`, `x86_64`, `aarch32`, and `aarch64`;
 Windows covers `x86_64`; macOS covers Apple Silicon `aarch64`.
 
+The 1.0 Dartmouth BASIC commitment is complete manual-backed source-language
+support for versions 1, 2, and 4. It is not a partial subset plan. If a
+committed item cannot be finished at the stop where it is discovered, the plan
+must add a concrete follow-up release such as `0.1.1`, `0.2.1`, or the next
+minor version with its own verification and pentest notes. Nothing in committed
+scope may be left as an unnamed future task.
+
+Dartmouth BASIC 4 means the documented programming language accepted in source
+programs. Dartmouth timesharing session commands, editor commands, account/file
+management commands, paper-tape workflows, and operating-system commands are
+outside the compiler-language profile rather than deferred language features.
+
 The generated executable path is strict:
 
 - No Cranelift.
@@ -124,7 +136,8 @@ Version profiles:
 - `dartmouth-basic-4`
 
 Each profile defines line-number rules, statement set, expression rules,
-numeric model, arrays, `DATA` behavior, and unsupported-feature diagnostics.
+numeric model, arrays, `DATA` behavior, and diagnostics for constructs outside
+that selected profile.
 
 Implementation order:
 

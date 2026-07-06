@@ -28,6 +28,7 @@ Describe any security-sensitive impact. Mention parsing, relocation math,
 executable writing, runtime fragments, CLI file paths, dependencies, or CI
 workflow changes if they are touched.
 
-## Follow-Up
+## Scheduled Follow-Up Releases
 
-List known remaining work or intentionally deferred tasks.
+List explicit follow-up release versions for any accepted non-blocking work.
+Committed scope must not be left as an unnamed future task.

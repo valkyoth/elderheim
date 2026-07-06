@@ -10,6 +10,19 @@ compatibility project for Dartmouth BASIC versions 1, 2, and 4.
 Elderheim compiler platform. It proves the platform with Dartmouth BASIC. It is
 not the end of Elderheim.
 
+The 1.0 Dartmouth BASIC commitment is full manual-backed source-language
+support for versions 1, 2, and 4. Release tags must not claim a profile,
+target, report, or security control is done while carrying an unnamed partial
+implementation. If work inside committed scope cannot finish at the current
+stop, this plan must add a concrete follow-up version such as `0.1.1`,
+`0.2.1`, or the next minor version with its own definition of done, tests,
+release notes, and pentest notes.
+
+Dartmouth BASIC 4 scope is the source programming language. Dartmouth
+timesharing session commands, editor commands, account/file management,
+paper-tape workflows, and operating-system commands are not part of the
+compiler-language profile and are not treated as deferred BASIC 4 features.
+
 ## 1.0 Scope
 
 `v1.0.0` must support:
@@ -48,7 +61,7 @@ intentionally scoped to Apple Silicon `aarch64` for 1.0.
 
 Dartmouth BASIC versions must be implemented in order:
 
-1. BASIC 1 reaches a complete supported subset.
+1. BASIC 1 reaches complete manual-backed source-language support.
 2. BASIC 2 is added as a compatibility expansion on top of proven BASIC 1
    infrastructure.
 3. BASIC 4 is added only after BASIC 2 is complete.
@@ -66,9 +79,17 @@ Every release must have:
 - Local verification commands.
 - Release notes.
 - Security review or pentest notes for the exact commit being tagged.
+- A pentest report built from supplied `PENTEST.md` input when present.
+- CodeQL default setup findings reviewed and reflected in the pentest report.
 - No hidden dependency on a developer machine.
-- Documentation of known limitations.
+- Documentation of scope exclusions only for work explicitly outside the
+  release scope, or a scheduled follow-up version for any incomplete committed
+  scope.
 - No source file over 500 lines.
+
+Local commits may be made regularly while work is progressing. Maintainers push
+the branch and tags. Tags are release events and require the release procedure in
+`docs/release-procedure.md`.
 
 Tag readiness requires:
 
@@ -78,6 +99,10 @@ Tag readiness requires:
 - `scripts/generate-sbom.sh` succeeds.
 - Release notes exist under `release-notes/`.
 - A pentest report exists under `security/pentest/`.
+- The pentest report includes CodeQL status and any findings or follow-up
+  releases.
+- Root `PENTEST.md` scratch input has been incorporated into the final report
+  and removed.
 - The tag does not already exist locally.
 
 ## Immutable Tag Workaround
@@ -635,7 +660,8 @@ Close known BASIC 1 frontend and semantic gaps before adding BASIC 2.
 Deliverables:
 
 - BASIC 1 supported-feature matrix.
-- BASIC 1 known limitations.
+- BASIC 1 completion-blocker register; every item is either fixed before this
+  tag or assigned to an explicit follow-up release.
 - BASIC 1 manual-derived fixture suite.
 - BASIC 2 and BASIC 4 syntax rejection suite.
 
@@ -761,7 +787,8 @@ Close known BASIC 2 gaps before adding BASIC 4.
 Deliverables:
 
 - BASIC 2 supported-feature matrix.
-- BASIC 2 known limitations.
+- BASIC 2 completion-blocker register; every item is either fixed before this
+  tag or assigned to an explicit follow-up release.
 - BASIC 2 manual-derived fixture suite.
 - BASIC 4 syntax rejection suite in BASIC 2 mode.
 
@@ -887,7 +914,8 @@ Close known BASIC 4 gaps before platform backend work.
 Deliverables:
 
 - BASIC 4 supported-feature matrix.
-- BASIC 4 known limitations.
+- BASIC 4 completion-blocker register; every item is either fixed before this
+  tag or assigned to an explicit follow-up release.
 - BASIC 4 manual-derived fixture suite.
 - Cross-version matrix for BASIC 1, BASIC 2, and BASIC 4.
 
@@ -1947,7 +1975,8 @@ Deliverables:
 
 Verification:
 
-- Follow-up pentest review passes or explicitly defers non-blocking findings.
+- Follow-up pentest review passes or every non-blocking finding is assigned to
+  an explicit follow-up release.
 
 ### v0.93.0 - 1.0 Final Candidate
 

@@ -19,6 +19,9 @@ GitHub Actions run normal Rust CI. GitHub CodeQL default setup should be enabled
 in the repository security settings. Keep only one active CodeQL configuration:
 do not add an advanced CodeQL workflow while default setup is active.
 
+Before tagging, CodeQL default setup findings must be reviewed and reflected in
+the matching `security/pentest/<version>.md` report.
+
 ## Dependency Policy
 
 The dependency policy lives in `deny.toml`. Unknown registries and git sources
@@ -29,8 +32,8 @@ is a supply-chain change and needs review.
 
 ## Generated Binary Policy
 
-Generated programs must not silently depend on rustc, Cargo, LLVM, Cranelift,
-system assemblers, system linkers, libc, or external BASIC runtimes.
+Generated programs must not depend on rustc, Cargo, LLVM, Cranelift, system
+assemblers, system linkers, libc, or external BASIC runtimes.
 
 Executable writers must use explicit byte serialization and checked arithmetic.
 Do not serialize executable headers by casting Rust structs to bytes.

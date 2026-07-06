@@ -42,4 +42,5 @@ fi
 grep -Eq '^Status: (PASS|DRAFT)$' "$pentest_report"
 grep -Eq '^Commit: (TBD|[0-9a-f]{40})$' "$pentest_report"
 grep -Eq '^Tester: .+' "$pentest_report"
+grep -Eq '^CodeQL: (TBD|PASS|FINDINGS)$' "$pentest_report"
 grep -Eq '^Scope:' "$pentest_report"

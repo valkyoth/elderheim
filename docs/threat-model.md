@@ -15,7 +15,8 @@ Elderheim treats compiler output as security-sensitive.
 - Malformed historic source causing panics or unchecked arithmetic.
 - Incorrect relocation math causing generated control-flow corruption.
 - Incorrect executable layout producing RWX or invalid segments.
-- Hidden dependency on host compilers, linkers, libc, or runtimes.
+- Any generated-program dependency on host compilers, linkers, libc, or
+  runtimes.
 - Dialect confusion where one Dartmouth BASIC version silently accepts another
   version's semantics.
 
