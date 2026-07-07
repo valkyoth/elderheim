@@ -117,14 +117,14 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.10.0` is the active Dartmouth BASIC 1 line-table workstream. It adds a
-tested no_std line-number parser and line-table model for numbered BASIC 1
-source, including duplicate, malformed, out-of-order, and empty numbered line
-rejection.
+`0.11.0` is the active Dartmouth BASIC 1 lexer workstream. It adds a tested
+no_std lexer for BASIC 1 statement text, including keyword, identifier, number,
+string, operator, relation, and delimiter tokens with statement-relative byte
+spans.
 
-No Dartmouth BASIC lexer, full parser, semantic validator, or executable writer
-is implemented yet. The roadmap intentionally starts with compiler substrate,
-then makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
+No Dartmouth BASIC full parser, semantic validator, or executable writer is
+implemented yet. The roadmap intentionally starts with compiler substrate, then
+makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 
 ### Compiler Foundation
 
@@ -142,6 +142,7 @@ then makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 | Runtime fragment selection | Working | `elderheim-runtime` maps high-level runtime requirements to fragment dependencies without executable emission. |
 | Manual corpus | Working | `docs/languages/dartmouth-basic-1.md` and `examples/dartmouth-basic-1/` define the first controlled BASIC 1 corpus. |
 | BASIC 1 line table | Working | The Dartmouth BASIC crate parses increasing numbered source lines, rejects malformed line numbers, duplicate line numbers, out-of-order lines, missing statement separators, and empty numbered lines. |
+| BASIC 1 lexer | Working | The Dartmouth BASIC crate lexes BASIC 1 statement text into token kinds with spans and rejects invalid identifiers, invalid numbers, unterminated strings, and unknown characters. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
@@ -193,7 +194,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.10.0-elderheim
+scripts/validate-release-candidate.sh v0.11.0
 ```
 
 Run the dependency and advisory gates:

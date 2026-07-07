@@ -2,6 +2,19 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.11.0 - 2026-07-07
+
+- Added the no_std Dartmouth BASIC 1 statement lexer.
+- Added BASIC 1 keyword, built-in function, identifier, number, string,
+  operator, relation, and delimiter token kinds.
+- Added statement-relative token span storage.
+- Added invalid identifier, invalid number, unterminated string, unknown
+  character, and span-overflow lexer errors.
+- Added exact-output lexer fixture tests and committed BASIC 1 example lexing
+  coverage.
+- Updated Dartmouth BASIC 1 documentation with the lexer policy.
+- Added `0.11.0` release notes and pentest draft.
+
 ## 0.10.0 - 2026-07-06
 
 - Added the no_std Dartmouth BASIC 1 line-number parser.

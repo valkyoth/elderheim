@@ -1,15 +1,15 @@
 # Dartmouth BASIC 1
 
-Status: active 0.10.0 corpus and line-table reference
+Status: active 0.11.0 corpus, line-table, and lexer reference
 
 This document is Elderheim's own short reference for the Dartmouth BASIC First
 Edition source-language corpus. It is based on the local May 1964 manual scan,
 but the wording and examples here are written for Elderheim. The original scan
 is not committed to this repository.
 
-The 0.10.0 scope is documentation, fixture control, and line-table validation.
-It does not claim that Elderheim can lex, fully parse, or compile these
-programs yet.
+The 0.11.0 scope is documentation, fixture control, line-table validation, and
+statement lexing. It does not claim that Elderheim can fully parse or compile
+these programs yet.
 
 ## Source
 
@@ -57,6 +57,27 @@ The current policy is:
 Malformed, duplicate, out-of-order, or empty numbered lines are rejected before
 statement parsing. This gives later BASIC 1 parser work a stable source order
 and branch-target model.
+
+## Lexer Policy
+
+Elderheim lexes Dartmouth BASIC 1 statement text after the line table has
+removed the leading line number. Token spans are byte offsets relative to the
+statement text, not the full source file.
+
+The current lexer recognizes:
+
+- BASIC 1 statement keywords such as `LET`, `PRINT`, `FOR`, `NEXT`, `GO`,
+  `GOTO`, `IF`, `THEN`, `DEF`, `READ`, `DATA`, and `END`;
+- built-in numeric function names from this reference;
+- scalar variable identifiers made from one uppercase letter or one uppercase
+  letter followed by one digit;
+- user function identifiers of the form `FN` plus one uppercase letter;
+- numeric literals, including decimals and `E` notation;
+- quoted string literals;
+- arithmetic operators, relation operators, commas, and parentheses.
+
+Invalid identifier shapes, malformed exponent notation, unterminated strings,
+and unknown characters are rejected by the lexer before later parser work.
 
 ## Values And Formulas
 
@@ -180,8 +201,8 @@ The controlled examples live in `examples/dartmouth-basic-1/`:
 - `read-data.bas`
 
 The Dartmouth BASIC crate includes these files at test time and validates their
-line numbering, final `END`, source-statement families, and exclusion of
-historical session commands.
+line numbering, lexer tokenization, final `END`, source-statement families, and
+exclusion of historical session commands.
 
 ## Reserved Work
 

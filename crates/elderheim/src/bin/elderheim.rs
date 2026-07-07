@@ -37,7 +37,7 @@ where
 }
 
 fn print_help() {
-    println!("elderheim 0.10.0: Dartmouth BASIC 1 line-table scaffold");
+    println!("elderheim 0.11.0: Dartmouth BASIC 1 lexer scaffold");
     println!("usage:");
     println!("  elderheim --list-targets");
     println!("  elderheim --target <os-architecture-format>");
