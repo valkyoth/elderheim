@@ -29,6 +29,10 @@ runtime execution, or executable output.
 - HIR construction reuses line-table and lexer limit enforcement.
 - Unsupported statement starts fail closed before later parser work.
 - HIR snapshots are deterministic for review and regression testing.
+- HIR snapshot rendering escapes string-literal control bytes before they reach
+  terminal, CI log, or report output.
+- HIR budget regression tests pin source-size and line-count enforcement before
+  program-wide token growth can occur.
 
 ## Scope Exclusions
 

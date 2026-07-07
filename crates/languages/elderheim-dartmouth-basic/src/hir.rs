@@ -1,4 +1,5 @@
 use alloc::{format, string::String, vec::Vec};
+use core::fmt::Write as _;
 
 use elderheim_core::{CompileLimits, Span};
 
@@ -99,12 +100,23 @@ pub fn render_basic1_hir_snapshot(program: &Basic1HirProgram<'_>) -> String {
             output.push_str("  expr");
             for token in &expression.tokens {
                 output.push(' ');
-                output.push_str(token.lexeme);
+                push_snapshot_escaped(&mut output, token.lexeme);
             }
             output.push('\n');
         }
     }
     output
+}
+
+fn push_snapshot_escaped(output: &mut String, text: &str) {
+    for ch in text.chars() {
+        match ch {
+            '\u{0}'..='\u{1F}' | '\u{7F}' => {
+                let _ = write!(output, "\\x{:02x}", u32::from(ch));
+            }
+            _ => output.push(ch),
+        }
+    }
 }
 
 fn statement_kind(tokens: &[Basic1Token<'_>]) -> Result<Basic1HirStatementKind, Basic1HirError> {

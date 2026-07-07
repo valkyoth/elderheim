@@ -9,6 +9,8 @@ All notable Elderheim changes are documented here.
 - Added BASIC 1 statement-family classification from lexer tokens.
 - Added token-sequence expression capture for BASIC 1 statement operands.
 - Added stable BASIC 1 HIR snapshot rendering.
+- Escaped control bytes in BASIC 1 HIR snapshot output.
+- Added HIR budget regression coverage for source and line limits.
 - Added HIR construction tests and committed BASIC 1 example coverage.
 - Updated Dartmouth BASIC 1 documentation with the HIR policy.
 - Added `0.12.0` release notes and pentest draft.

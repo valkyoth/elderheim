@@ -94,6 +94,11 @@ This HIR does not yet prove complete statement grammar or expression precedence.
 Those checks begin in later parser and semantic stops. The 0.12.0 HIR is a
 stable typed boundary for parser work and report snapshots.
 
+HIR snapshot output is diagnostic text, not source re-emission. Control bytes in
+token lexemes are rendered as `\xNN` escape sequences so test logs, terminal
+output, and review reports do not receive raw terminal-control characters from
+untrusted BASIC source.
+
 ## Values And Formulas
 
 The first-edition language uses numeric formulas built from:

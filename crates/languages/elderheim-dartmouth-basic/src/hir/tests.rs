@@ -1,4 +1,10 @@
-use super::{Basic1HirError, Basic1HirStatementKind, build_basic1_hir, render_basic1_hir_snapshot};
+use super::{
+    Basic1HirError, Basic1HirStatementKind, build_basic1_hir, build_basic1_hir_with_limits,
+    render_basic1_hir_snapshot,
+};
+use crate::LineTableErrorKind;
+use alloc::{format, string::String};
+use elderheim_core::CompileLimits;
 
 #[test]
 fn builds_source_shaped_hir_for_print_end_program() -> Result<(), Basic1HirError> {
@@ -47,6 +53,21 @@ fn hir_snapshot_for_basic1_branch_is_stable() -> Result<(), Basic1HirError> {
 }
 
 #[test]
+fn hir_snapshot_escapes_string_literal_control_bytes() -> Result<(), Basic1HirError> {
+    let program = build_basic1_hir("10 PRINT \"\u{1b}\u{7}\u{0}\"\n20 END\n")?;
+    let snapshot = render_basic1_hir_snapshot(&program);
+
+    assert_eq!(
+        snapshot,
+        "basic1-hir\nline 10 Print tokens=2 expressions=1\n  expr \"\\x1b\\x07\\x00\"\nline 20 End tokens=1 expressions=0\n"
+    );
+    assert!(!snapshot.contains('\u{1b}'));
+    assert!(!snapshot.contains('\u{7}'));
+    assert!(!snapshot.contains('\u{0}'));
+    Ok(())
+}
+
+#[test]
 fn builds_hir_for_every_committed_basic1_example() -> Result<(), Basic1HirError> {
     for source in [
         include_str!("../../../../../examples/dartmouth-basic-1/hello.bas"),
@@ -60,6 +81,42 @@ fn builds_hir_for_every_committed_basic1_example() -> Result<(), Basic1HirError>
         assert!(!program.lines.is_empty());
     }
     Ok(())
+}
+
+#[test]
+fn hir_budget_is_bounded_by_source_and_line_limits() -> Result<(), Basic1HirError> {
+    let limits = CompileLimits::with_source_limits(4096, 128);
+    let mut source = String::new();
+
+    for line_number in 1_u32..=128 {
+        source.push_str(&format!("{line_number} PRINT 1,2,3,4\n"));
+    }
+
+    let program = build_basic1_hir_with_limits(&source, limits)?;
+    let mut token_count = 0_usize;
+    for line in &program.lines {
+        token_count = token_count.saturating_add(line.statement.tokens.len());
+    }
+
+    assert_eq!(program.lines.len(), limits.max_lines);
+    assert!(source.len() <= limits.max_source_bytes);
+    assert!(token_count <= limits.max_source_bytes);
+    Ok(())
+}
+
+#[test]
+fn hir_rejects_source_before_program_wide_token_growth() {
+    let limits = CompileLimits::with_source_limits(32, 128);
+    let error =
+        build_basic1_hir_with_limits("10 PRINT 1,2,3,4,5,6,7,8,9\n20 END\n", limits).map(|_| ());
+
+    assert_eq!(
+        error,
+        Err(Basic1HirError::LineTable(crate::LineTableError {
+            kind: LineTableErrorKind::SourceTooLarge,
+            physical_line_index: 0,
+        }))
+    );
 }
 
 #[test]
