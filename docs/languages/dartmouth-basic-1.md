@@ -77,8 +77,8 @@ The current lexer recognizes:
 - arithmetic operators, relation operators, commas, and parentheses.
 
 Invalid identifier shapes, malformed exponent notation, unterminated strings,
-unknown characters, and token counts over the compile limit are rejected by the
-lexer before later parser work.
+source text over the compile byte limit, unknown characters, and token counts
+over the compile limit are rejected by the lexer before later parser work.
 
 ## Values And Formulas
 

@@ -68,6 +68,7 @@ pub struct Basic1Token<'source> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Basic1LexErrorKind {
+    SourceTooLarge,
     InvalidIdentifier,
     InvalidNumber,
     UnterminatedString,
@@ -90,6 +91,13 @@ pub fn lex_basic1_statement_with_limits(
     source: &str,
     limits: CompileLimits,
 ) -> Result<Vec<Basic1Token<'_>>, Basic1LexError> {
+    if source.len() > limits.max_source_bytes {
+        return Err(Basic1LexError {
+            kind: Basic1LexErrorKind::SourceTooLarge,
+            span: Span::point(u32::MAX),
+        });
+    }
+
     let mut lexer = Lexer { source, offset: 0 };
     lexer.lex_statement(limits.max_tokens)
 }

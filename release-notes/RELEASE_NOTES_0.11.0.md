@@ -23,7 +23,7 @@ runtime execution, or executable output.
 - Numeric literal scanning for integer, decimal, and `E` notation forms.
 - Quoted string literal scanning.
 - Lexer errors for invalid identifiers, invalid numbers, unterminated strings,
-  unknown characters, and span overflow.
+  source-size limits, unknown characters, and span overflow.
 - Exact-output lexer fixture tests.
 - Lexing coverage for every committed Dartmouth BASIC 1 example statement.
 
@@ -35,6 +35,7 @@ runtime execution, or executable output.
 - Unterminated string literals cannot pass into later compiler stages.
 - Token spans are checked before being stored.
 - Lexer output is bounded by `CompileLimits::max_tokens`.
+- Direct lexer input is bounded by `CompileLimits::max_source_bytes`.
 
 ## Scope Exclusions
 

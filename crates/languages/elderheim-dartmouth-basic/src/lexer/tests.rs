@@ -308,6 +308,25 @@ fn rejects_sources_over_token_limit() {
     );
 }
 
+#[test]
+fn rejects_sources_over_byte_limit_before_scanning() {
+    let limits = CompileLimits {
+        max_source_bytes: 8,
+        max_lines: 10,
+        max_tokens: CompileLimits::DEFAULT.max_tokens,
+        max_ir_ops: CompileLimits::DEFAULT.max_ir_ops,
+        max_output_bytes: CompileLimits::DEFAULT.max_output_bytes,
+    };
+
+    assert_eq!(
+        lex_basic1_statement_with_limits("\"THIS STRING IS TOO LONG", limits).map(|_| ()),
+        Err(Basic1LexError {
+            kind: Basic1LexErrorKind::SourceTooLarge,
+            span: elderheim_core::Span::point(u32::MAX),
+        })
+    );
+}
+
 fn unreachable_span() -> elderheim_core::Span {
     elderheim_core::Span::point(u32::MAX)
 }

@@ -11,6 +11,7 @@ All notable Elderheim changes are documented here.
 - Added invalid identifier, invalid number, unterminated string, unknown
   character, and span-overflow lexer errors.
 - Added `CompileLimits::max_tokens` enforcement to the lexer.
+- Added `CompileLimits::max_source_bytes` enforcement to the lexer.
 - Added exact-output lexer fixture tests and committed BASIC 1 example lexing
   coverage.
 - Updated Dartmouth BASIC 1 documentation with the lexer policy.
