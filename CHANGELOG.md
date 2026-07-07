@@ -13,7 +13,7 @@ All notable Elderheim changes are documented here.
 - Added HIR budget regression coverage for source and line limits.
 - Added HIR construction tests and committed BASIC 1 example coverage.
 - Updated Dartmouth BASIC 1 documentation with the HIR policy.
-- Added `0.12.0` release notes and pentest draft.
+- Added `0.12.0` release notes and pentest report.
 
 ## 0.11.0 - 2026-07-07
 

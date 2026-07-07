@@ -13,5 +13,5 @@ Rules:
 - If a dependency becomes necessary, prefer a small no_std-compatible crate and
   document why internal implementation is worse.
 
-The local toolchain in this environment is currently `1.95.0`, so full local
-verification requires installing `1.96.1`.
+The local toolchain in this environment is currently `1.96.1`, matching the
+pinned stable release.
