@@ -1,15 +1,15 @@
 # Dartmouth BASIC 1
 
-Status: active 0.11.0 corpus, line-table, and lexer reference
+Status: active 0.12.0 corpus, line-table, lexer, and HIR reference
 
 This document is Elderheim's own short reference for the Dartmouth BASIC First
 Edition source-language corpus. It is based on the local May 1964 manual scan,
 but the wording and examples here are written for Elderheim. The original scan
 is not committed to this repository.
 
-The 0.11.0 scope is documentation, fixture control, line-table validation, and
-statement lexing. It does not claim that Elderheim can fully parse or compile
-these programs yet.
+The 0.12.0 scope is documentation, fixture control, line-table validation,
+statement lexing, and source-shaped HIR construction. It does not claim that
+Elderheim can fully parse or compile these programs yet.
 
 ## Source
 
@@ -79,6 +79,20 @@ The current lexer recognizes:
 Invalid identifier shapes, malformed exponent notation, unterminated strings,
 source text over the compile byte limit, unknown characters, and token counts
 over the compile limit are rejected by the lexer before later parser work.
+
+## HIR Policy
+
+Elderheim's first Dartmouth BASIC 1 HIR is source-shaped. It records:
+
+- a program as ordered numbered lines;
+- each line number and statement;
+- the BASIC 1 statement family selected from the first statement token;
+- the full token stream for the statement;
+- expression-shaped token sequences for statement operands.
+
+This HIR does not yet prove complete statement grammar or expression precedence.
+Those checks begin in later parser and semantic stops. The 0.12.0 HIR is a
+stable typed boundary for parser work and report snapshots.
 
 ## Values And Formulas
 
@@ -202,8 +216,8 @@ The controlled examples live in `examples/dartmouth-basic-1/`:
 - `read-data.bas`
 
 The Dartmouth BASIC crate includes these files at test time and validates their
-line numbering, lexer tokenization, final `END`, source-statement families, and
-exclusion of historical session commands.
+line numbering, lexer tokenization, HIR construction, final `END`,
+source-statement families, and exclusion of historical session commands.
 
 ## Reserved Work
 

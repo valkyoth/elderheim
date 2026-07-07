@@ -34,10 +34,10 @@ test -f docs/threat-model.md
 test -f docs/security-controls.md
 test -f docs/supply-chain-security.md
 test -f docs/toolchain-policy.md
-test -f release-notes/RELEASE_NOTES_0.11.0.md
-test -f security/pentest/0.11.0.md
-grep -Eq '^Reviewed-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.11.0.md
-grep -Eq '^Remediation-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.11.0.md
+test -f release-notes/RELEASE_NOTES_0.12.0.md
+test -f security/pentest/0.12.0.md
+grep -Eq '^Reviewed-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.12.0.md
+grep -Eq '^Remediation-Commit: (TBD|[0-9a-f]{40})$' security/pentest/0.12.0.md
 
 grep -q 'license = "EUPL-1.2"' Cargo.toml
 grep -q 'repository = "https://github.com/valkyoth/elderheim"' Cargo.toml

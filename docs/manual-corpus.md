@@ -1,6 +1,6 @@
 # Manual Corpus
 
-Status: active 0.11.0 contract
+Status: active 0.12.0 contract
 
 Elderheim uses primary historical manuals to plan language support, but the
 manual PDFs themselves are not committed unless their licensing allows it.
