@@ -1,7 +1,8 @@
 use super::{
     Basic1BuiltinFunction, Basic1Keyword, Basic1LexError, Basic1LexErrorKind, Basic1TokenKind,
-    lex_basic1_statement,
+    lex_basic1_statement, lex_basic1_statement_with_limits,
 };
+use elderheim_core::CompileLimits;
 
 #[derive(Clone, Copy)]
 struct ExpectedToken<'source> {
@@ -284,6 +285,25 @@ fn rejects_unterminated_string() {
         Err(Basic1LexError {
             kind: Basic1LexErrorKind::UnterminatedString,
             span: elderheim_core::Span::checked(6, 12).unwrap_or_else(|_| unreachable_span()),
+        })
+    );
+}
+
+#[test]
+fn rejects_sources_over_token_limit() {
+    let limits = CompileLimits {
+        max_source_bytes: 128,
+        max_lines: 10,
+        max_tokens: 2,
+        max_ir_ops: CompileLimits::DEFAULT.max_ir_ops,
+        max_output_bytes: CompileLimits::DEFAULT.max_output_bytes,
+    };
+
+    assert_eq!(
+        lex_basic1_statement_with_limits("PRINT X, Y", limits).map(|_| ()),
+        Err(Basic1LexError {
+            kind: Basic1LexErrorKind::TooManyTokens,
+            span: elderheim_core::Span::checked(7, 8).unwrap_or_else(|_| unreachable_span()),
         })
     );
 }

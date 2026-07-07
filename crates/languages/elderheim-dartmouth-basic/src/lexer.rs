@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 
-use elderheim_core::Span;
+use elderheim_core::{CompileLimits, Span};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Basic1Keyword {
@@ -71,6 +71,7 @@ pub enum Basic1LexErrorKind {
     InvalidIdentifier,
     InvalidNumber,
     UnterminatedString,
+    TooManyTokens,
     UnknownCharacter,
     SpanOverflow,
 }
@@ -82,8 +83,15 @@ pub struct Basic1LexError {
 }
 
 pub fn lex_basic1_statement(source: &str) -> Result<Vec<Basic1Token<'_>>, Basic1LexError> {
+    lex_basic1_statement_with_limits(source, CompileLimits::DEFAULT)
+}
+
+pub fn lex_basic1_statement_with_limits(
+    source: &str,
+    limits: CompileLimits,
+) -> Result<Vec<Basic1Token<'_>>, Basic1LexError> {
     let mut lexer = Lexer { source, offset: 0 };
-    lexer.lex_statement()
+    lexer.lex_statement(limits.max_tokens)
 }
 
 struct Lexer<'source> {
@@ -92,26 +100,59 @@ struct Lexer<'source> {
 }
 
 impl<'source> Lexer<'source> {
-    fn lex_statement(&mut self) -> Result<Vec<Basic1Token<'source>>, Basic1LexError> {
+    fn lex_statement(
+        &mut self,
+        max_tokens: usize,
+    ) -> Result<Vec<Basic1Token<'source>>, Basic1LexError> {
         let mut tokens = Vec::new();
 
         while let Some(byte) = self.current_byte() {
             match byte {
                 b' ' | b'\t' => self.advance_one()?,
-                b'"' => tokens.push(self.lex_string()?),
-                b'.' if self.next_byte_is_digit() => tokens.push(self.lex_number()?),
-                b'0'..=b'9' => tokens.push(self.lex_number()?),
-                b'A'..=b'Z' => tokens.push(self.lex_word()?),
-                b'+' => tokens.push(self.single(Basic1TokenKind::Plus)?),
-                b'-' => tokens.push(self.single(Basic1TokenKind::Minus)?),
-                b'*' => tokens.push(self.single(Basic1TokenKind::Star)?),
-                b'/' => tokens.push(self.single(Basic1TokenKind::Slash)?),
-                b'^' => tokens.push(self.single(Basic1TokenKind::Caret)?),
-                b'=' => tokens.push(self.single(Basic1TokenKind::Equal)?),
-                b'(' => tokens.push(self.single(Basic1TokenKind::LeftParen)?),
-                b')' => tokens.push(self.single(Basic1TokenKind::RightParen)?),
-                b',' => tokens.push(self.single(Basic1TokenKind::Comma)?),
-                b'<' | b'>' => tokens.push(self.lex_relation()?),
+                b'"' => push_token(&mut tokens, max_tokens, self.lex_string()?)?,
+                b'.' if self.next_byte_is_digit() => {
+                    push_token(&mut tokens, max_tokens, self.lex_number()?)?;
+                }
+                b'0'..=b'9' => push_token(&mut tokens, max_tokens, self.lex_number()?)?,
+                b'A'..=b'Z' => push_token(&mut tokens, max_tokens, self.lex_word()?)?,
+                b'+' => push_token(&mut tokens, max_tokens, self.single(Basic1TokenKind::Plus)?)?,
+                b'-' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::Minus)?,
+                )?,
+                b'*' => push_token(&mut tokens, max_tokens, self.single(Basic1TokenKind::Star)?)?,
+                b'/' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::Slash)?,
+                )?,
+                b'^' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::Caret)?,
+                )?,
+                b'=' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::Equal)?,
+                )?,
+                b'(' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::LeftParen)?,
+                )?,
+                b')' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::RightParen)?,
+                )?,
+                b',' => push_token(
+                    &mut tokens,
+                    max_tokens,
+                    self.single(Basic1TokenKind::Comma)?,
+                )?,
+                b'<' | b'>' => push_token(&mut tokens, max_tokens, self.lex_relation()?)?,
                 _ => return Err(self.error(Basic1LexErrorKind::UnknownCharacter, self.offset, 1)),
             }
         }
@@ -262,6 +303,21 @@ impl<'source> Lexer<'source> {
         let span = span_from_start_len(start, len).unwrap_or_else(|_| Span::point(u32::MAX));
         Basic1LexError { kind, span }
     }
+}
+
+fn push_token<'source>(
+    tokens: &mut Vec<Basic1Token<'source>>,
+    max_tokens: usize,
+    token: Basic1Token<'source>,
+) -> Result<(), Basic1LexError> {
+    if tokens.len() >= max_tokens {
+        return Err(Basic1LexError {
+            kind: Basic1LexErrorKind::TooManyTokens,
+            span: token.span,
+        });
+    }
+    tokens.push(token);
+    Ok(())
 }
 
 fn classify_word(word: &str) -> Option<Basic1TokenKind> {

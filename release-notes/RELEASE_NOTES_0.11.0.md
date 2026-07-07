@@ -16,6 +16,7 @@ runtime execution, or executable output.
   numbers, strings, operators, relation operators, and delimiters.
 - `Basic1Token` with statement-relative byte spans.
 - `lex_basic1_statement` as the public BASIC 1 statement lexer entry point.
+- `lex_basic1_statement_with_limits` for explicit compile-limit enforcement.
 - BASIC 1 keyword and built-in function classification.
 - Scalar variable identifier validation.
 - User function identifier validation for `FN` plus one uppercase letter.
@@ -33,6 +34,7 @@ runtime execution, or executable output.
 - Malformed exponent notation is rejected before parser work.
 - Unterminated string literals cannot pass into later compiler stages.
 - Token spans are checked before being stored.
+- Lexer output is bounded by `CompileLimits::max_tokens`.
 
 ## Scope Exclusions
 
