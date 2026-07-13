@@ -270,7 +270,7 @@ Create the initial workspace, policy, documentation, and no_std crate skeleton.
 Deliverables:
 
 - Root `Cargo.toml`.
-- `rust-toolchain.toml` pinned to Rust `1.96.1`.
+- `rust-toolchain.toml` pinned to the current stable Rust release.
 - EUPL-1.2 `LICENSE`.
 - `README.md`.
 - `.github` metadata.

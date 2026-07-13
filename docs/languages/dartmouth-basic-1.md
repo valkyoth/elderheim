@@ -1,15 +1,15 @@
 # Dartmouth BASIC 1
 
-Status: active 0.12.0 corpus, line-table, lexer, and HIR reference
+Status: active 0.13.0 corpus, frontend, and minimal parser reference
 
 This document is Elderheim's own short reference for the Dartmouth BASIC First
 Edition source-language corpus. It is based on the local May 1964 manual scan,
 but the wording and examples here are written for Elderheim. The original scan
 is not committed to this repository.
 
-The 0.12.0 scope is documentation, fixture control, line-table validation,
-statement lexing, and source-shaped HIR construction. It does not claim that
-Elderheim can fully parse or compile these programs yet.
+The 0.13.0 scope adds the first complete parser slice to the controlled corpus,
+line table, lexer, and source-shaped HIR. It does not claim that Elderheim can
+fully parse or compile all Dartmouth BASIC 1 programs yet.
 
 ## Source
 
@@ -91,13 +91,31 @@ Elderheim's first Dartmouth BASIC 1 HIR is source-shaped. It records:
 - expression-shaped token sequences for statement operands.
 
 This HIR does not yet prove complete statement grammar or expression precedence.
-Those checks begin in later parser and semantic stops. The 0.12.0 HIR is a
+Those checks begin in parser and semantic stops. The 0.12.0 HIR is a
 stable typed boundary for parser work and report snapshots.
 
 HIR snapshot output is diagnostic text, not source re-emission. Control bytes in
 token lexemes are rendered as `\xNN` escape sequences so test logs, terminal
 output, and review reports do not receive raw terminal-control characters from
 untrusted BASIC source.
+
+## Minimal Parser Policy
+
+The `0.13.0` parser stop accepts the complete grammar claimed by this release:
+
+- a program may contain blank `PRINT` statements;
+- a `PRINT` may contain one or more quoted labels separated by commas;
+- the program must end with exactly one operand-free `END` statement;
+- no source statement may follow `END`;
+- a source newline terminates a statement, while tokens on the same numbered
+  line never act as an implicit terminator.
+
+Leading, repeated, or trailing commas fail with a precise statement-relative
+span. Adjacent labels without a comma, operands after `END`, statements after
+`END`, and programs without a final `END` also fail closed. Numeric `PRINT`
+items and other BASIC 1 statement families remain outside this parser stop and
+are rejected explicitly until their scheduled parser versions implement their
+complete grammar.
 
 ## Values And Formulas
 
@@ -214,6 +232,7 @@ order and assigns them to variables.
 The controlled examples live in `examples/dartmouth-basic-1/`:
 
 - `hello.bas`
+- `print-labels.bas`
 - `arithmetic.bas`
 - `for-next.bas`
 - `branch.bas`
@@ -222,7 +241,9 @@ The controlled examples live in `examples/dartmouth-basic-1/`:
 
 The Dartmouth BASIC crate includes these files at test time and validates their
 line numbering, lexer tokenization, HIR construction, final `END`,
-source-statement families, and exclusion of historical session commands.
+source-statement families, and exclusion of historical session commands. The
+minimal parser tests execute `hello.bas` and `print-labels.bas` as accepted
+parser fixtures; later-statement examples remain fail-closed at this stop.
 
 ## Reserved Work
 

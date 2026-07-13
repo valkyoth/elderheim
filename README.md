@@ -117,9 +117,9 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.12.0` is the active Dartmouth BASIC 1 HIR shape workstream. It adds a tested
-source-shaped BASIC 1 HIR for programs, numbered lines, statement families, and
-token-sequence expressions, with stable snapshot output for committed fixtures.
+`0.13.0` is the active Dartmouth BASIC 1 minimal parser workstream. It parses
+the first complete program shape: blank and quoted-label `PRINT` statements
+followed by exactly one final `END`, with typed, span-bearing parse failures.
 
 No Dartmouth BASIC full parser, semantic validator, or executable writer is
 implemented yet. The roadmap intentionally starts with compiler substrate, then
@@ -130,7 +130,7 @@ makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 | Capability | Status | Notes |
 | --- | --- | --- |
 | Cargo workspace | Working | Shared compiler crates live directly under `crates/`; language frontends live under `crates/languages/`. |
-| Rust toolchain pin | Working | Stable Rust `1.96.1`, edition 2024, workspace resolver `3`. |
+| Rust toolchain pin | Working | Stable Rust `1.97.0`, edition 2024, workspace resolver `3`. |
 | License | Working | EUPL-1.2. |
 | no_std library skeletons | Working | Core/facade crates are prepared for no_std production logic. |
 | Source and diagnostics core | Working | `elderheim-core` validates source byte and line limits, maps byte offsets to one-based line/column locations, checks spans, exposes a stable diagnostic code registry, and renders compact and snippet diagnostics. |
@@ -143,6 +143,7 @@ makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 | BASIC 1 line table | Working | The Dartmouth BASIC crate parses increasing numbered source lines, rejects malformed line numbers, duplicate line numbers, out-of-order lines, missing statement separators, and empty numbered lines. |
 | BASIC 1 lexer | Working | The Dartmouth BASIC crate lexes BASIC 1 statement text into token kinds with spans and rejects invalid identifiers, invalid numbers, unterminated strings, and unknown characters. |
 | BASIC 1 HIR shape | Working | The Dartmouth BASIC crate builds a source-shaped BASIC 1 HIR with program, line, statement, and token-sequence expression nodes plus stable debug snapshots. |
+| BASIC 1 minimal parser | Working | Parses blank and comma-separated quoted-label `PRINT` forms, requires a final operand-free `END`, and rejects malformed or later-stop syntax with typed errors. |
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
@@ -194,7 +195,7 @@ Run the release-candidate gate before asking the maintainer to push and wait
 for GitHub Actions / CodeQL:
 
 ```bash
-scripts/validate-release-candidate.sh v0.12.0
+scripts/validate-release-candidate.sh v0.13.0
 ```
 
 Run the dependency and advisory gates:

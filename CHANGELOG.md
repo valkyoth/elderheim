@@ -2,6 +2,21 @@
 
 All notable Elderheim changes are documented here.
 
+## 0.13.0 - 2026-07-13
+
+- Added the no_std Dartmouth BASIC 1 minimal parser.
+- Added typed parsed-program, parsed-line, `PRINT`, and `END` structures.
+- Added blank and comma-separated quoted-label `PRINT` parsing.
+- Added strict final `END` and statement-terminator validation.
+- Added span-bearing parse errors for malformed and unsupported syntax.
+- Added the committed `print-labels.bas` parser fixture and malformed-input
+  regression tests.
+- Updated the stable Rust pin to `1.97.0`.
+- Updated the immutable `actions/checkout` pin to `v7.0.0`.
+- Updated the CI `cargo-deny` pin to `0.20.2`; `cargo-audit` remains current at
+  `0.22.2`.
+- Added `0.13.0` release notes and pentest draft.
+
 ## 0.12.0 - 2026-07-07
 
 - Added the no_std Dartmouth BASIC 1 source-shaped HIR.

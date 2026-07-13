@@ -1,6 +1,6 @@
 # Elderheim Toolchain Policy
 
-Elderheim pins stable Rust `1.96.1` in `rust-toolchain.toml`.
+Elderheim pins stable Rust `1.97.0` in `rust-toolchain.toml`.
 
 Rules:
 
@@ -13,5 +13,5 @@ Rules:
 - If a dependency becomes necessary, prefer a small no_std-compatible crate and
   document why internal implementation is worse.
 
-The local toolchain in this environment is currently `1.96.1`, matching the
+The local toolchain in this environment is currently `1.97.0`, matching the
 pinned stable release.

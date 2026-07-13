@@ -7,6 +7,7 @@ mod dialect;
 mod hir;
 mod lexer;
 mod line_table;
+mod parser;
 
 pub use corpus::{Basic1CorpusError, validate_basic1_corpus_source};
 pub use dialect::{DartmouthBasicVersion, Dialect};
@@ -22,4 +23,9 @@ pub use lexer::{
 pub use line_table::{
     Basic1LineNumber, Basic1LineTable, LineTableEntry, LineTableError, LineTableErrorKind,
     parse_basic1_line_table, parse_basic1_line_table_with_limits,
+};
+pub use parser::{
+    Basic1ParseError, Basic1ParseErrorKind, Basic1ParsedLine, Basic1ParsedProgram,
+    Basic1ParsedStatement, Basic1PrintItem, Basic1PrintStatement, parse_basic1_program,
+    parse_basic1_program_with_limits,
 };

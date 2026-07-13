@@ -12,6 +12,8 @@ Initial controls:
   the planned generated-program path.
 - Human-facing compiler snapshots and reports must escape untrusted source
   control bytes before writing terminal, CI log, or report text.
+- Language parsers must fail closed on unsupported statement forms, reject
+  trailing tokens, and attach statement-relative spans to syntax errors.
 - 1.0 target matrix covers Linux `x86`, `x86_64`, `aarch32`, and `aarch64`,
   Windows `x86_64`, and macOS Apple Silicon `aarch64` without
   generated-program libc dependencies.
