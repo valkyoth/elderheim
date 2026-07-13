@@ -3,8 +3,9 @@
 Status: active 0.7.0 contract
 
 `elderheim-ir` owns version-neutral HIR, MIR, and LIR contracts. The crate is
-`no_std`, uses borrowed slices for program views, and does not allocate in
-production APIs.
+`no_std` and uses borrowed slices for program views. MIR and LIR validation use
+bounded `alloc` collections supplied by the compiler environment; generated
+programs do not contain or depend on these validator allocations.
 
 ## ID Model
 
@@ -50,9 +51,10 @@ static writes, jumps, conditional branches, and exits. `validate_mir` checks:
 - defined jump/branch labels;
 - terminating `Exit`.
 
-`MAX_MIR_OPS` is `65,536`. MIR validation currently uses no allocation and
-keeps duplicate/reference checks simple, so the size cap is part of the
-security contract.
+`MAX_MIR_OPS` is `65,536`. Validation performs one definition pass and one
+reference pass with `BTreeSet` indexes. Time is `O(n log n)`, set growth is
+bounded by the operation cap, and maximum-size unique-label coverage is part of
+the security regression suite.
 
 ## LIR Contract
 
@@ -68,8 +70,10 @@ labels, symbols, symbol references, jumps, and syscall exit markers.
 - defined referenced symbols;
 - terminating `SysExit`.
 
-`MAX_LIR_OPS` is `65,536`. LIR validation currently uses no allocation and is
-bounded by this explicit cap.
+`MAX_LIR_OPS` is `65,536`. Validation performs one definition pass and one
+reference pass with `BTreeSet` indexes. Time is `O(n log n)`, set growth is
+bounded by the operation cap, and maximum-size unique-label coverage is part of
+the security regression suite.
 
 ## Lowering Interfaces
 
@@ -88,6 +92,8 @@ The `0.7.0` stop requires:
 - MIR construction and validator failure tests;
 - LIR construction and validator failure tests;
 - oversized MIR and LIR rejection tests;
+- maximum-size MIR and LIR validation tests;
+- duplicate and undefined label, value, and symbol tests;
 - validated-wrapper construction tests;
 - IR error code uniqueness tests;
 - lowering sink error propagation tests.

@@ -21,6 +21,13 @@ Elderheim treats compiler output as security-sensitive.
   version's semantics.
 - Cache or report logic treating non-cryptographic source identifiers as proof
   that two source byte streams are identical.
+- Source-controlled IR identifiers causing algorithmic-complexity denial of
+  service during validation.
+- File offsets being confused with runtime virtual addresses in executable
+  layout checks.
+- Non-UTF-8 operating-system arguments causing a CLI panic.
+- Ambiguous SBOM identifiers corrupting release evidence.
+- Unicode formatting controls spoofing human-readable compiler snapshots.
 
 ## Controls
 
@@ -32,4 +39,7 @@ Elderheim treats compiler output as security-sensitive.
   Diagnostic and cursor source-id checks are best-effort misuse detection
   inside one trusted compilation session, not adversarial equality proofs.
 - Local checks for formatting, linting, tests, docs, and file-size policy.
+- Bounded subquadratic IR validation and checked executable-layout arithmetic.
+- Printable-ASCII-only snapshot rendering with escaped non-ASCII code points.
+- SPDX identifier and relationship validation before SBOM publication.
 - Release gates that require security review before tags.

@@ -13,6 +13,13 @@ All notable Elderheim changes are documented here.
   regression tests.
 - Added forged-HIR regression tests for every defensive parser invariant branch
   identified during the external review.
+- Replaced quadratic MIR/LIR validation with bounded `O(n log n)` passes.
+- Corrected ELF layout validation to separate file and virtual address domains
+  and reject range overflow.
+- Rejected non-UTF-8 CLI arguments without panic or abort.
+- Escaped Unicode formatting and all non-ASCII characters in HIR snapshots.
+- Added atomic, duplicate-safe SPDX SBOM generation and integrity gates.
+- Added an explicit CI preflight for the SBOM validator's `jq` requirement.
 - Updated the stable Rust pin to `1.97.0`.
 - Updated the immutable `actions/checkout` pin to `v7.0.0`.
 - Updated the CI `cargo-deny` pin to `0.20.2`; `cargo-audit` remains current at

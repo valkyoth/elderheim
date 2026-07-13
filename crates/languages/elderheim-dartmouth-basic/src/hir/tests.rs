@@ -68,6 +68,21 @@ fn hir_snapshot_escapes_string_literal_control_bytes() -> Result<(), Basic1HirEr
 }
 
 #[test]
+fn hir_snapshot_escapes_non_ascii_and_formatting_characters() -> Result<(), Basic1HirError> {
+    let program = build_basic1_hir("10 PRINT \"\u{85}\u{e9}\u{202e}\u{2066}\"\n20 END\n")?;
+    let snapshot = render_basic1_hir_snapshot(&program);
+
+    assert_eq!(
+        snapshot,
+        "basic1-hir\nline 10 Print tokens=2 expressions=1\n  expr \"\\x85\\xe9\\u{202e}\\u{2066}\"\nline 20 End tokens=1 expressions=0\n"
+    );
+    for character in ['\u{85}', '\u{e9}', '\u{202e}', '\u{2066}'] {
+        assert!(!snapshot.contains(character));
+    }
+    Ok(())
+}
+
+#[test]
 fn builds_hir_for_every_committed_basic1_example() -> Result<(), Basic1HirError> {
     for source in [
         include_str!("../../../../../examples/dartmouth-basic-1/hello.bas"),

@@ -28,6 +28,9 @@ jobs:
       - name: Install Rust toolchain
         run: rustup show
 
+      - name: Verify SBOM validation tool
+        run: jq --version
+
       - name: Install supply-chain tools
         run: |
           cargo install --locked cargo-deny@0.20.2

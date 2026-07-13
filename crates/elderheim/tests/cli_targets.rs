@@ -106,3 +106,27 @@ fn target_cli_rejects_missing_or_extra_arguments() {
         assert!(stderr.contains("E-CLI-TRAILING-ARG"));
     }
 }
+
+#[cfg(unix)]
+#[test]
+fn cli_rejects_non_utf8_arguments_without_panicking() {
+    use std::{ffi::OsString, os::unix::ffi::OsStringExt};
+
+    for args in [
+        vec![OsString::from_vec(vec![0xff])],
+        vec![OsString::from("--target"), OsString::from_vec(vec![0xff])],
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_elderheim"))
+            .args(args)
+            .output()
+            .ok();
+        assert!(output.is_some(), "elderheim binary should run");
+
+        if let Some(output) = output {
+            assert!(!output.status.success());
+            assert_ne!(output.status.code(), Some(101));
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(stderr.contains("E-CLI-ENCODING"));
+        }
+    }
+}

@@ -27,6 +27,8 @@ printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
 release_notes="release-notes/RELEASE_NOTES_${version}.md"
 pentest_report="security/pentest/${version}.md"
 
+scripts/validate-sbom.sh
+
 if [ -f PENTEST.md ]; then
     echo "root PENTEST.md is temporary scratch input and must be removed" >&2
     exit 1

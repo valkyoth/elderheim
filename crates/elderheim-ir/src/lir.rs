@@ -1,3 +1,5 @@
+use alloc::collections::BTreeSet;
+
 use crate::{IrError, IrLayer, LirLabelId, LirSymbolId};
 
 pub const MAX_LIR_OPS: usize = 64 * 1024;
@@ -47,8 +49,36 @@ pub fn validate_lir(program: LirProgram<'_>) -> Result<(), IrError> {
         });
     }
 
+    let mut labels = BTreeSet::new();
+    let mut symbols = BTreeSet::new();
     for op in program.ops {
-        validate_lir_op(*op, program.ops)?;
+        match *op {
+            LirOp::Label(label) if !labels.insert(label) => {
+                return Err(IrError::DuplicateId {
+                    layer: IrLayer::Lir,
+                    id: label.raw(),
+                });
+            }
+            LirOp::DefineSymbol(symbol) if !symbols.insert(symbol) => {
+                return Err(IrError::DuplicateId {
+                    layer: IrLayer::Lir,
+                    id: symbol.raw(),
+                });
+            }
+            _ => {}
+        }
+    }
+
+    for op in program.ops {
+        match *op {
+            LirOp::ReferenceSymbol(symbol) if !symbols.contains(&symbol) => {
+                return Err(undefined(symbol.raw()));
+            }
+            LirOp::Jump { target } if !labels.contains(&target) => {
+                return Err(undefined(target.raw()));
+            }
+            _ => {}
+        }
     }
 
     if matches!(program.ops.last(), Some(LirOp::SysExit { .. })) {
@@ -60,67 +90,10 @@ pub fn validate_lir(program: LirProgram<'_>) -> Result<(), IrError> {
     }
 }
 
-fn validate_lir_op(op: LirOp, ops: &[LirOp]) -> Result<(), IrError> {
-    match op {
-        LirOp::Label(label) => reject_duplicate_label(label, ops),
-        LirOp::DefineSymbol(symbol) => reject_duplicate_symbol(symbol, ops),
-        LirOp::ReferenceSymbol(symbol) => require_symbol(symbol, ops),
-        LirOp::Jump { target } => require_label(target, ops),
-        LirOp::SysExit { .. } => Ok(()),
-    }
-}
-
-fn reject_duplicate_label(label: LirLabelId, ops: &[LirOp]) -> Result<(), IrError> {
-    let mut seen = false;
-    for op in ops {
-        if *op == LirOp::Label(label) {
-            if seen {
-                return Err(IrError::DuplicateId {
-                    layer: IrLayer::Lir,
-                    id: label.raw(),
-                });
-            }
-            seen = true;
-        }
-    }
-    Ok(())
-}
-
-fn reject_duplicate_symbol(symbol: LirSymbolId, ops: &[LirOp]) -> Result<(), IrError> {
-    let mut seen = false;
-    for op in ops {
-        if *op == LirOp::DefineSymbol(symbol) {
-            if seen {
-                return Err(IrError::DuplicateId {
-                    layer: IrLayer::Lir,
-                    id: symbol.raw(),
-                });
-            }
-            seen = true;
-        }
-    }
-    Ok(())
-}
-
-fn require_label(label: LirLabelId, ops: &[LirOp]) -> Result<(), IrError> {
-    if ops.contains(&LirOp::Label(label)) {
-        Ok(())
-    } else {
-        Err(IrError::UndefinedId {
-            layer: IrLayer::Lir,
-            id: label.raw(),
-        })
-    }
-}
-
-fn require_symbol(symbol: LirSymbolId, ops: &[LirOp]) -> Result<(), IrError> {
-    if ops.contains(&LirOp::DefineSymbol(symbol)) {
-        Ok(())
-    } else {
-        Err(IrError::UndefinedId {
-            layer: IrLayer::Lir,
-            id: symbol.raw(),
-        })
+const fn undefined(id: u32) -> IrError {
+    IrError::UndefinedId {
+        layer: IrLayer::Lir,
+        id,
     }
 }
 
@@ -132,6 +105,7 @@ fn len_to_u32(len: usize) -> u32 {
 mod tests {
     use super::{LirOp, LirProgram, MAX_LIR_OPS, ValidatedLir, validate_lir};
     use crate::{IrError, IrLayer, LirLabelId, LirSymbolId};
+    use alloc::vec::Vec;
 
     #[test]
     fn lir_accepts_target_near_program() -> Result<(), IrError> {
@@ -164,6 +138,22 @@ mod tests {
     }
 
     #[test]
+    fn lir_rejects_undefined_symbol_reference() -> Result<(), IrError> {
+        let ops = [
+            LirOp::ReferenceSymbol(LirSymbolId::new(6)?),
+            LirOp::SysExit { code: 0 },
+        ];
+        assert_eq!(
+            validate_lir(LirProgram { ops: &ops }),
+            Err(IrError::UndefinedId {
+                layer: IrLayer::Lir,
+                id: 6,
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
     fn lir_rejects_duplicate_symbol() -> Result<(), IrError> {
         let ops = [
             LirOp::DefineSymbol(LirSymbolId::new(1)?),
@@ -177,6 +167,38 @@ mod tests {
                 id: 1,
             })
         );
+        Ok(())
+    }
+
+    #[test]
+    fn lir_rejects_duplicate_label() -> Result<(), IrError> {
+        let label = LirLabelId::new(2)?;
+        let ops = [
+            LirOp::Label(label),
+            LirOp::Label(label),
+            LirOp::SysExit { code: 0 },
+        ];
+        assert_eq!(
+            validate_lir(LirProgram { ops: &ops }),
+            Err(IrError::DuplicateId {
+                layer: IrLayer::Lir,
+                id: 2,
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn lir_validates_maximum_unique_label_program() -> Result<(), IrError> {
+        let mut ops = Vec::with_capacity(MAX_LIR_OPS);
+        for index in 0..MAX_LIR_OPS.saturating_sub(1) {
+            let raw = u32::try_from(index).unwrap_or(u32::MAX);
+            ops.push(LirOp::Label(LirLabelId::new(raw)?));
+        }
+        ops.push(LirOp::SysExit { code: 0 });
+
+        assert_eq!(ops.len(), MAX_LIR_OPS);
+        assert_eq!(validate_lir(LirProgram { ops: &ops }), Ok(()));
         Ok(())
     }
 

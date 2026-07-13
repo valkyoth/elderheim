@@ -45,6 +45,18 @@ in the release plan.
   when syntax-level context is available.
 - Defense-in-depth tests forge empty statements, malformed string tokens, and
   an empty HIR program to prove unreachable invariant checks remain fail-closed.
+- Replaced quadratic MIR/LIR ID validation with bounded `O(n log n)` definition
+  and reference passes, including maximum-size regression programs.
+- Separated ELF text file offsets from runtime virtual addresses and replaced
+  saturating range arithmetic with checked validation.
+- Changed CLI argument ingestion to `args_os()` and added non-UTF-8 rejection
+  tests for command and target arguments.
+- Escaped all non-printable-ASCII and non-ASCII HIR snapshot characters,
+  including Unicode bidi and formatting controls.
+- Added atomic SPDX generation, deterministic collapse of identical generator
+  duplicates, unique-ID validation, relationship validation, and a negative
+  duplicate-ID regression gate.
+- Added an explicit CI preflight for the `jq` SBOM-validation requirement.
 
 ## Next Scheduled Stops
 

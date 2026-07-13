@@ -27,6 +27,8 @@ printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
 release_notes="release-notes/RELEASE_NOTES_${version}.md"
 pentest_report="security/pentest/${version}.md"
 
+scripts/validate-sbom.sh
+
 if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
     echo "tag already exists locally: ${tag}" >&2
     exit 1

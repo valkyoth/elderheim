@@ -94,10 +94,11 @@ This HIR does not yet prove complete statement grammar or expression precedence.
 Those checks begin in parser and semantic stops. The 0.12.0 HIR is a
 stable typed boundary for parser work and report snapshots.
 
-HIR snapshot output is diagnostic text, not source re-emission. Control bytes in
-token lexemes are rendered as `\xNN` escape sequences so test logs, terminal
-output, and review reports do not receive raw terminal-control characters from
-untrusted BASIC source.
+HIR snapshot output is diagnostic text, not source re-emission. Printable ASCII
+is emitted verbatim. C0, DEL, C1, and Latin-1 code points are escaped as
+`\xNN`; every other non-ASCII code point is escaped as `\u{NNNN}`. Test logs,
+terminal output, and review reports therefore do not receive raw control,
+formatting, bidi, or non-ASCII characters from untrusted BASIC source.
 
 ## Minimal Parser Policy
 

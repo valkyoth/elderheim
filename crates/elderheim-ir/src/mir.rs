@@ -1,3 +1,5 @@
+use alloc::collections::BTreeSet;
+
 use crate::{DataId, IrError, IrLayer, MirLabelId, MirValueId};
 
 pub const MAX_MIR_OPS: usize = 64 * 1024;
@@ -58,8 +60,41 @@ pub fn validate_mir(program: MirProgram<'_>) -> Result<(), IrError> {
         });
     }
 
+    let mut labels = BTreeSet::new();
+    let mut values = BTreeSet::new();
     for op in program.ops {
-        validate_mir_op(*op, program.ops)?;
+        match *op {
+            MirOp::Label(label) if !labels.insert(label) => {
+                return Err(IrError::DuplicateId {
+                    layer: IrLayer::Mir,
+                    id: label.raw(),
+                });
+            }
+            MirOp::ConstI64 { dest, .. } if !values.insert(dest) => {
+                return Err(IrError::DuplicateId {
+                    layer: IrLayer::Mir,
+                    id: dest.raw(),
+                });
+            }
+            _ => {}
+        }
+    }
+
+    for op in program.ops {
+        match *op {
+            MirOp::Jump { target } if !labels.contains(&target) => {
+                return Err(undefined(target.raw()));
+            }
+            MirOp::BranchIf { condition, target } => {
+                if !values.contains(&condition) {
+                    return Err(undefined(condition.raw()));
+                }
+                if !labels.contains(&target) {
+                    return Err(undefined(target.raw()));
+                }
+            }
+            _ => {}
+        }
     }
 
     if matches!(program.ops.last(), Some(MirOp::Exit { .. })) {
@@ -71,73 +106,10 @@ pub fn validate_mir(program: MirProgram<'_>) -> Result<(), IrError> {
     }
 }
 
-fn validate_mir_op(op: MirOp, ops: &[MirOp]) -> Result<(), IrError> {
-    match op {
-        MirOp::Label(label) => reject_duplicate_label(label, ops),
-        MirOp::ConstI64 { dest, .. } => reject_duplicate_value(dest, ops),
-        MirOp::Jump { target } => require_label(target, ops),
-        MirOp::BranchIf { condition, target } => {
-            require_value(condition, ops)?;
-            require_label(target, ops)
-        }
-        MirOp::WriteStatic(_) | MirOp::Exit { .. } => Ok(()),
-    }
-}
-
-fn reject_duplicate_label(label: MirLabelId, ops: &[MirOp]) -> Result<(), IrError> {
-    let mut seen = false;
-    for op in ops {
-        if *op == MirOp::Label(label) {
-            if seen {
-                return Err(IrError::DuplicateId {
-                    layer: IrLayer::Mir,
-                    id: label.raw(),
-                });
-            }
-            seen = true;
-        }
-    }
-    Ok(())
-}
-
-fn reject_duplicate_value(value: MirValueId, ops: &[MirOp]) -> Result<(), IrError> {
-    let mut seen = false;
-    for op in ops {
-        if matches!(*op, MirOp::ConstI64 { dest, .. } if dest == value) {
-            if seen {
-                return Err(IrError::DuplicateId {
-                    layer: IrLayer::Mir,
-                    id: value.raw(),
-                });
-            }
-            seen = true;
-        }
-    }
-    Ok(())
-}
-
-fn require_label(label: MirLabelId, ops: &[MirOp]) -> Result<(), IrError> {
-    if ops.contains(&MirOp::Label(label)) {
-        Ok(())
-    } else {
-        Err(IrError::UndefinedId {
-            layer: IrLayer::Mir,
-            id: label.raw(),
-        })
-    }
-}
-
-fn require_value(value: MirValueId, ops: &[MirOp]) -> Result<(), IrError> {
-    if ops
-        .iter()
-        .any(|op| matches!(*op, MirOp::ConstI64 { dest, .. } if dest == value))
-    {
-        Ok(())
-    } else {
-        Err(IrError::UndefinedId {
-            layer: IrLayer::Mir,
-            id: value.raw(),
-        })
+const fn undefined(id: u32) -> IrError {
+    IrError::UndefinedId {
+        layer: IrLayer::Mir,
+        id,
     }
 }
 
@@ -149,6 +121,7 @@ fn len_to_u32(len: usize) -> u32 {
 mod tests {
     use super::{MAX_MIR_OPS, MirOp, MirProgram, ValidatedMir, validate_mir};
     use crate::{DataId, IrError, IrLayer, MirLabelId, MirValueId};
+    use alloc::vec::Vec;
 
     #[test]
     fn mir_accepts_target_neutral_program() -> Result<(), IrError> {
@@ -194,6 +167,95 @@ mod tests {
                 id: 7,
             })
         );
+        Ok(())
+    }
+
+    #[test]
+    fn mir_rejects_undefined_jump_and_branch_labels() -> Result<(), IrError> {
+        let undefined = MirLabelId::new(8)?;
+        let jump = [MirOp::Jump { target: undefined }, MirOp::Exit { code: 0 }];
+        assert_eq!(
+            validate_mir(MirProgram { ops: &jump }),
+            Err(IrError::UndefinedId {
+                layer: IrLayer::Mir,
+                id: 8,
+            })
+        );
+
+        let branch = [
+            MirOp::ConstI64 {
+                dest: MirValueId::new(0)?,
+                value: 1,
+            },
+            MirOp::BranchIf {
+                condition: MirValueId::new(0)?,
+                target: undefined,
+            },
+            MirOp::Exit { code: 0 },
+        ];
+        assert_eq!(
+            validate_mir(MirProgram { ops: &branch }),
+            Err(IrError::UndefinedId {
+                layer: IrLayer::Mir,
+                id: 8,
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn mir_rejects_duplicate_labels_and_values() -> Result<(), IrError> {
+        let label = MirLabelId::new(3)?;
+        let duplicate_labels = [
+            MirOp::Label(label),
+            MirOp::Label(label),
+            MirOp::Exit { code: 0 },
+        ];
+        assert_eq!(
+            validate_mir(MirProgram {
+                ops: &duplicate_labels,
+            }),
+            Err(IrError::DuplicateId {
+                layer: IrLayer::Mir,
+                id: 3,
+            })
+        );
+
+        let value = MirValueId::new(4)?;
+        let duplicate_values = [
+            MirOp::ConstI64 {
+                dest: value,
+                value: 1,
+            },
+            MirOp::ConstI64 {
+                dest: value,
+                value: 2,
+            },
+            MirOp::Exit { code: 0 },
+        ];
+        assert_eq!(
+            validate_mir(MirProgram {
+                ops: &duplicate_values,
+            }),
+            Err(IrError::DuplicateId {
+                layer: IrLayer::Mir,
+                id: 4,
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn mir_validates_maximum_unique_label_program() -> Result<(), IrError> {
+        let mut ops = Vec::with_capacity(MAX_MIR_OPS);
+        for index in 0..MAX_MIR_OPS.saturating_sub(1) {
+            let raw = u32::try_from(index).unwrap_or(u32::MAX);
+            ops.push(MirOp::Label(MirLabelId::new(raw)?));
+        }
+        ops.push(MirOp::Exit { code: 0 });
+
+        assert_eq!(ops.len(), MAX_MIR_OPS);
+        assert_eq!(validate_mir(MirProgram { ops: &ops }), Ok(()));
         Ok(())
     }
 

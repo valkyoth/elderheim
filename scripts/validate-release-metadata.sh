@@ -15,6 +15,8 @@ test -x scripts/validate-manual-corpus.sh
 test -x scripts/validate-release-candidate.sh
 test -x scripts/validate-release-readiness.sh
 test -x scripts/generate-sbom.sh
+test -x scripts/validate-sbom.sh
+test -x scripts/test-sbom-validation.sh
 test -f docs/IMPLEMENTATION_PLAN.md
 test -f docs/RELEASE_PLAN.md
 test -f docs/release-procedure.md
@@ -23,6 +25,7 @@ test -f docs/source-diagnostics.md
 test -f docs/source-normalization.md
 test -f docs/diagnostics-reporting.md
 test -f docs/ir-contracts.md
+test -f docs/elf-layout.md
 test -f docs/runtime-fragments.md
 test -f docs/licensing.md
 test -f docs/manual-corpus.md
@@ -43,3 +46,4 @@ grep -q 'license = "EUPL-1.2"' Cargo.toml
 grep -q 'repository = "https://github.com/valkyoth/elderheim"' Cargo.toml
 grep -q 'rust-version = "1.97.0"' Cargo.toml
 grep -q 'channel = "1.97.0"' rust-toolchain.toml
+scripts/validate-sbom.sh

@@ -1,25 +1,30 @@
-use std::process::ExitCode;
+use std::{ffi::OsString, process::ExitCode};
 
 use elderheim::target::TargetSpec;
 
 fn main() -> ExitCode {
-    run(std::env::args().skip(1))
+    run(std::env::args_os().skip(1))
 }
 
 fn run<I>(mut args: I) -> ExitCode
 where
-    I: Iterator<Item = String>,
+    I: Iterator<Item = OsString>,
 {
-    match args.next().as_deref() {
-        None => {
+    let Some(argument) = args.next() else {
+        print_help();
+        return ExitCode::SUCCESS;
+    };
+    let Some(argument) = argument.to_str() else {
+        eprintln!("E-CLI-ENCODING: argument is not valid Unicode");
+        return ExitCode::FAILURE;
+    };
+
+    match argument {
+        "--help" | "-h" => {
             print_help();
             ExitCode::SUCCESS
         }
-        Some("--help" | "-h") => {
-            print_help();
-            ExitCode::SUCCESS
-        }
-        Some("--list-targets") => {
+        "--list-targets" => {
             if args.next().is_some() {
                 eprintln!("E-CLI-TRAILING-ARG: --list-targets does not accept extra arguments");
                 return ExitCode::FAILURE;
@@ -28,8 +33,8 @@ where
             list_targets();
             ExitCode::SUCCESS
         }
-        Some("--target") => validate_target_arg(args.next(), args.next()),
-        Some(_) => {
+        "--target" => validate_target_arg(args.next(), args.next()),
+        _ => {
             eprintln!("E-CLI-ARG: unsupported command line argument");
             ExitCode::FAILURE
         }
@@ -51,7 +56,7 @@ fn list_targets() {
     }
 }
 
-fn validate_target_arg(target: Option<String>, trailing: Option<String>) -> ExitCode {
+fn validate_target_arg(target: Option<OsString>, trailing: Option<OsString>) -> ExitCode {
     let Some(target) = target else {
         eprintln!("E-CLI-MISSING-TARGET: --target requires a target name");
         return ExitCode::FAILURE;
@@ -62,7 +67,12 @@ fn validate_target_arg(target: Option<String>, trailing: Option<String>) -> Exit
         return ExitCode::FAILURE;
     }
 
-    match TargetSpec::parse_cli_name(target.as_str()) {
+    let Some(target) = target.to_str() else {
+        eprintln!("E-CLI-ENCODING: argument is not valid Unicode");
+        return ExitCode::FAILURE;
+    };
+
+    match TargetSpec::parse_cli_name(target) {
         Ok(validated) => {
             if let Some(name) = validated.cli_name() {
                 println!("{name}");

@@ -137,7 +137,7 @@ makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 | Source normalization core | Working | `elderheim-core` normalizes LF/CRLF/CR into LF, rejects invalid control/non-ASCII bytes under the current policy, enforces blank-line policy, and returns stable normalized source IDs. |
 | Compiler pipeline skeleton | Working | `elderheim-core` exposes ordered source-to-diagnostic, HIR-to-MIR, MIR-to-LIR, and LIR-to-target stages with fail-fast diagnostics and report sink events. |
 | Reporting core | Working | `elderheim-core` exposes stable report sections and report events for section headers, pipeline stages, and diagnostics. |
-| IR contracts | Working | `elderheim-ir` exposes HIR node IDs, MIR value/label IDs, LIR label/symbol IDs, validators, and lowering sink traits. |
+| IR contracts | Working | `elderheim-ir` exposes HIR node IDs, MIR value/label IDs, LIR label/symbol IDs, bounded `O(n log n)` validators, and lowering sink traits. |
 | Runtime fragment selection | Working | `elderheim-runtime` maps high-level runtime requirements to fragment dependencies without executable emission. |
 | Manual corpus | Working | `docs/languages/dartmouth-basic-1.md` and `examples/dartmouth-basic-1/` define the first controlled BASIC 1 corpus. |
 | BASIC 1 line table | Working | The Dartmouth BASIC crate parses increasing numbered source lines, rejects malformed line numbers, duplicate line numbers, out-of-order lines, missing statement separators, and empty numbered lines. |
@@ -147,9 +147,9 @@ makes BASIC 1 complete, then BASIC 2 complete, then BASIC 4 complete.
 | Target matrix identifiers | Working | Linux `x86`/`x86_64`/`aarch32`/`aarch64`, Windows `x86_64`, and macOS Apple Silicon `aarch64` are represented with CLI-visible names and stable rejection diagnostics. |
 | Dartmouth BASIC crate | Scaffolded | Active first language-family crate: `crates/languages/elderheim-dartmouth-basic`. |
 | Direct backend plan | Planned | Native output is planned through Elderheim-owned instruction encoders and executable writers, not Cranelift, LLVM, C, or Rust transpilation. |
-| ELF writer | Scaffolded | `elderheim-format-elf` is present for future ELF32/ELF64 work. |
+| ELF writer | Scaffolded | `elderheim-format-elf` separates checked file-offset and virtual-address ranges for future ELF32/ELF64 work. |
 | x86 backend | Scaffolded | `elderheim-backend-x86` is present for future x86 32-bit and x86_64 work. |
-| Release/security gates | Working | Formatting, doc links, modularity, clippy, tests, cargo-deny, cargo-audit, and SBOM generation pass locally. |
+| Release/security gates | Working | Formatting, doc links, modularity, clippy, tests, cargo-deny, cargo-audit, and duplicate-safe SPDX SBOM generation pass locally. |
 | Pentest/tag stops | Planned | Every planned tag has a stop gate and pentest class in the release plan. |
 
 ### Language Support
@@ -264,6 +264,7 @@ elderheim/
 | [Source Normalization](docs/source-normalization.md) | Line ending, byte policy, blank-line, and source ID contract. |
 | [Diagnostics Reporting](docs/diagnostics-reporting.md) | Diagnostic registry, snippet rendering, and report section/event contract. |
 | [IR Contracts](docs/ir-contracts.md) | HIR/MIR/LIR IDs, validators, and lowering interface contract. |
+| [ELF Layout](docs/elf-layout.md) | File-offset, virtual-address, overflow, and entry-point validation contract. |
 | [Runtime Fragments](docs/runtime-fragments.md) | Runtime requirement, fragment inventory, and dependency selection contract. |
 | [Licensing](docs/licensing.md) | Project license scope, generated-output ownership, and runtime boundary policy. |
 | [Manual Corpus](docs/manual-corpus.md) | Local manual provenance and committed corpus policy. |
