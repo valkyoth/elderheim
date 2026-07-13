@@ -53,6 +53,8 @@ in the release plan.
   tests for command and target arguments.
 - Escaped all non-printable-ASCII and non-ASCII HIR snapshot characters,
   including Unicode bidi and formatting controls.
+- Doubled literal backslashes in HIR snapshots so source-written escape text
+  cannot collide with generated `\xNN` or `\u{NNNN}` representations.
 - Added atomic SPDX generation, deterministic collapse of identical generator
   duplicates, unique-ID validation, relationship validation, and a negative
   duplicate-ID regression gate.

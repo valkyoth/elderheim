@@ -111,6 +111,7 @@ pub fn render_basic1_hir_snapshot(program: &Basic1HirProgram<'_>) -> String {
 fn push_snapshot_escaped(output: &mut String, text: &str) {
     for ch in text.chars() {
         match ch {
+            '\\' => output.push_str("\\\\"),
             '\u{20}'..='\u{7e}' => output.push(ch),
             '\u{0}'..='\u{ff}' => {
                 let _ = write!(output, "\\x{:02x}", u32::from(ch));

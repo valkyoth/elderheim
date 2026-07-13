@@ -83,6 +83,32 @@ fn hir_snapshot_escapes_non_ascii_and_formatting_characters() -> Result<(), Basi
 }
 
 #[test]
+fn hir_snapshot_distinguishes_code_points_from_literal_escape_text() -> Result<(), Basic1HirError> {
+    let code_point =
+        render_basic1_hir_snapshot(&build_basic1_hir("10 PRINT \"\u{202e}\"\n20 END\n")?);
+    let literal_escape =
+        render_basic1_hir_snapshot(&build_basic1_hir("10 PRINT \"\\u{202e}\"\n20 END\n")?);
+
+    assert_eq!(
+        code_point,
+        "basic1-hir\nline 10 Print tokens=2 expressions=1\n  expr \"\\u{202e}\"\nline 20 End tokens=1 expressions=0\n"
+    );
+    assert_eq!(
+        literal_escape,
+        "basic1-hir\nline 10 Print tokens=2 expressions=1\n  expr \"\\\\u{202e}\"\nline 20 End tokens=1 expressions=0\n"
+    );
+    assert_ne!(code_point, literal_escape);
+
+    let latin1 = render_basic1_hir_snapshot(&build_basic1_hir("10 PRINT \"\u{85}\"\n20 END\n")?);
+    let literal_hex =
+        render_basic1_hir_snapshot(&build_basic1_hir("10 PRINT \"\\x85\"\n20 END\n")?);
+    assert!(latin1.contains("\\x85"));
+    assert!(literal_hex.contains("\\\\x85"));
+    assert_ne!(latin1, literal_hex);
+    Ok(())
+}
+
+#[test]
 fn builds_hir_for_every_committed_basic1_example() -> Result<(), Basic1HirError> {
     for source in [
         include_str!("../../../../../examples/dartmouth-basic-1/hello.bas"),

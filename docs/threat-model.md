@@ -28,6 +28,7 @@ Elderheim treats compiler output as security-sensitive.
 - Non-UTF-8 operating-system arguments causing a CLI panic.
 - Ambiguous SBOM identifiers corrupting release evidence.
 - Unicode formatting controls spoofing human-readable compiler snapshots.
+- Literal escape-looking text colliding with generated snapshot escapes.
 
 ## Controls
 
@@ -41,5 +42,6 @@ Elderheim treats compiler output as security-sensitive.
 - Local checks for formatting, linting, tests, docs, and file-size policy.
 - Bounded subquadratic IR validation and checked executable-layout arithmetic.
 - Printable-ASCII-only snapshot rendering with escaped non-ASCII code points.
+- Canonical snapshot escaping that doubles source backslashes.
 - SPDX identifier and relationship validation before SBOM publication.
 - Release gates that require security review before tags.

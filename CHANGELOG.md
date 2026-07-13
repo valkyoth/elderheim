@@ -18,6 +18,7 @@ All notable Elderheim changes are documented here.
   and reject range overflow.
 - Rejected non-UTF-8 CLI arguments without panic or abort.
 - Escaped Unicode formatting and all non-ASCII characters in HIR snapshots.
+- Made HIR snapshot escaping canonical by doubling literal backslashes.
 - Added atomic, duplicate-safe SPDX SBOM generation and integrity gates.
 - Added an explicit CI preflight for the SBOM validator's `jq` requirement.
 - Updated the stable Rust pin to `1.97.0`.

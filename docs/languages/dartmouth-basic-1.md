@@ -99,6 +99,9 @@ is emitted verbatim. C0, DEL, C1, and Latin-1 code points are escaped as
 `\xNN`; every other non-ASCII code point is escaped as `\u{NNNN}`. Test logs,
 terminal output, and review reports therefore do not receive raw control,
 formatting, bidi, or non-ASCII characters from untrusted BASIC source.
+Literal backslashes are doubled before generated escape sequences are written,
+so source-written escape-looking text cannot collide with an escaped code
+point in snapshot output.
 
 ## Minimal Parser Policy
 

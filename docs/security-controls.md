@@ -11,7 +11,8 @@ Initial controls:
 - No LLVM, Cranelift, assembler, linker, or transpiler backend dependency in
   the planned generated-program path.
 - Human-facing compiler snapshots and reports must escape untrusted source
-  control bytes before writing terminal, CI log, or report text.
+  control bytes before writing terminal, CI log, or report text. Escape syntax
+  must be canonical and distinguish literal backslashes from generated escapes.
 - Language parsers must fail closed on unsupported statement forms, reject
   trailing tokens, and attach statement-relative spans to syntax errors.
 - MIR and LIR validation must remain subquadratic and bounded by operation
