@@ -11,6 +11,8 @@ All notable Elderheim changes are documented here.
 - Added span-bearing parse errors for malformed and unsupported syntax.
 - Added the committed `print-labels.bas` parser fixture and malformed-input
   regression tests.
+- Added forged-HIR regression tests for every defensive parser invariant branch
+  identified during the external review.
 - Updated the stable Rust pin to `1.97.0`.
 - Updated the immutable `actions/checkout` pin to `v7.0.0`.
 - Updated the CI `cargo-deny` pin to `0.20.2`; `cargo-audit` remains current at

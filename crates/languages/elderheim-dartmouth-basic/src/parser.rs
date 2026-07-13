@@ -96,6 +96,7 @@ fn parse_hir(hir: Basic1HirProgram<'_>) -> Result<Basic1ParsedProgram<'_>, Basic
     }
 
     if !saw_end {
+        // The line table rejects empty source; keep this fail-closed for forged HIR.
         let (line_number, span) = final_marker
             .map(|(number, span)| (Some(number), span.map(|value| Span::point(value.end()))))
             .unwrap_or((None, None));
@@ -131,6 +132,7 @@ fn parse_print<'source>(
     tokens: Vec<Basic1Token<'source>>,
 ) -> Result<Basic1PrintStatement<'source>, Basic1ParseError> {
     let mut tokens = tokens.into_iter();
+    // Statement classification guarantees this token today; forged HIR must still fail closed.
     if tokens.next().is_none() {
         return Err(parse_error(
             Basic1ParseErrorKind::EmptyStatement,
@@ -191,6 +193,7 @@ fn parse_print_item(
 
     let text = token
         .lexeme
+        // The lexer guarantees paired quotes; retain validation for forged HIR.
         .strip_prefix('"')
         .and_then(|value| value.strip_suffix('"'))
         .ok_or_else(|| {
@@ -211,6 +214,7 @@ fn parse_end(
     tokens: Vec<Basic1Token<'_>>,
 ) -> Result<Basic1ParsedStatement<'_>, Basic1ParseError> {
     let mut tokens = tokens.into_iter();
+    // Statement classification guarantees this token today; forged HIR must still fail closed.
     if tokens.next().is_none() {
         return Err(parse_error(
             Basic1ParseErrorKind::EmptyStatement,

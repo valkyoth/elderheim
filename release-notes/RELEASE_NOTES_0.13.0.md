@@ -43,6 +43,8 @@ in the release plan.
 - Frontend source, line, and token limits remain enforced before parsing.
 - Parser errors retain the BASIC line number and statement-relative token span
   when syntax-level context is available.
+- Defense-in-depth tests forge empty statements, malformed string tokens, and
+  an empty HIR program to prove unreachable invariant checks remain fail-closed.
 
 ## Next Scheduled Stops
 

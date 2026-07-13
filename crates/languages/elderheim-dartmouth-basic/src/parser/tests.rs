@@ -1,8 +1,12 @@
 use super::{
     Basic1ParseError, Basic1ParseErrorKind, Basic1ParsedStatement, parse_basic1_program,
-    parse_basic1_program_with_limits,
+    parse_basic1_program_with_limits, parse_hir,
 };
-use crate::{Basic1HirError, Basic1LexErrorKind, Basic1LineNumber};
+use crate::{
+    Basic1HirError, Basic1HirLine, Basic1HirProgram, Basic1HirStatement, Basic1HirStatementKind,
+    Basic1Keyword, Basic1LexErrorKind, Basic1LineNumber, Basic1Token, Basic1TokenKind,
+};
+use alloc::vec;
 use elderheim_core::{CompileLimits, Span};
 
 fn line_number(value: &str) -> Result<Basic1LineNumber, crate::LineTableErrorKind> {
@@ -213,4 +217,78 @@ fn propagates_lexer_errors_before_parsing() {
             span: None,
         }) if lex_error.kind == Basic1LexErrorKind::UnknownCharacter
     ));
+}
+
+#[test]
+fn forged_empty_hir_statements_fail_closed() -> Result<(), crate::LineTableErrorKind> {
+    for kind in [Basic1HirStatementKind::Print, Basic1HirStatementKind::End] {
+        let program = Basic1HirProgram {
+            lines: vec![Basic1HirLine {
+                number: line_number("10")?,
+                statement: Basic1HirStatement {
+                    kind,
+                    tokens: vec![],
+                    expressions: vec![],
+                },
+            }],
+        };
+        assert_eq!(
+            parse_hir(program).map(|_| ()),
+            Err(Basic1ParseError {
+                kind: Basic1ParseErrorKind::EmptyStatement,
+                line_number: Some(line_number("10")?),
+                span: None,
+            })
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn forged_string_token_without_quotes_fails_closed() -> Result<(), crate::LineTableErrorKind> {
+    let item_span = Span::point(6);
+    let program = Basic1HirProgram {
+        lines: vec![Basic1HirLine {
+            number: line_number("10")?,
+            statement: Basic1HirStatement {
+                kind: Basic1HirStatementKind::Print,
+                tokens: vec![
+                    Basic1Token {
+                        kind: Basic1TokenKind::Keyword(Basic1Keyword::Print),
+                        lexeme: "PRINT",
+                        span: Span::point(0),
+                    },
+                    Basic1Token {
+                        kind: Basic1TokenKind::StringLiteral,
+                        lexeme: "NOT-QUOTED",
+                        span: item_span,
+                    },
+                ],
+                expressions: vec![],
+            },
+        }],
+    };
+
+    assert_eq!(
+        parse_hir(program).map(|_| ()),
+        Err(Basic1ParseError {
+            kind: Basic1ParseErrorKind::InvalidStringLiteral,
+            line_number: Some(line_number("10")?),
+            span: Some(item_span),
+        })
+    );
+    Ok(())
+}
+
+#[test]
+fn forged_empty_hir_program_reports_missing_end_without_location() {
+    let program = Basic1HirProgram { lines: vec![] };
+    assert_eq!(
+        parse_hir(program).map(|_| ()),
+        Err(Basic1ParseError {
+            kind: Basic1ParseErrorKind::MissingFinalEnd,
+            line_number: None,
+            span: None,
+        })
+    );
 }
