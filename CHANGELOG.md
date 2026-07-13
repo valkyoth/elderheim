@@ -25,7 +25,7 @@ All notable Elderheim changes are documented here.
 - Updated the immutable `actions/checkout` pin to `v7.0.0`.
 - Updated the CI `cargo-deny` pin to `0.20.2`; `cargo-audit` remains current at
   `0.22.2`.
-- Added `0.13.0` release notes and pentest draft.
+- Added `0.13.0` release notes and pentest report.
 
 ## 0.12.0 - 2026-07-07
 
