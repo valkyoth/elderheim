@@ -15,8 +15,11 @@ Initial controls:
   the planned generated-program path.
 - Generated programs have no dynamic or static OS-library imports. Only
   documented stable direct target service transitions are eligible; an
-  infeasible Windows/macOS service contract blocks at `v0.34.1` rather than
+  infeasible target service contract blocks at `v0.13.7` rather than
   weakening this rule implicitly.
+- Every supported target service contract has an exact revisioned identity
+  bound through target selection, runtime planning, fragment selection, LIR,
+  machine planning, executable verification, and compatibility evidence.
 - Human-facing compiler snapshots and reports must escape untrusted source
   control bytes before writing terminal, CI log, or report text. Escape syntax
   must be canonical and distinguish literal backslashes from generated escapes.
@@ -54,6 +57,10 @@ Planned compiler-output controls:
   plans and are checked by independent image reparsers.
 - Serialized images remain private staging buffers. Only an independently
   verified image capability can reach atomic CLI/filesystem publication.
+- A checked whole-program resource plan composes native frames, runtime calls,
+  language control stacks, storage, buffers, and mapped image memory. Image
+  verification binds the final resource certificate to the verified digest
+  before publication.
 - Secure ELF, PE, and Mach-O profiles enforce position/load policy, no RWX
   output, and format-appropriate load hardening; tiny profiles are not 1.0
   production outputs.

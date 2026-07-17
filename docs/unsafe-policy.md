@@ -16,8 +16,10 @@ Production rules:
   hooks, or operating-system tool binaries in the supported generated-program
   path.
 - Do not emit dynamic or static OS-library imports. Documented stable direct
-  target service transitions are output instructions, while undocumented or
-  version-unstable mechanisms are forbidden.
+  target service transitions are output instructions. Every transition must
+  match the exact revisioned target service contract carried by the validated
+  compiler pipeline; undocumented, mismatched, or version-unstable mechanisms
+  are forbidden.
 - Serialize machine instructions and executable fields through checked safe
   Rust APIs and bounded byte sinks.
 - Independently decode or reparse generated instructions and executable images

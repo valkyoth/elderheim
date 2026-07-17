@@ -64,8 +64,9 @@ in the release plan.
 
 - Frontend normalization, absolute spans, CST/pipeline ownership, unified
   budgets, sealed edition profiles, and BASIC 1 historical numeric semantics
-  plus two-way manual provenance are completed in `v0.13.1` through `v0.13.6`
-  before parser growth resumes.
+  plus two-way manual provenance and versioned no-import target-service
+  feasibility are completed in `v0.13.1` through `v0.13.7` before parser
+  growth resumes.
 - BASIC 1 variables, numeric literals, `LET`, and expression parsing are
   implemented in `v0.14.0`.
 - BASIC 1 control-flow parsing is implemented in `v0.15.0`.

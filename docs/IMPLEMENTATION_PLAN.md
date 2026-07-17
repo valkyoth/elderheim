@@ -90,17 +90,20 @@ source bytes
   -> dialect AST
   -> validated dialect semantic HIR
   -> validated target-neutral Elderheim MIR
+  -> validated TargetSpec + TargetServiceContractId
   -> derive runtime requirements
   -> validated RuntimePlan<Target>
   -> lower user program and runtime fragments into one bounded LIR builder
   -> validated target-parametric LIR
-  -> validated register/frame/machine-state plan with arithmetic guards
+  -> validated arithmetic-guard and failure-lowering plan
+  -> validated register/frame/machine-state plan preserving guard dominance
   -> symbolic target instruction regions and typed relocations
   -> bounded relaxation and provisional image layout planning
   -> assign file offsets and virtual addresses into ValidatedImageLayout
   -> checked relocation resolution and sealed regions
+  -> validated whole-program ResourcePlan<Target>
   -> internal bounded SerializedImage staging buffer
-  -> independent executable reparse and verification into VerifiedImage
+  -> independent reparse plus final ResourceCertificate into VerifiedImage
   -> atomic user output publication
 ```
 
@@ -122,6 +125,19 @@ LIR builder, so final LIR validation covers both. Encoding produces symbolic
 regions and typed relocations. Layout assigns file and virtual addresses before
 relocations are resolved; relaxation and layout use a bounded monotonic
 fixed-point process with a hard convergence limit.
+
+`TargetServiceContractId` versions architecture/mode, OS version range, service
+ABI, entry, I/O, failure, termination, register, stack, memory, and error rules.
+The same ID is bound into target specs, runtime plans, fragment manifests, LIR,
+machine plans, resource certificates, verified images, and compatibility
+evidence. Broad target-name equality never substitutes for revision equality.
+
+The whole-program resource plan composes native frames/spills, runtime and
+language control stacks, scratch and I/O buffers, arrays, DATA, writable state,
+call depth, and mapped image memory before serialization. Independent image
+verification supplies the final byte digest and produces `VerifiedImage` with
+the finalized `ResourceCertificate`. Missing, stale, cyclic/unbounded, or
+mismatched facts prevent publication.
 
 `SerializedImage` is internal staging data and cannot reach the CLI/filesystem
 adapter. Only `VerifiedImage` can be published. Verification failure discards
@@ -252,6 +268,8 @@ register clobbers, calling convention, stack use, failure behavior, return
 behavior, and accessible memory regions. Selection rejects cycles, missing
 providers, incompatible targets, and unused fragments. Runtime symbols are
 reserved and unforgeable by source programs.
+Each manifest names one exact `TargetServiceContractId`; fragments are not
+portable across service-contract revisions merely because target names match.
 
 ## 8. Executable Output
 
@@ -316,6 +334,7 @@ Planned reports:
 - runtime-fragment inventory
 - generated-binary dependency report
 - target service inventory
+- whole-program resource certificate
 - compatibility warnings
 - version-specific unsupported-feature diagnostics
 

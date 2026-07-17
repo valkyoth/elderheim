@@ -203,6 +203,7 @@ Pentest classes:
 | v0.13.4 | Dartmouth edition profiles and manual-backed semantic tables are sealed. | P2 |
 | v0.13.5 | BASIC 1 historical numeric semantics are specified and executable in a reference model. | P2 |
 | v0.13.6 | Manual provenance and two-way language-rule coverage ledgers are complete. | P2 |
+| v0.13.7 | Versioned direct target-service contracts have complete no-import feasibility evidence. | P5 |
 | v0.14.0 | BASIC 1 variables, numbers, and expressions parse correctly. | P2 |
 | v0.15.0 | BASIC 1 control-flow parser rejects later-version syntax. | P2 |
 | v0.16.0 | BASIC 1 semantic validation and CFG reports pass. | P2 |
@@ -240,23 +241,25 @@ Pentest classes:
 | v0.37.0 | Historical-number formatting runtime passes bounds and golden tests. | P3 |
 | v0.37.1 | Complete edition-specific PRINT statement layout emits exact byte streams. | P3 |
 | v0.38.0 | Input runtime passes valid and invalid input tests. | P3 |
-| v0.38.1 | Production historical arithmetic and comparison runtime matches the oracle. | P3 |
-| v0.38.2 | Production numeric functions and deterministic RND runtime match the oracle. | P3 |
+| v0.38.1 | Complete edition-specific INPUT statement traces match the semantic oracle. | P3 |
+| v0.38.2 | Production historical arithmetic and comparison runtime matches the oracle. | P3 |
+| v0.38.3 | Production numeric functions and deterministic RND runtime match the oracle. | P3 |
 | v0.39.0 | DATA and array runtime passes bounds tests. | P3 |
 | v0.39.1 | Executable image domain types and checked layout planning invariants pass. | P4 |
 | v0.39.2 | Bounded writers and independent image reparsing reject plan/byte mismatches. | P4 |
 | v0.39.3 | Runtime memory, service-loop, DATA, array, and control-stack safety passes. | P3 |
 | v0.39.4 | Position independence, load-bias, image-base, and hardening policy is frozen. | P4 |
 | v0.39.5 | Only independently verified images can be atomically published to user output. | P4 |
+| v0.39.6 | Whole-program resource certificate contracts and composition validation pass. | P5 |
 | v0.40.0-elderheim | ELF writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.41.0 | ELF64 tiny profile is layout-verified. | P4 |
 | v0.42.0 | ELF32 tiny profile is layout-verified. | P4 |
 | v0.43.0 | Secure ELF64 profile enforces segment permissions. | P4 |
 | v0.44.0 | Secure ELF32 profile enforces segment permissions and address bounds. | P4 |
-| v0.44.1 | Register allocation, frame layout, machine-state, ABI, and CPU-baseline validation pass. | P5 |
-| v0.44.2 | Typed encoders, relocations, atomic emission, and independent decoding contracts pass. | P5 |
-| v0.44.3 | Relaxation/layout converges before every relocation is resolved and sealed exactly once. | P5 |
-| v0.44.4 | Typed arithmetic guards and failure lowering contracts precede backend encoding. | P5 |
+| v0.44.1 | Typed arithmetic guards and failure lowering contracts precede machine planning. | P5 |
+| v0.44.2 | Register allocation, frame layout, machine-state, ABI, and CPU-baseline validation pass. | P5 |
+| v0.44.3 | Typed encoders, relocations, atomic emission, and independent decoding contracts pass. | P5 |
+| v0.44.4 | Relaxation/layout converges before every relocation is resolved and sealed exactly once. | P5 |
 | v0.45.0 | x86_64 encoder exact-byte tests pass. | P5 |
 | v0.46.0 | x86_64 relocation boundary tests pass. | P5 |
 | v0.46.1 | x86_64 arithmetic trap-equivalence traces match historical semantics. | P5 |
@@ -291,6 +294,7 @@ Pentest classes:
 | v0.70.0-elderheim | macOS AArch64 interpreter Dartmouth suite passes; native evidence is separate. | P5 |
 | v0.71.0 | Cross-platform runtime conformance matches the frozen observable contract. | P6 |
 | v0.72.0 | Cross-platform output matrix is represented and documented. | P6 |
+| v0.72.1 | Final resource certificates pass for every language profile and target. | P7 |
 | v0.73.0 | CLI target selection tests pass for every 1.0 target. | P6 |
 | v0.74.0 | Dartmouth version CLI tests pass and BASIC 3 is rejected. | P6 |
 | v0.75.0 | Compatibility report golden tests pass. | P6 |
@@ -809,6 +813,49 @@ Verification:
   ordering.
 - Documentation contains Elderheim-authored summaries rather than copied
   manual prose.
+
+### v0.13.7 - Versioned Direct Target-Service Feasibility
+
+Goal:
+
+Prove every promised 1.0 target has a documented stable no-import service path
+before further language and backend investment assumes that target is feasible.
+
+Deliverables:
+
+- A closed `TargetServiceContractId` containing architecture, execution mode,
+  OS family and supported version range, service ABI revision, and independent
+  revisions for process entry, output, input, failure, and termination.
+- Each contract records register inputs/results/clobbers, stack state, accessible
+  memory, pointer/length rules, error results, retry/progress rules, and exit
+  behavior.
+- Primary authoritative evidence that each direct service transition is
+  documented and stable for Linux x86/x86_64/AArch32/AArch64, Windows x86_64,
+  and macOS AArch64 under the promised version range.
+- No dynamic/static OS-library import, external binary, library, hook, linker,
+  compiler, or runtime mechanism is admitted by a service contract.
+- In-process service-state models and checked-in minimal entry/write/input/
+  failure/exit transition vectors for every target. They establish feasibility
+  without claiming a complete encoder or native executable.
+- `TargetSpec` binds exactly one service-contract ID. Unknown, ambiguous,
+  superseded, or cross-target IDs are not constructable as supported targets.
+- If any promised target lacks a stable direct contract, this stop is blocked
+  and requires an explicit project-scope resolution release before `v0.14.0`;
+  later backend work cannot reinterpret the no-import rule.
+
+Verification:
+
+- Contract IDs and revisions round-trip deterministically and change whenever
+  any observable ABI/service rule changes.
+- Target, mode, OS range, revision, register, stack, memory, and error-rule
+  mutation tests fail validation independently.
+- In-process vectors cover entry, successful/partial/failed output and input,
+  EOF, runtime failure, and termination for every promised target.
+- Cross-revision and cross-target service plans fail even when their broad
+  architecture/OS names match.
+- Feasibility reports name all evidence, assumptions, unresolved platform
+  risks, and a PASS/BLOCKED decision per target without invoking external
+  executables.
 
 ### v0.14.0 - BASIC 1 LET, Variables, And Numbers
 
@@ -1451,6 +1498,8 @@ Deliverables:
   `SupportedTarget` value or private fields plus validated constructors.
 - Target identity binds architecture, mode, operating system, executable
   format/class, endianness, ABI, service convention, and pointer width.
+- `TargetSpec`, target capabilities, `RuntimePlan<Target>`, and compatibility
+  reports carry the exact `TargetServiceContractId` proven at `v0.13.7`.
 - Typed target capabilities declare available write, read, terminate, memory,
   stack, and failure services.
 - A complete per-target process-entry, output, input, termination, and failure
@@ -1480,6 +1529,8 @@ Verification:
 - Forged and cross-target combinations fail before LIR construction.
 - Capability snapshots are stable and contain no implicit host assumptions.
 - Linux services cannot enter Windows/macOS plans and vice versa.
+- Service-contract revision mismatch fails even when architecture, OS, and
+  executable format otherwise match.
 - Feasibility fixtures prove each target can represent entry, I/O, errors, and
   termination under the no-C/no-system-tool generated-output constraints.
 - Any target-policy conflict blocks this stop and receives an explicit
@@ -1528,6 +1579,8 @@ Deliverables:
   transitive dependencies, target services, code/data/scratch upper bounds,
   register clobbers, calling convention, stack requirements, failure behavior,
   return behavior, and accessible memory regions.
+- Every manifest names the exact compatible `TargetServiceContractId` revision;
+  broad target names are insufficient.
 - Checked transitive closure with cycle, missing-provider, duplicate-provider,
   capability, target, and total-budget rejection.
 - Reserved unforgeable runtime symbol IDs and separate read-only data,
@@ -1615,6 +1668,8 @@ Verification:
 - No-unused-fragment tests.
 - Requirements, target capabilities, manifest closure, and runtime-plan reports
   agree exactly.
+- Runtime requirements, plans, fragments, and final LIR all carry one identical
+  service-contract ID.
 - User-only, runtime-only, and cross-boundary malformed references fail final
   LIR validation.
 - Failure during selection or either lowering path publishes no partial runtime
@@ -1721,7 +1776,46 @@ Verification:
 - Oversized line/token, zero-progress, partial-read, EOF, exponent-boundary, and
   retry-limit tests.
 
-### v0.38.1 - Historical Numeric Operations Runtime
+### v0.38.1 - Complete INPUT Statement Runtime
+
+Goal:
+
+Implement complete manual-backed INPUT statement behavior for each supported
+Dartmouth edition, not only line reading and isolated number parsing.
+
+Deliverables:
+
+- Edition-specific prompt text, prompt timing, output bytes, and interaction
+  with current PRINT/output-column state.
+- Multiple variables and fields with exact comma, whitespace, delimiter, and
+  physical-line boundary behavior.
+- Manual-backed handling of too few fields, surplus fields, empty fields,
+  malformed fields, invalid-field retry/re-entry, and additional-line input.
+- EOF and service failure behavior at statement start and after partial field
+  consumption.
+- A sealed per-edition assignment policy: all assignments commit atomically, or
+  earlier variables remain assigned after later failure, exactly as the manual
+  and errata ledger require.
+- Bounded statement input state covering consumed bytes, parsed fields,
+  pending assignments, prompts/retries, and resulting variable state.
+- Exact INPUT trace reports: consumed input, emitted output, diagnostics,
+  retries, assignments, and final state.
+
+Verification:
+
+- Manual-derived fixtures cover one/many variables, one/many lines, delimiter
+  variants, too few/surplus/empty/invalid fields, retries, and EOF at every
+  field boundary.
+- Exact emitted bytes, consumed input, diagnostic, retry count, and resulting
+  variable-state traces match the independent semantic oracle.
+- Failure injection at every parse/assignment boundary proves the sealed
+  edition-specific atomic-or-partial assignment rule.
+- Oversized field counts, lines, tokens, retry loops, and pending-assignment
+  state fail within configured budgets without leaking partial unchecked state.
+- BASIC 1, 2, and 4 INPUT differences are explicit profile decisions; no modern
+  BASIC behavior is inferred.
+
+### v0.38.2 - Historical Numeric Operations Runtime
 
 Goal:
 
@@ -1753,7 +1847,7 @@ Verification:
 - Cross-target instruction interpreters produce identical observable numeric
   traces without relying on native CPU traps.
 
-### v0.38.2 - Numeric Functions And Deterministic RND Runtime
+### v0.38.3 - Numeric Functions And Deterministic RND Runtime
 
 Goal:
 
@@ -1764,7 +1858,7 @@ Deliverables:
 
 - Runtime/LIR implementations of `ATN`, `COS`, `EXP`, `LOG`, `SIN`, `SQR`, and
   `TAN`, plus any edition-ledger function delta not already covered at
-  `v0.38.1`.
+  `v0.38.2`.
 - Deterministic approximation constants, iteration bounds, range reduction,
   precision, and rounding without host math libraries.
 - Production `RND` state, seed/reseed behavior, sequence, range, and
@@ -1958,7 +2052,7 @@ Deliverables:
   staging/temporary data and leaves any existing destination unchanged.
 - Verified-image reports bind the exact byte digest, target, format, layout,
   permissions, entry point, relocations, imports, hardening, and verifier
-  version.
+  version plus `TargetServiceContractId`.
 
 Verification:
 
@@ -1971,6 +2065,50 @@ Verification:
   temporary file remains.
 - Repeated publication is deterministic and does not weaken destination
   permissions.
+
+### v0.39.6 - Whole-Program Resource Certificate Contract
+
+Goal:
+
+Freeze a checked composition proof that bounds the complete generated program,
+not only individual fragments, frames, arrays, or buffers.
+
+Deliverables:
+
+- A typed pre-serialization `ResourcePlan<Target>` bound to source/profile
+  identity, `TargetServiceContractId`, validated runtime plan, LIR, machine
+  plan, and image layout.
+- Independent verification finalizes `ResourceCertificate<Target>` by binding
+  the resource plan to the verified-image digest; `VerifiedImage` carries that
+  certificate before publication.
+- Checked maximum native stack usage over the complete user/runtime call graph,
+  including spill frames, saved registers, call-site alignment, service frames,
+  and target ABI overhead.
+- Checked maximum GOSUB and FOR/NEXT control-stack depth and storage.
+- Runtime scratch, numeric/function/RND state, PRINT/INPUT state, arrays, DATA,
+  input/output buffers, read-only static data, writable runtime memory, and
+  total mapped image memory.
+- Runtime-fragment dependency and call-graph SCC validation: dependencies are
+  acyclic, or any permitted recursive call component has an explicit proven
+  finite depth bound.
+- Checked sum/product/alignment arithmetic with no double counting of shared
+  buffers or fragments and no omission of target-specific state.
+- A bounded composition validator and deterministic human/machine-readable
+  certificate report. Pre-backend tests use synthetic machine/image plans; they
+  do not claim final target certificates.
+- Every later machine planner, backend, runtime, layout, and writer must
+  contribute typed resource facts or fail certificate finalization.
+
+Verification:
+
+- Synthetic maximal call graphs, spill frames, control stacks, arrays, DATA,
+  scratch, buffers, and image regions compose to exact expected bounds.
+- Overflow, alignment, missing fact, duplicate/shared allocation, recursion,
+  cycle, service-revision, target, and digest mismatches fail independently.
+- Mutating any contributing plan invalidates the certificate capability.
+- Certificate generation is deterministic and bounded in time/memory.
+- Final production completeness remains required at `v0.72.1`; this stop
+  freezes the proof contract before backend implementation.
 
 ## Phase 6: ELF Writers
 
@@ -2073,12 +2211,46 @@ Verification:
 - ELF32 segment permission tests.
 - Address overflow rejection tests.
 
-### v0.44.1 - Register Allocation And Machine-State Validation
+### v0.44.1 - Arithmetic Guard And Failure-Lowering Contract
 
 Goal:
 
-Prove virtual values, stack state, flags, and runtime calls form a valid target
-machine state before instruction encoding.
+Define typed arithmetic guards and failure edges before register allocation,
+machine-state planning, instruction encoding, or relocation layout.
+
+Deliverables:
+
+- Guarded target-LIR contracts for division by zero, signed division overflow,
+  conversion overflow, invalid shifts/immediates, and historical-number
+  domain/range failures.
+- Architecture-neutral lowering templates route every modeled failure to the
+  typed production numeric/runtime error path before a potentially trapping
+  operation can execute.
+- Guard/protected-operation identities, required dominance, success/failure
+  edges, historical rule IDs, and non-returning failure semantics are explicit
+  inputs to machine-state planning.
+- The contract forbids architecture-specific trap/exception exposure unless an
+  explicitly modeled and safely handled target contract permits it.
+- Generated-binary reports must list guarded arithmetic operations and runtime
+  failure fragments.
+
+Verification:
+
+- Target-LIR/interpreter fixtures exercise every success boundary and failure
+  condition in the guard contract.
+- Contract traces match the historical numeric and semantic oracles exactly for
+  division, conversion, shifts, and function failures.
+- Missing, duplicate, bypassed, or mismatched guard identities fail target-LIR
+  validation before machine planning.
+- Architecture-specific proof remains mandatory at `v0.46.1`, `v0.50.1`,
+  `v0.54.1`, and `v0.58.1`; this contract stop is not backend completion.
+
+### v0.44.2 - Register Allocation And Machine-State Validation
+
+Goal:
+
+Prove virtual values, arithmetic guards, stack state, flags, and runtime calls
+form a valid target machine state before instruction encoding.
 
 Deliverables:
 
@@ -2093,22 +2265,24 @@ Deliverables:
 - Runtime-fragment clobber and stack contracts enforced at every call site.
 - A validator proving every physical register/flag use has a dominating
   definition and no live value is silently overwritten.
+- Guard dominance and protected-operation ordering survive allocation, spills,
+  block scheduling, flag use, and runtime failure transfer.
 - Frozen minimum CPU baseline and permitted feature set for Linux x86/x86_64,
   Linux AArch32/AArch64, Windows x86_64, and macOS AArch64.
 
 Verification:
 
 - Liveness, interference, spill, frame, alignment, save/restore, flags, call,
-  and clobber defects each have independent rejection tests.
+  guard-dominance, and clobber defects each have independent rejection tests.
 - Maximum-pressure and maximum-frame fixtures stay within documented time,
   memory, and stack bounds.
 - Cross-target register classes, ABI states, and CPU features cannot enter the
   wrong backend.
-- Independent machine-trace tests prove allocation preserves validated LIR
-  behavior for representative control-flow and runtime-call programs.
+- Independent machine-trace tests prove allocation preserves validated LIR and
+  arithmetic failure behavior.
 - Allocation and frame reports are deterministic across repeated runs.
 
-### v0.44.2 - Typed Encoder And Relocation Security Contract
+### v0.44.3 - Typed Encoder And Relocation Security Contract
 
 Goal:
 
@@ -2153,7 +2327,7 @@ Verification:
 - Relocation field, placeholder, range, and sink-failure atomicity tests pass.
 - No public production path emits arbitrary raw opcode bytes.
 
-### v0.44.3 - Relaxation, Layout, And Relocation Sealing
+### v0.44.4 - Relaxation, Layout, And Relocation Sealing
 
 Goal:
 
@@ -2189,39 +2363,6 @@ Verification:
 - Repeated planning produces identical layouts, patches, sealed bytes, and
   reports.
 - The independent decoder and image reparser agree with every resolved field.
-
-### v0.44.4 - Arithmetic Trap Equivalence
-
-Goal:
-
-Define the typed guard and failure-lowering contract that every concrete target
-must implement before runnable backend fixtures.
-
-Deliverables:
-
-- Guarded lowering contracts for division by zero, signed division overflow,
-  conversion overflow, invalid shifts/immediates, and historical-number
-  domain/range failures.
-- Architecture-neutral lowering templates route every modeled failure to the
-  typed production numeric/runtime error path before a potentially trapping
-  operation can execute.
-- Machine-state validation proves guard conditions dominate the protected
-  operation and that failure blocks cannot return into user code.
-- The contract forbids architecture-specific trap/exception exposure unless an
-  explicitly modeled and safely handled target contract permits it.
-- Generated-binary reports list guarded arithmetic operations and runtime
-  failure fragments.
-
-Verification:
-
-- Synthetic machine-state/interpreter fixtures exercise every success boundary
-  and trap condition in the lowering contract.
-- Contract traces match the historical numeric and semantic oracles exactly for
-  division, conversion, shifts, and function failures.
-- Removing, bypassing, or misordering a guard fails machine-state/LIR
-  validation or differential tests.
-- Architecture-specific proof remains mandatory at `v0.46.1`, `v0.50.1`,
-  `v0.54.1`, and `v0.58.1`; this contract stop is not backend completion.
 
 ## Phase 7: x86 Backends
 
@@ -2673,7 +2814,7 @@ Deliverables:
 - PE32+ optional header.
 - `.text`, `.rdata`, `.data`, and `.bss` section layout.
 - Entry point validation.
-- No import directory or dynamic OS-library binding, as frozen at `v0.34.1`.
+- No import directory or dynamic OS-library binding, as frozen at `v0.13.7`.
 - No external BASIC runtime.
 - Explicit non-production tiny-profile report listing omitted base relocation,
   ASLR, NX, and other hardened-image properties.
@@ -2937,6 +3078,38 @@ Verification:
 - Target matrix tests.
 - Format matrix tests.
 - Documentation link checks.
+
+### v0.72.1 - Cross-Target Resource Certificate Matrix
+
+Goal:
+
+Finalize and verify whole-program resource certificates for every supported
+language profile, target, runtime composition, and generated secure image.
+
+Deliverables:
+
+- Final certificates for Dartmouth BASIC 1, 2, and 4 across Linux x86,
+  x86_64, AArch32, AArch64, Windows x86_64, and macOS AArch64.
+- Certificates bind exact service-contract revision, runtime fragments, call
+  graph, machine frames, spills, control stacks, arrays/DATA, scratch/buffers,
+  image regions, writable memory, verified-image digest, and hardening profile.
+- Maximum and representative manual-derived programs for each profile/target.
+- Cross-target comparison reports explain ABI/frame/image differences without
+  changing portable language/runtime bounds.
+- No synthetic, incomplete, tiny-profile, stale-revision, or unverified-image
+  certificate is accepted as production evidence.
+
+Verification:
+
+- Every fixture/target matrix entry produces and validates one complete
+  deterministic certificate.
+- Independently recomputed stack, memory, call-depth, and image totals agree
+  with each certificate.
+- Removing any fragment, frame, buffer, region, revision, or digest fact fails
+  the matrix gate.
+- Maximum-bound fixtures remain within documented compiler/runtime/image limits.
+- Native compatibility evidence is linked to the exact verified-image digest
+  and certificate without becoming a compiler implementation dependency.
 
 ## Phase 10: CLI, Reports, And User Experience
 
