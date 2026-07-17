@@ -135,8 +135,8 @@ digest crate is below `elderheim-core` in the dependency graph so source
 normalization can produce `SourceDigest` without a cycle. It has no knowledge
 of Dartmouth rules, target contracts, resource plans, or executable formats.
 Those owners assemble their own canonical preimages and independent validators
-assemble/parse them separately; both may share the audited compression and
-padding primitive without sharing domain-specific canonicalization logic.
+assemble/parse them separately; both may share the review-targeted compression
+and padding primitive without sharing domain-specific canonicalization logic.
 
 `SemanticContractId` is a content fingerprint over the selected edition's
 canonical rule tables, errata decisions, historical numeric model/constants,

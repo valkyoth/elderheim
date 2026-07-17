@@ -201,7 +201,7 @@ Pentest classes:
 | v0.13.2 | CST/semantic-HIR ownership and a mandatory complete pipeline are enforced by types. | P1 |
 | v0.13.3 | Compilation budgets and transactional bounded builders are unified. | P1 |
 | v0.13.4 | Dartmouth edition profiles and manual-backed semantic tables are sealed. | P2 |
-| v0.13.5 | The typed no_std digest subsystem passes standard and domain-separated vectors. | P1 |
+| v0.13.5 | The single-use typed no_std digest subsystem passes official and domain-envelope vectors. | P1 |
 | v0.13.6 | BASIC 1 historical numeric semantics are specified and executable in a reference model. | P2 |
 | v0.13.7 | Manual provenance and two-way language-rule coverage ledgers are complete. | P2 |
 | v0.13.8 | Versioned direct target-service contracts have complete no-import feasibility evidence. | P5 |
@@ -756,9 +756,10 @@ Verification:
 
 Goal:
 
-Freeze one audited, domain-safe cryptographic digest foundation before manual,
-semantic, target-service, source, image, or certificate fingerprints become
-compiler contracts.
+Freeze one review-targeted, verification-complete, domain-safe cryptographic
+digest foundation before manual, semantic, target-service, source, image, or
+certificate fingerprints become compiler contracts. This milestone does not
+claim an independent cryptographic implementation audit.
 
 Deliverables:
 
@@ -779,6 +780,16 @@ Deliverables:
 - Streaming domain constructors require a checked declared input length.
   Updates cannot exceed it, and finalization requires exact consumption, so the
   versioned envelope can be emitted without buffering an unbounded preimage.
+- Streaming state is structurally single-use. The private
+  `DigestState<Domain>` is neither `Default`, `Clone`, nor `Copy`; exposes no
+  state serialization, deserialization, snapshot, reset, or reuse operation;
+  and can be created only by a sealed domain constructor that receives the
+  checked declared input length.
+- `DigestState::update` requires an exclusive mutable borrow and
+  `DigestState::finalize(self)` consumes the state. Successful or failed
+  finalization never returns reusable state, making repeat finalization and
+  update-after-finalization impossible in well-typed code. One-shot APIs use
+  this same consuming state path rather than a second implementation.
 - Sealed `DigestDomain` variants for normalized source, manual provenance,
   semantic contract, compilation identity, target-service contract, resource
   plan, executable image, and resource certificate. Callers cannot supply raw
@@ -800,28 +811,39 @@ Deliverables:
   decoding yields only an `UntrustedDigestClaim<Domain>`, never a validated
   typed digest; malformed length, alphabet, case, prefix, domain, or
   algorithm/version is rejected.
-- Canonical contract/image validators may share this audited SHA-256 primitive,
-  but writer and verifier paths independently assemble and parse their canonical
-  preimages. They cannot share domain-specific canonical encoders, decoders, or
-  field-order helpers merely because the digest primitive is shared.
+- Canonical contract/image validators may share this centrally owned SHA-256
+  primitive, but writer and verifier paths independently assemble and parse
+  their canonical preimages. They cannot share domain-specific canonical
+  encoders, decoders, or field-order helpers merely because the digest
+  primitive is shared.
 
 Verification:
 
-- Standard SHA-256 known-answer vectors cover empty, short, multi-block, and
-  long messages, including the NIST vectors committed with provenance.
+- The checked-in official SHA-256 corpus covers the short-message,
+  long-message, and Monte Carlo classes defined by the
+  [NIST SHAVS](https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/shs/SHAVS.pdf),
+  including byte-oriented vectors published through the
+  [NIST CAVP secure-hashing page](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program/secure-hashing).
+  Corpus provenance, upstream checksums, and the exact imported cases are
+  recorded. Passing these vectors is verification evidence, not a claim of
+  CAVP validation.
 - Padding/length tests cover 0, 1, 55, 56, 63, 64, 65, and bounded large input
   sizes; a test-only checked counter seam proves limit-minus-one, limit, and
   overflow behavior without allocating an impossible message.
 - One-shot and every meaningful chunk partition agree, including zero-length
   updates, byte-at-a-time input, block boundaries, and finalization boundaries.
-- Elderheim known-answer vectors cover every sealed domain and typed output.
-  Identical payloads in every pair of domains produce independently recorded,
+- Elderheim known-answer fixtures cover every sealed domain and typed output.
+  Each fixture stores the exact canonical envelope bytes and expected typed
+  digest; digest-only fixtures are rejected. A test-only fixture reader checks
+  the independently recorded envelope bytes before hashing them. Identical
+  payloads in every pair of domains produce independently recorded,
   non-interchangeable results.
 - Compile-fail/API tests reject raw domains, arbitrary algorithms, generic
-  result extraction, unchecked byte construction, and cross-domain assignment.
+  result extraction, unchecked byte construction, cross-domain assignment,
+  `Default`, `Clone`, `Copy`, state serialization/reset/reuse, repeat
+  finalization, and update after finalization.
 - Failure injection at each bounded-sink/update/finalize boundary proves state
-  and output atomicity; repeat finalization or update-after-finalize fails
-  deterministically.
+  and output atomicity without exposing a reusable finalized or failed state.
 - Declared-length underflow, overrun, conversion overflow, and exact-boundary
   completion fail or succeed deterministically without returning partial output.
 - Independent reference vectors and a separately assembled test preimage catch
@@ -831,6 +853,9 @@ Verification:
   equivalence, length boundaries, malformed typed encodings, domain
   substitution, and sink failures. Fuzz tooling is excluded from production
   dependency graphs and release artifacts.
+- Official-vector parsers, fixture importers, corpus metadata tooling, and
+  reference-only helpers are confined to tests or repository tooling and are
+  absent from every production dependency graph and release artifact.
 - The crate passes `#![forbid(unsafe_code)]`, no_std checks, dependency-policy
   checks, mutation tests for compression/padding/domain logic, and the 500-line
   per-source-file gate.
@@ -2323,9 +2348,9 @@ Deliverables:
 - The independent parser/verifier consumes staging bytes plus the validated
   image and resource plans. It is the only constructor of `VerifiedImage` and
   must create and bind the final resource certificate in the same operation.
-- Writer and verifier share the audited SHA-256 primitive and typed digest
-  outputs, but independently assemble/parse image, resource, and certificate
-  preimages without sharing canonical field encoders.
+- Writer and verifier share the review-targeted SHA-256 primitive and typed
+  digest outputs, but independently assemble/parse image, resource, and
+  certificate preimages without sharing canonical field encoders.
 - `VerifiedImage` contains immutable executable bytes and certificate metadata
   as separate fields. There is no constructor, feature, test helper, or
   deserialization path for a certificate-free `VerifiedImage`.

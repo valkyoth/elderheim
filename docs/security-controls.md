@@ -83,9 +83,9 @@ Planned compiler-output controls:
 - Canonical semantic, target-service, resource-plan, image, and certificate
   encodings require independently derived checked-in known-answer vectors and
   strict decoders that do not reuse production canonicalization helpers.
-- Independent encoders/verifiers may share the audited digest primitive but
-  must independently assemble and parse canonical domain preimages; duplicating
-  SHA-256 implementations is not treated as validator independence.
+- Independent encoders/verifiers may share the review-targeted digest primitive
+  but must independently assemble and parse canonical domain preimages;
+  duplicating SHA-256 implementations is not treated as validator independence.
 - Deserialized executable bytes, reports, fingerprints, plans, and certificates
   never reconstruct validation capabilities. Complete re-verification must
   parse, validate, recompute, and match recognized supported contracts.
