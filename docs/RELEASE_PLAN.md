@@ -86,6 +86,13 @@ Every release must have:
   release scope, or a scheduled follow-up version for any incomplete committed
   scope.
 - No source file over 500 lines.
+- Malformed-input, boundary, budget, deterministic-diagnostic, and fail-closed
+  tests for every parser, validator, runtime, encoder, relocation, or writer
+  behavior added by that release.
+- No IR, encoded program, or executable image may be published after an error;
+  partial builder output remains inaccessible.
+- Compiler-controlled allocations are budgeted before allocation and report a
+  structured resource error where Rust allocation APIs permit recovery.
 
 Local commits may be made regularly while work is progressing. Maintainers push
 the branch and tags. Tags are release events and require the release procedure in
@@ -177,9 +184,17 @@ Pentest classes:
 | v0.11.0 | BASIC 1 lexer fixtures pass. | P2 |
 | v0.12.0 | BASIC 1 HIR snapshots are stable. | P2 |
 | v0.13.0 | BASIC 1 minimal parser fixtures pass. | P2 |
+| v0.13.1 | Every frontend requires normalized source and reports absolute spans. | P2 |
+| v0.13.2 | CST/semantic-HIR ownership and a mandatory complete pipeline are enforced by types. | P1 |
+| v0.13.3 | Compilation budgets and transactional bounded builders are unified. | P1 |
+| v0.13.4 | Dartmouth edition profiles and manual-backed semantic tables are sealed. | P2 |
+| v0.13.5 | BASIC 1 historical numeric semantics are specified and executable in a reference model. | P2 |
 | v0.14.0 | BASIC 1 variables, numbers, and expressions parse correctly. | P2 |
 | v0.15.0 | BASIC 1 control-flow parser rejects later-version syntax. | P2 |
 | v0.16.0 | BASIC 1 semantic validation and CFG reports pass. | P2 |
+| v0.16.1 | Typed block-structured MIR rejects CFG, dominance, type, data, and capability defects. | P1 |
+| v0.16.2 | MIR construction is transactional, bounded, and independently stress-tested. | P1 |
+| v0.16.3 | Frontend diagnostics carry stable stage codes, secondary spans, edition requirements, and manual rules. | P2 |
 | v0.17.0 | BASIC 1 MIR golden tests pass. | P2 |
 | v0.18.0 | BASIC 1 runtime requirements are fully inventoried. | P3 |
 | v0.19.0 | BASIC 1 host model executes semantic fixtures. | P2 |
@@ -198,16 +213,23 @@ Pentest classes:
 | v0.32.0 | BASIC 4 MIR/runtime delta passes without older-version regressions. | P2 |
 | v0.33.0 | BASIC 4 host model executes semantic fixtures. | P2 |
 | v0.34.0 | BASIC 1, 2, and 4 compatibility sweeps all pass. | P2 |
+| v0.34.1 | Supported targets, capabilities, service conventions, and ABIs are closed and validated. | P3 |
+| v0.34.2 | LIR is target-parametric and rejects cross-target service lowering. | P3 |
+| v0.34.3 | Runtime manifests prove dependencies, symbols, bounds, clobbers, and target compatibility. | P3 |
+| v0.34.4 | A shared backend contract supports x86 and AArch without raw-byte or x86-shaped leakage. | P5 |
 | v0.35.0 | Runtime fragments lower into target-near LIR with inventory reports. | P3 |
 | v0.36.0 | Write and exit runtime behavior is platform-abstracted. | P3 |
 | v0.37.0 | Integer formatting runtime passes bounds and golden tests. | P3 |
 | v0.38.0 | Input runtime passes valid and invalid input tests. | P3 |
 | v0.39.0 | DATA and array runtime passes bounds tests. | P3 |
+| v0.39.1 | Executable image domain types and checked layout planning invariants pass. | P4 |
+| v0.39.2 | Bounded writers and independent image reparsing reject plan/byte mismatches. | P4 |
 | v0.40.0-elderheim | ELF writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.41.0 | ELF64 tiny profile is layout-verified. | P4 |
 | v0.42.0 | ELF32 tiny profile is layout-verified. | P4 |
 | v0.43.0 | Secure ELF64 profile enforces segment permissions. | P4 |
 | v0.44.0 | Secure ELF32 profile enforces segment permissions and address bounds. | P4 |
+| v0.44.1 | Typed encoders, relocations, atomic emission, and independent decoding contracts pass. | P5 |
 | v0.45.0 | x86_64 encoder exact-byte tests pass. | P5 |
 | v0.46.0 | x86_64 relocation boundary tests pass. | P5 |
 | v0.47.0 | Linux x86_64 hello-world binary smoke passes. | P5 |
@@ -246,9 +268,11 @@ Pentest classes:
 | v0.80.0-elderheim | BASIC 4 compatibility sweep passes on implemented targets. | P2 |
 | v0.81.0 | Cross-version compatibility matrix passes. | P6 |
 | v0.82.0 | Cross-target output matrix passes. | P6 |
-| v0.83.0 | Parser abuse hardening corpus passes without panics. | P7 |
-| v0.84.0 | Relocation and layout abuse tests pass. | P7 |
-| v0.85.0 | Runtime fragment abuse tests pass on all 1.0 targets. | P7 |
+| v0.82.1 | Independent semantic, MIR, instruction-trace, and image oracles agree. | P7 |
+| v0.82.2 | Deterministic mutation, property, and small-state model campaigns pass. | P7 |
+| v0.83.0 | Cumulative source and parser abuse campaigns pass without panics. | P7 |
+| v0.84.0 | Cumulative encoder, relocation, and layout abuse campaigns pass. | P7 |
+| v0.85.0 | Cumulative runtime fragment abuse campaigns pass on all 1.0 targets. | P7 |
 | v0.86.0 | Dependency, audit, SBOM, modularity, and release gates pass. | P7 |
 | v0.87.0 | Reproducible generated-output tests pass. | P7 |
 | v0.88.0 | Documentation freeze candidate has complete links and examples. | P7 |
@@ -508,7 +532,9 @@ Verification:
 
 Goal:
 
-Define the source-shaped BASIC 1 representation.
+Define the source-shaped BASIC 1 representation. This release used the name
+HIR; `v0.13.2` renames the token-bearing form to CST before downstream semantic
+HIR depends on that terminology.
 
 Deliverables:
 
@@ -543,6 +569,168 @@ Verification:
 - `20 END` fixture.
 - Malformed PRINT tests.
 
+### v0.13.1 - Normalized Frontend And Absolute Spans
+
+Goal:
+
+Close every public path that can bypass source normalization and make all
+frontend locations directly renderable against the normalized source.
+
+Deliverables:
+
+- A dialect-bound `NormalizedSource<D>` capability produced only by checked
+  decoding, normalization, byte-policy, and compile-limit validation.
+- Public line-table, lexer, CST, parser, and semantic entry points accept the
+  capability instead of arbitrary `&str` input.
+- Raw-text construction helpers are private or test-only and cannot reach
+  production compilation.
+- Every line-table entry carries its absolute normalized-source range.
+- Lexer and nested frontend errors translate statement-local positions to
+  absolute source spans without discarding line or secondary context.
+- The committed BASIC 1 example manifest and compiled fixture inventory are
+  checked for exact two-way parity, including duplicate and unlisted files.
+
+Verification:
+
+- All 256 byte values, malformed CR/LF sequences, NUL/control bytes, Unicode
+  formatting controls, size limits, and line limits are accepted or rejected
+  deterministically by the normalization boundary.
+- Direct frontend callers cannot construct an unchecked source capability.
+- Golden diagnostics point to exact absolute spans across multiple lines and
+  preserve nested lexer/parser context.
+- Removing, duplicating, or adding an unlisted corpus entry fails the manifest
+  parity test.
+- No CST, AST, semantic HIR, or later-stage value is produced after source
+  rejection.
+
+### v0.13.2 - CST Ownership And Complete Pipeline Capabilities
+
+Goal:
+
+Make compiler-stage omission structurally impossible and give each source
+representation one unambiguous owner and meaning.
+
+Deliverables:
+
+- Rename the Dartmouth token-bearing source representation from HIR to CST or
+  token tree, including APIs, diagnostics, snapshots, tests, and documentation.
+- Keep Dartmouth CST, AST, and semantic HIR frontend-owned and dialect-aware.
+- Remove shared generic HIR from `elderheim-ir` unless a concrete second
+  frontend proves a language-neutral requirement; shared IR begins at MIR.
+- Replace freely supplied stage slices with a fixed capability chain:
+  normalized source, parsed dialect AST, validated semantic HIR, validated MIR,
+  validated target LIR, encoded program, validated image plan, verified image.
+- Each lowerer, backend, relocation resolver, and writer accepts only the
+  validated output type of its immediate predecessor.
+- Error states consume or invalidate builders so compilation cannot resume at
+  a later stage.
+- Crate-local `#![forbid(unsafe_code)]` is permanent in production compiler,
+  frontend, IR, runtime, backend, and writer crates; policy gates reject build
+  scripts, FFI, native linking, inline assembly, and production process
+  spawning.
+
+Verification:
+
+- Compile-fail API tests prove stages cannot be skipped, reordered, forged, or
+  mixed across dialects or targets.
+- Empty and single-stage pipelines no longer exist as successful public paths.
+- Failure injection at every stage proves no later-stage event or artifact is
+  emitted.
+- CST snapshots remain stable after the terminology migration and are clearly
+  separate from semantic HIR reports.
+
+### v0.13.3 - Unified Budgets And Transactional Builders
+
+Goal:
+
+Apply one compilation-wide resource policy and prevent failed construction from
+leaking partial compiler state.
+
+Deliverables:
+
+- One `CompileLimits` flow for normalized bytes, lines, tokens, CST/AST/HIR
+  nodes, MIR/LIR operations, diagnostics, recursion or nesting, emitted code,
+  relocation count, and output image bytes.
+- Reconcile the current 262,144-operation core default with the 65,536 MIR/LIR
+  caps; every effective limit comes from the validated compilation policy.
+- Bounded builders own partial CST, AST, semantic HIR, MIR, and LIR output and
+  expose only a consuming `finish()` that validates before publication.
+- Compiler-controlled vectors reserve against checked budgets with
+  `try_reserve_exact` where allocation failure can be reported.
+- Dense contiguous IDs use bounded bitsets or indexed tables; adversarial raw
+  IDs use bounded collect/sort/deduplicate/search validation.
+- A bounded diagnostic budget may collect related frontend errors, but any
+  error prevents semantic HIR and code generation.
+
+Verification:
+
+- Boundary tests cover every budget at limit minus one, limit, and limit plus
+  one, including checked multiplication and `usize` conversion.
+- Allocation and sink failure injection never exposes partial output.
+- Validation complexity and memory baselines are recorded for maximum-size
+  accepted inputs.
+- Diagnostics are deterministic across repeated runs and stop at the configured
+  budget.
+
+### v0.13.4 - Sealed Dartmouth Edition Profiles
+
+Goal:
+
+Freeze manual-backed dialect decisions before expression and control-flow
+parsing grows around mutable profile fields.
+
+Deliverables:
+
+- A closed `DartmouthEdition`/profile API for versions 1, 2, and 4; callers
+  cannot assemble unsupported mixtures of rules.
+- Central manual-derived tables for line-number rules, keywords, statement
+  availability, identifiers, arrays/default bounds, PRINT, DATA/READ, and
+  control-flow behavior.
+- Explicit introduced, removed, and behavior-changed metadata per edition.
+- BASIC 3 remains a named but unconstructable unsupported edition with a stable
+  primary-source diagnostic.
+- Shared grammar machinery uses explicit profile decisions; rules that truly
+  differ remain separate and testable implementations.
+- Every rule links to an Elderheim-authored manual identifier and source/page
+  reference without copying manual prose.
+
+Verification:
+
+- Public construction tests prove only supported sealed profiles exist.
+- Table completeness and duplicate/conflict checks pass for all mapped rules.
+- Cross-version fixtures prove earlier editions reject every mapped later-only
+  feature.
+- Profile snapshots and manual-rule links are deterministic.
+
+### v0.13.5 - BASIC 1 Historical Numeric Model
+
+Goal:
+
+Specify BASIC 1 numeric behavior before numeric parsing, semantic validation,
+MIR, and runtime implementation depend on host-language assumptions.
+
+Deliverables:
+
+- Manual-backed BASIC 1 rules for literal syntax, representation, precision,
+  rounding, exponent limits, overflow, underflow, comparison, and integer
+  conversion.
+- A deterministic safe-Rust reference numeric model independent of host
+  floating-point behavior where the manual contract requires it.
+- Stable numeric errors and manual-rule identifiers.
+- A documented delta mechanism for BASIC 2 and BASIC 4 numeric changes; those
+  editions cannot silently inherit BASIC 1 behavior.
+- Serialization and report forms that are deterministic across host targets.
+
+Verification:
+
+- Manual-derived numeric vectors cover zero, signs, precision boundaries,
+  exponent endpoints, rounding ties, overflow, underflow, and comparison.
+- Repeated and cross-host runs produce identical reference results and reports.
+- Host floating-point shortcuts that disagree with the selected historical
+  model are rejected by tests.
+- Mutation around every numeric boundary yields a result or structured error,
+  never a panic or partial semantic value.
+
 ### v0.14.0 - BASIC 1 LET, Variables, And Numbers
 
 Goal:
@@ -562,6 +750,8 @@ Verification:
 - BASIC 1 assignment fixtures.
 - BASIC 1 expression precedence fixtures.
 - Overflow rejection tests.
+- Long digit runs, exponent edges, quote/token storms, malformed operators,
+  nesting limits, and token-budget boundaries fail deterministically.
 
 ### v0.15.0 - BASIC 1 Control Flow Parser
 
@@ -581,6 +771,8 @@ Verification:
 
 - BASIC 1 control-flow fixtures.
 - Later-version syntax rejection fixtures.
+- Missing operands, extreme line targets, malformed nesting, and diagnostic
+  budget tests produce no semantic HIR.
 
 ### v0.16.0 - BASIC 1 Semantic Validation
 
@@ -595,12 +787,103 @@ Deliverables:
 - Line label resolver.
 - Control-flow graph.
 - Reachability report.
+- Stable language/stage diagnostic codes with manual-rule identifiers.
+- Bounded multi-diagnostic analysis that invalidates semantic output if any
+  error is present.
 
 Verification:
 
 - Missing target diagnostics.
 - Unreachable line report tests.
 - BASIC 1 feature matrix tests.
+- Primary/secondary absolute-span golden tests and deterministic diagnostic
+  ordering at the configured budget.
+
+### v0.16.1 - Typed Block-Structured MIR
+
+Goal:
+
+Replace the linear integer-only MIR scaffold with the complete validated
+target-neutral structure needed by historical BASIC semantics.
+
+Deliverables:
+
+- Explicit basic blocks with typed block parameters and one mandatory
+  terminator per block.
+- Typed values and operations for the selected historical numeric model,
+  control flow, data references, calls, memory regions, and runtime capability
+  requests.
+- Declared `DataId` objects, function signatures, call arguments/results, and
+  reachable exit behavior.
+- Deterministic validation phases: shape, definitions, references/types,
+  CFG/reachability, dominance/definite assignment, data/calls, runtime
+  capabilities, and exits.
+- No Unix syscall, concrete register, relocation, ABI, or executable-format
+  concepts in MIR.
+
+Verification:
+
+- Tests independently reject use-before-definition, non-dominating values,
+  type mismatch, undefined data, bad call signatures, unterminated blocks,
+  malformed successors, unreachable invalid blocks, missing capabilities, and
+  absent reachable exits.
+- Maximum-size valid CFGs remain within recorded time and memory bounds.
+- Raw MIR mutation reaches every validator error code without panic.
+- A small-state model agrees with definition/reference, termination,
+  reachability, and dominance validation.
+
+### v0.16.2 - Transactional MIR Construction And Oracle
+
+Goal:
+
+Publish MIR only after complete bounded construction and independent semantic
+agreement.
+
+Deliverables:
+
+- A bounded MIR builder issuing dense IDs and owning all partial blocks, data,
+  values, signatures, and capabilities.
+- Fallible capacity reservation before compiler-controlled growth.
+- Consuming `finish() -> Result<ValidatedMir, _>`; raw partial MIR is not a
+  backend input.
+- Atomic lowering operations that stage changes before committing them to the
+  builder.
+- A deliberately independent MIR interpreter that reports observable output,
+  input consumption, runtime failure, and exit status.
+
+Verification:
+
+- Failure injection at every builder operation leaves no publishable MIR.
+- Dense-ID, overflow, capacity, and operation-budget boundary tests pass.
+- Valid MIR traces agree with the Dartmouth semantic reference model for the
+  currently implemented BASIC 1 corpus.
+- Mutated MIR either validates and executes deterministically or returns a
+  structured validation error before interpretation.
+
+### v0.16.3 - Structured Frontend Diagnostics
+
+Goal:
+
+Freeze diagnostics as a language and security contract before MIR lowering.
+
+Deliverables:
+
+- Stable Dartmouth/stage-specific diagnostic codes rather than only broad core
+  categories.
+- Absolute primary spans, bounded secondary spans, edition requirements, and
+  manual-rule identifiers.
+- Deterministic diagnostic ordering, deduplication, and truncation reporting.
+- Reports distinguish source, CST, AST, semantic, MIR, target, and image
+  failures without embedding unescaped source controls.
+- Any error result structurally withholds validated semantic HIR.
+
+Verification:
+
+- Golden tests cover every diagnostic code and rendering mode.
+- Multi-error fixtures prove deterministic bounded collection and no codegen.
+- Span, source-identity, edition, and manual-rule mismatches fail closed.
+- Escape, bidi, control-byte, and escape-looking text tests preserve canonical
+  unambiguous reports.
 
 ### v0.17.0 - BASIC 1 MIR Lowering
 
@@ -932,6 +1215,123 @@ Verification:
 - BASIC 4 fixture suite passes.
 - Cross-version rejection suite passes.
 
+### v0.34.1 - Closed Targets, Capabilities, And ABIs
+
+Goal:
+
+Prevent unsupported target combinations and freeze the service/ABI vocabulary
+before target-near lowering begins.
+
+Deliverables:
+
+- Replace publicly constructible target fields with a closed
+  `SupportedTarget` value or private fields plus validated constructors.
+- Target identity binds architecture, mode, operating system, executable
+  format/class, endianness, ABI, service convention, and pointer width.
+- Typed target capabilities declare available write, read, terminate, memory,
+  stack, and failure services.
+- Cross-field validation rejects impossible architecture/OS/format/ABI
+  combinations in library APIs as well as the CLI.
+- Windows x86_64, macOS AArch64, and all four Linux targets have explicit,
+  non-interchangeable service contracts.
+
+Verification:
+
+- Exhaustive supported-target round trips pass.
+- Forged and cross-target combinations fail before LIR construction.
+- Capability snapshots are stable and contain no implicit host assumptions.
+- Linux services cannot enter Windows/macOS plans and vice versa.
+
+### v0.34.2 - Target-Parametric LIR And Services
+
+Goal:
+
+Ensure every validated LIR program is bound to exactly one supported target
+without embedding platform-specific raw bytes.
+
+Deliverables:
+
+- `ValidatedLir<Target>` or an equivalent sealed target token carried through
+  construction, validation, runtime selection, and backend dispatch.
+- Replace `SysExit` and similar Unix-shaped operations with typed write, read,
+  terminate, and failure service requests lowered under target capabilities.
+- Typed symbols, labels, data regions, memory accesses, calls, and service
+  signatures.
+- A bounded transactional LIR builder with consuming validation.
+- Validation of target agreement, types, control flow, symbol/data references,
+  calling convention, stack discipline, and service availability.
+
+Verification:
+
+- Compile-fail and runtime tests reject handing one target's LIR to another
+  backend.
+- Invalid services, signatures, symbols, stack effects, and memory regions are
+  rejected independently.
+- Builder failure injection publishes no partial LIR.
+- MIR and LIR interpreters agree on observable traces for lowered fixtures.
+
+### v0.34.3 - Runtime Fragment Manifests And Isolation
+
+Goal:
+
+Make runtime selection, composition, and user/runtime isolation auditable before
+fragments contain generated code.
+
+Deliverables:
+
+- A declarative manifest per fragment listing required/provided symbols,
+  transitive dependencies, target services, code/data/scratch upper bounds,
+  register clobbers, calling convention, stack requirements, failure behavior,
+  return behavior, and accessible memory regions.
+- Checked transitive closure with cycle, missing-provider, duplicate-provider,
+  capability, target, and total-budget rejection.
+- Reserved unforgeable runtime symbol IDs and separate read-only data,
+  executable code, and writable-state regions.
+- Calls only to declared entry points; no arbitrary relocation offsets,
+  undeclared callbacks, or opaque embedded byte arrays.
+- Fragment and service inventories attached to validated output reports.
+
+Verification:
+
+- Graph mutation tests cover cycles, missing/duplicate providers, incompatible
+  targets, budget overflow, and undeclared services.
+- Minimality tests prove no unneeded fragment is selected.
+- Source symbols cannot alias or forge runtime symbols.
+- Region, clobber, stack, callback, and entry-point contract violations fail
+  before backend encoding.
+
+### v0.34.4 - Architecture-Neutral Backend Contract
+
+Goal:
+
+Freeze a backend boundary that supports x86/x86_64 and AArch32/AArch64 without
+forcing one architecture's registers, relocations, or service model onto the
+others.
+
+Deliverables:
+
+- A sealed backend trait consuming validated target LIR and producing a
+  bounded encoded-program plan plus typed relocations and instruction-boundary
+  entry tokens.
+- Architecture-owned register, operand, instruction, relocation, and immediate
+  types behind the common lifecycle contract.
+- No shared raw-byte, arbitrary-opcode, untyped patch-offset, generic register,
+  or x86-specific RIP/rel32 abstraction.
+- Common checked contracts for sections/regions, symbols, branch relaxation,
+  relocation resolution, instruction boundaries, reports, and failure
+  atomicity.
+- Explicit AArch instruction alignment, scaled-immediate, literal-pool, branch,
+  and veneer requirements represented before x86 implementation starts.
+
+Verification:
+
+- Mock x86 and AArch backends prove the common contract without sharing
+  architecture-specific operands.
+- Cross-architecture values cannot type-check at backend boundaries.
+- Range, convergence, output-budget, and failure-atomicity contract tests pass.
+- Backend reports bind target, architecture, ABI/services, regions, symbols,
+  relocations, and emitted instruction count.
+
 ## Phase 5: Runtime Fragments
 
 ### v0.35.0 - Runtime Fragment Implementation
@@ -1020,6 +1420,62 @@ Verification:
 
 - DATA smoke tests.
 - Array bounds tests.
+
+### v0.39.1 - Executable Image Domain And Layout Planner
+
+Goal:
+
+Define format-independent checked image invariants before any ELF, PE, or
+Mach-O serializer can publish bytes.
+
+Deliverables:
+
+- Non-interchangeable newtypes for file offsets/sizes, virtual addresses,
+  memory sizes, alignments, table counts, section/segment IDs, and output size.
+- One checked align-up operation rejecting zero, non-power-of-two alignment,
+  addition overflow, and invalid file/virtual congruence.
+- Private image-plan fields produced only by a bounded `LayoutPlanner`.
+- Checked table multiplication, format-width narrowing, `u64`/`usize`
+  conversion, file-size versus memory-size rules, and exact output budgets.
+- Deterministic interval-sort overlap validation for headers, tables, sections,
+  segments, code, data, and writable state.
+- W^X permissions, target/class/machine/endianness agreement, and executable
+  mapped-entry validation using an encoder-created instruction-boundary token.
+
+Verification:
+
+- Every arithmetic, narrowing, alignment, overlap, permission, target, and
+  entry invariant has limit-minus-one/limit/limit-plus-one tests.
+- Segment-order permutations produce the same validated plan or stable error.
+- Small-state models agree with alignment and interval-overlap validation.
+- Invalid plans cannot be constructed through public APIs.
+
+### v0.39.2 - Bounded Writers And Independent Image Verification
+
+Goal:
+
+Prove emitted image bytes exactly implement their validated plans before
+format-specific writers are added.
+
+Deliverables:
+
+- A bounded output sink reserving against the planned exact file size.
+- Explicit little-endian field writers; Rust structs are never cast to bytes.
+- Atomic writer completion: failure publishes no image and success requires the
+  emitted byte count to equal the plan exactly.
+- A deliberately independent image parser/verifier that reparses emitted bytes
+  and compares target, format/class, headers, mapped ranges, permissions,
+  entry point, and file/memory sizes with the plan.
+- Deterministic verified-image and dependency reports.
+
+Verification:
+
+- Synthetic format fixtures prove exact-size completion and failure atomicity.
+- Mutation flips every modeled header field and perturbs every boundary by
+  minus one, zero, and plus one; mismatches are rejected.
+- Truncation, extension, overlap, permission, entry, class, machine, and
+  endianness mutations fail independently.
+- Repeated serialization produces byte-identical output and reports.
 
 ## Phase 6: ELF Writers
 
@@ -1111,6 +1567,42 @@ Verification:
 - ELF32 segment permission tests.
 - Address overflow rejection tests.
 
+### v0.44.1 - Typed Encoder And Relocation Security Contract
+
+Goal:
+
+Make illegal instruction/operand combinations and unsafe relocation patching
+unrepresentable before the first production encoder subset is implemented.
+
+Deliverables:
+
+- Sealed architecture/mode encoders such as `Encoder<X86_64>`,
+  `Encoder<X86_32>`, `Encoder<AArch64>`, and `Encoder<AArch32>`.
+- Architecture-owned width-specific registers, immediates, relative offsets,
+  address forms, and instruction-specific constructors.
+- Explicit x86 ModRM/SIB and REX/high-byte restrictions plus AArch alignment,
+  scaled-immediate, branch, literal-pool, and veneer invariants.
+- Atomic instruction emission into a temporary maximum-instruction buffer
+  before committing to the bounded encoded-program sink.
+- Typed relocations binding kind, patch region/range, place address, target,
+  addend, encoded width, architecture, and overflow policy.
+- Checked subtraction and explicit fit tests; no displacement truncation.
+- Bounded monotonic branch relaxation with a convergence limit.
+- An independent decoder/interpreter interface for the emitted subset and
+  checked-in ISA-manual vector provenance.
+
+Verification:
+
+- Compile-fail tests reject wrong-width registers/immediates, cross-mode
+  operands, invalid address forms, and untyped patch offsets.
+- Exact manual vectors cover every legal operand class selected for the next
+  encoder stop.
+- `decode(encode(instruction)) == instruction` for exhaustive finite operand
+  classes and bounded representative wide classes.
+- Relocation endpoints, branch-to-instruction-end arithmetic, overflow,
+  relaxation convergence, and sink-failure atomicity tests pass.
+- No public production path emits arbitrary raw opcode bytes.
+
 ## Phase 7: x86 Backends
 
 ### v0.45.0 - x86_64 Encoder Core
@@ -1125,7 +1617,7 @@ Deliverables:
 - REX prefix handling.
 - Immediate moves.
 - RIP-relative references.
-- Syscall instruction.
+- Typed Linux service-transition instruction lowering.
 
 Verification:
 
@@ -1803,13 +2295,76 @@ Verification:
 
 - Cross-target fixture suite passes.
 
+### v0.82.1 - Independent Semantic And Output Oracles
+
+Goal:
+
+Establish independent agreement across source semantics, MIR, emitted
+instructions, and executable images before the cumulative security campaign.
+
+Deliverables:
+
+- A pure Rust Dartmouth semantic interpreter implemented independently from
+  production lowering and runtime fragments.
+- An independent MIR interpreter and emitted-instruction-subset
+  decoder/interpreter.
+- An independent ELF/PE/Mach-O image reparser using no writer implementation
+  helpers.
+- A common observable trace covering output bytes, input consumption, runtime
+  failure, memory-region accesses, service calls, and exit status.
+- Manual-derived fixture metadata carrying edition, source/manual identifier,
+  page or rule reference, expected result, and expected rejection mode.
+
+Verification:
+
+- Semantic HIR, MIR, LIR/instruction, and native target traces agree for every
+  applicable fixture.
+- Deliberate defects in each production layer are detected by at least one
+  independent oracle test.
+- Oracle implementations share data formats only, not validator, lowerer,
+  encoder, runtime, or writer logic.
+- Cross-target traces agree except for explicitly reported ABI/service details.
+
+### v0.82.2 - Mutation, Property, And Small-State Models
+
+Goal:
+
+Run deterministic high-assurance campaigns across every compiler trust
+boundary before final focused abuse sweeps.
+
+Deliverables:
+
+- Deterministic byte mutation for normalization, line tables, lexers, parsers,
+  and diagnostics, including all 256 byte values, line-ending corruption,
+  digit/quote storms, controls, bidi text, nesting, and budget edges.
+- Raw MIR/LIR generation under configured limits plus mutation of valid
+  programs so each invariant is independently exercised.
+- Exhaustive legal finite encoder operand classes and deterministic sampled
+  wide classes, with encoder/decoder round trips.
+- Relocation and executable-layout boundary mutation at minus one, zero, and
+  plus one around every range and width limit.
+- Small-state executable models for definitions/references, CFG termination,
+  dominance, relocation arithmetic, alignment, and interval non-overlap.
+- Reproducibility properties for diagnostics, reports, IR, encoded bytes, and
+  executable images.
+
+Verification:
+
+- Fixed-seed campaigns are reproducible and emit bounded failure artifacts.
+- Every public parser/validator/builder accepts deterministically or returns a
+  structured error without panic.
+- No rejected input produces later-stage IR or output.
+- Model/implementation comparisons pass for every exhaustively enumerated
+  small state.
+
 ## Phase 12: Security Hardening
 
 ### v0.83.0 - Parser Abuse Hardening
 
 Goal:
 
-Harden source ingestion and parsing.
+Run the final cumulative source-ingestion and parser campaign after incremental
+hardening at every frontend stop.
 
 Deliverables:
 
@@ -1817,6 +2372,9 @@ Deliverables:
 - Deep expression limits.
 - Huge line-number tests.
 - Diagnostic flood limits.
+- Absolute-span/source-identity mutation.
+- Cross-edition profile confusion tests.
+- Normalized-source capability bypass checks.
 
 Verification:
 
@@ -1827,7 +2385,8 @@ Verification:
 
 Goal:
 
-Harden machine-code and executable layout math.
+Run the final cumulative instruction, relocation, and executable-layout
+campaign after incremental backend/writer hardening.
 
 Deliverables:
 
@@ -1835,16 +2394,20 @@ Deliverables:
 - Address overflow tests.
 - Segment overlap tests.
 - Entry-point validation tests.
+- Encoder/decoder differential vectors.
+- Cross-target, class, ABI, and service confusion tests.
 
 Verification:
 
-- Layout abuse tests pass for ELF32 and ELF64.
+- Encoder, relocation, and layout abuse tests pass for ELF32, ELF64, PE64, and
+  Mach-O 64 on their supported architectures.
 
 ### v0.85.0 - Runtime Fragment Hardening
 
 Goal:
 
-Harden generated-program runtime helpers.
+Run the final cumulative generated-program runtime campaign after incremental
+fragment tests at every runtime stop.
 
 Deliverables:
 
@@ -1852,6 +2415,8 @@ Deliverables:
 - Array bounds tests.
 - Data cursor bounds tests.
 - Division failure tests.
+- Fragment graph, symbol isolation, stack/clobber, service, and memory-region
+  contract mutation.
 
 Verification:
 

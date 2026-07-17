@@ -62,7 +62,7 @@ crates/elderheim-core
   spans, diagnostics, limits, IDs, byte sinks
 
 crates/elderheim-ir
-  HIR/MIR/LIR contracts, validators, lowering contracts
+  dialect-free MIR/LIR contracts, validators, bounded builders, lowering contracts
 
 crates/elderheim-runtime
   runtime fragment inventory, dependency selection, inclusion reports
@@ -77,29 +77,38 @@ crates/elderheim-format-elf
   ELF32/ELF64 layout planner, explicit endian writer, image verifier
 
 crates/languages/elderheim-dartmouth-basic
-  Dartmouth BASIC versions 1, 2, and 4
+  Dartmouth BASIC versions 1, 2, and 4 CST, AST, semantic HIR, and profiles
 ```
 
 ## 3. Compiler Pipeline
 
 ```text
 source bytes
-  -> source decoder
-  -> dialect lexer
-  -> dialect parser
-  -> language HIR
-  -> checked Elderheim MIR
-  -> target-near LIR
+  -> normalized source capability
+  -> dialect lexer and CST
+  -> dialect AST
+  -> validated dialect semantic HIR
+  -> validated target-neutral Elderheim MIR
+  -> validated target-parametric LIR
   -> runtime fragment selection
-  -> target instruction encoding
-  -> relocation resolution
-  -> executable image planning
-  -> executable verification
+  -> validated target instruction encoding
+  -> checked relocation resolution
+  -> validated executable image plan
+  -> independent executable reparse and verification
   -> standalone executable
 ```
 
-The parser must not emit CPU bytes directly. It emits source-shaped HIR.
-Operating-system calls appear only in target lowering and runtime fragments.
+Every public frontend starts from a dialect-bound normalized-source capability;
+raw `&str` helpers remain private. Spans use absolute offsets into that
+normalized source. The token-bearing source representation is a CST, while
+semantic HIR remains frontend-owned and dialect-aware. Shared IR starts at MIR.
+
+The complete pipeline is encoded by capability types. A caller cannot omit
+normalization, parsing, semantic validation, MIR validation, LIR validation,
+encoding, image planning, or final image verification. Each backend or writer
+accepts only the validated output type of its immediate predecessor. The
+parser cannot emit CPU bytes, and operating-system services appear only through
+target capability lowering and declared runtime fragments.
 
 ## 4. Compiler-First Strategy
 
@@ -141,6 +150,11 @@ Version profiles:
 Each profile defines line-number rules, statement set, expression rules,
 numeric model, arrays, `DATA` behavior, and diagnostics for constructs outside
 that selected profile.
+
+Profiles are sealed edition values backed by centralized, manual-derived rule
+tables. Callers cannot construct arbitrary mixtures of edition behavior.
+Shared grammar machinery handles common syntax, while genuinely different
+edition rules may use separate implementations selected by the sealed profile.
 
 Every implemented language profile must also have an Elderheim-authored
 reference under `docs/languages/` and runnable source examples under
@@ -186,24 +200,25 @@ checked against the relevant manual:
 
 ## 7. IR Rules
 
-MIR stays target-neutral:
+MIR is dialect-free and target-neutral. It uses explicit basic blocks, typed
+block parameters and values, declared data objects and call signatures, and
+one mandatory terminator per block. Validation proceeds deterministically
+through shape, definitions, references and types, CFG and dominance, runtime
+capabilities, and reachable-exit phases. It proves definite assignment and
+rejects use-before-definition, malformed data references, unterminated blocks,
+and capability mismatches.
 
-- `WriteStatic`
-- `WriteI64`
-- `ReadI64`
-- `Jump`
-- `BranchIf`
-- `CallLine`
-- `Return`
-- `Exit`
+The Dartmouth frontend owns CST, AST, and semantic HIR. Its validated semantic
+HIR lowers transactionally into a bounded MIR builder. Failed lowering cannot
+publish partial IR. Dense IDs and compilation-wide budgets permit predictable
+linear validation where possible; bounded sort/search remains available for
+adversarial raw IDs.
 
-LIR is target-near:
-
-- register moves
-- RIP-relative data references
-- branches
-- calls
-- Linux syscall lowering
+LIR is target-parametric and target-near. It represents typed machine-level
+operations plus target-neutral service requests such as write, read, and
+terminate until a validated target capability lowers them. It does not expose
+generic Unix syscall operations or raw opcode bytes. A validated LIR for one
+target cannot enter another target's backend.
 
 Runtime helpers are fragments selected by use:
 
@@ -213,6 +228,13 @@ Runtime helpers are fragments selected by use:
 - `parse_i64`
 - `bounds_fail`
 - `div_zero_fail`
+
+Every fragment has a declarative manifest covering required and provided
+symbols, transitive dependencies, target services, code/data/scratch bounds,
+register clobbers, calling convention, stack use, failure behavior, return
+behavior, and accessible memory regions. Selection rejects cycles, missing
+providers, incompatible targets, and unused fragments. Runtime symbols are
+reserved and unforgeable by source programs.
 
 ## 8. Executable Output
 
@@ -231,6 +253,20 @@ Runtime helpers are fragments selected by use:
 
 Security profiles add separate R, R|X, R, and R|W segments plus non-executable
 stack metadata where the target format supports it.
+
+Executable writers consume only private, validated image plans built from
+domain newtypes for file offsets, virtual addresses, sizes, and alignments.
+Planning checks narrowing, alignment congruence, overlap, table arithmetic,
+W^X, target/class agreement, output budgets, and instruction-boundary entry
+points. Writers use explicit endian field operations, emit the exact planned
+size, and are followed by an independent parser/verifier that compares emitted
+bytes with the plan.
+
+Instruction encoders use sealed architecture/mode types, width-specific
+registers and operands, instruction-specific constructors, checked relocation
+records, and atomic emission into bounded sinks. No production API accepts raw
+opcodes, arbitrary bytes, or untyped patch offsets. Exact manual-derived
+vectors and an independently implemented decoder cover the emitted subset.
 
 ## 9. Reports
 
@@ -262,5 +298,22 @@ Every layer gets tests:
 - report golden tests
 - cross-version rejection tests so BASIC 1 does not accidentally accept BASIC 2
   or BASIC 4 syntax
+
+Malformed-input and boundary tests land with the feature they protect, not in
+a late hardening-only phase. Each stop covers applicable byte mutations,
+resource boundaries, deterministic diagnostics, allocation failures, malformed
+IR, relocation endpoints, layout boundary perturbations, and cross-target
+rejection. The late security phase reruns cumulative campaigns.
+
+Independent oracles include a pure Rust Dartmouth semantic interpreter, MIR
+trace interpreter, emitted-instruction-subset decoder/interpreter, and
+executable image reparser. Manual fixtures carry edition, source identifier,
+page or rule reference, expected result, and expected rejection mode.
+
+Production compiler, backend, writer, and runtime crates permanently use
+crate-local `#![forbid(unsafe_code)]`. Policy gates reject `build.rs`, FFI,
+native linking, inline assembly, production process spawning, and opaque native
+runtime objects. Direct target service transitions emitted as validated machine
+instructions are part of standalone output and are not external hooks.
 
 Release gates must keep all non-generated Rust files below 500 lines.

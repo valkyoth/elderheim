@@ -117,9 +117,16 @@ references that may fit Elderheim, please reply here:
 
 ## What Works Today
 
-`0.13.0` is the active Dartmouth BASIC 1 minimal parser workstream. It parses
+`0.13.0` is the current Dartmouth BASIC 1 minimal parser release. It parses
 the first complete program shape: blank and quoted-label `PRINT` statements
 followed by exactly one final `END`, with typed, span-bearing parse failures.
+
+The next stop is `0.13.1`: require normalized-source capabilities at every
+public frontend boundary, convert frontend locations to absolute normalized
+source spans, and prove exact two-way corpus-manifest parity. Subsequent
+`0.13.x` stops settle CST/semantic-HIR ownership, mandatory pipeline
+capabilities, unified budgets, sealed editions, and historical numeric
+semantics before numeric parser growth resumes in `0.14.0`.
 
 No Dartmouth BASIC full parser, semantic validator, or executable writer is
 implemented yet. The roadmap intentionally starts with compiler substrate, then
