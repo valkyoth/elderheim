@@ -28,6 +28,13 @@ Initial controls:
 - Language parsers must fail closed on unsupported statement forms and reject
   trailing tokens. The `v0.13.1` boundary requires all public frontends to
   consume normalized-source capabilities and report absolute source spans.
+- A content-bound semantic contract and compilation identity bind edition
+  rules, errata, numeric/runtime behavior, normalized source, IR schemas,
+  options, and effective limits through HIR, MIR, runtime, LIR, resource
+  certification, executable verification, oracle evidence, and reports.
+  Shared compiler layers preserve this identity opaquely and reject mismatches.
+  Its normalized-source digest is cryptographic and separate from diagnostic
+  `SourceId` misuse detection.
 - MIR and LIR validation must remain subquadratic and bounded by operation
   limits under adversarial ID layouts.
 - Executable layout validation must keep file offsets and virtual addresses in
@@ -65,8 +72,11 @@ Planned compiler-output controls:
   before publication.
 - Resource certificates are metadata beside executable bytes. The executable
   digest is computed first and the certificate digest then binds that digest,
-  the canonical resource plan, service-contract fingerprint, and verifier
-  version without self-referential image hashing.
+  the canonical resource plan, compilation identity, service-contract
+  fingerprint, and verifier version without self-referential image hashing.
+- Canonical semantic, target-service, resource-plan, image, and certificate
+  encodings require independently derived checked-in known-answer vectors and
+  strict decoders that do not reuse production canonicalization helpers.
 - Secure ELF, PE, and Mach-O profiles enforce position/load policy, no RWX
   output, and format-appropriate load hardening; tiny profiles are not 1.0
   production outputs.

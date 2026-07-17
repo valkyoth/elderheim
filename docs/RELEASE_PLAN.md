@@ -216,6 +216,7 @@ Pentest classes:
 | v0.18.1 | Portable output, input, EOF, error, and exit semantics are frozen. | P3 |
 | v0.18.2 | Historical numeric functions and failure behavior pass the independent reference model. | P2 |
 | v0.18.3 | Edition-specific number parsing, formatting, and deterministic RND behavior pass. | P3 |
+| v0.18.4 | Semantic contracts and compilation identities are content-bound and preserved end to end. | P2 |
 | v0.19.0 | The independent BASIC 1 semantic oracle executes every semantic fixture. | P2 |
 | v0.20.0-elderheim | BASIC 1 compatibility sweep passes before BASIC 2 starts. | P2 |
 | v0.21.0 | BASIC 2 delta is documented and BASIC 1 remains green. | P2 |
@@ -869,6 +870,13 @@ Verification:
 - Feasibility reports name all evidence, assumptions, unresolved platform
   risks, and a PASS/BLOCKED decision per target without invoking external
   executables.
+- Checked-in independently derived known-answer vectors cover canonical
+  target-service encodings and fingerprints for empty/minimum/maximum legal
+  fields plus every supported target contract.
+- A separate strict decoder rejects malformed lengths, alternate field order,
+  duplicate fields, trailing bytes, unknown fields, and noncanonical version
+  or integer encodings. It does not call the production canonical encoder or
+  fingerprint helper when recomputing vector results.
 
 ### v0.14.0 - BASIC 1 LET, Variables, And Numbers
 
@@ -1192,6 +1200,67 @@ Verification:
 - The rule ledger explicitly records `RND` behavior or its absence for every
   supported Dartmouth edition.
 
+### v0.18.4 - Semantic Contract And Compilation Identity
+
+Goal:
+
+Give every validated compiler artifact an opaque, content-bound identity for
+the exact source-language semantics and compilation policy that produced it
+before the independent oracle becomes a release gate.
+
+Deliverables:
+
+- A `SemanticContractId` containing a logical schema revision plus a
+  domain-separated fingerprint of a deterministic canonical semantic contract.
+- The semantic contract binds the Dartmouth edition; complete edition rule
+  tables; selected errata/ambiguity decisions; historical-number model,
+  representation, algorithms, constants, and failure rules; parsing/formatting
+  rules; deterministic RND contract; and portable observable-runtime revision.
+- A separate opaque `CompilationIdentity` binds `SemanticContractId`, normalized
+  source digest, frontend/MIR/LIR schema versions, semantics-affecting compiler
+  options and transformation set, and the complete effective `CompileLimits`
+  configuration.
+- The normalized source digest is a domain-separated cryptographic digest of
+  normalized source bytes under a fixed algorithm; it is distinct from the
+  diagnostic-only `SourceId` and is never reconstructed from that identifier.
+- Fixed and versioned canonical field order, integer/string/list encoding,
+  domain tags, digest algorithms, and output widths for both identities.
+  Unknown fields, ambiguous encodings, alternate algorithms, and partial
+  identities are rejected.
+- Frontend-owned validated semantic HIR constructs the identity. Semantic HIR,
+  MIR, `RuntimePlan`, final LIR, `ResourcePlan`, `ResourceCertificate`,
+  `VerifiedImage`, oracle fixtures, compatibility evidence, and reports carry
+  the same opaque identity without reconstruction from partial fields.
+- Shared IR, optimization, runtime, and backend crates may compare, copy, and
+  report the opaque identity but cannot inspect Dartmouth rule fields to choose
+  behavior. Dialect decisions remain in the language frontend.
+- Builders and transformations reject inputs with different identities, and
+  any failure or mutation invalidates the candidate artifact rather than
+  retaining the predecessor identity.
+- BASIC 1 receives a complete identity at this stop. BASIC 2 and BASIC 4 must
+  receive distinct complete identities as their edition deltas close at
+  `v0.27.0` and `v0.34.0`; an incomplete profile cannot claim one.
+
+Verification:
+
+- Independently derived checked-in known-answer vectors cover canonical
+  semantic contracts and compilation identities, including minimum and
+  maximum effective limits and representative normalized sources.
+- A strict independent decoder/fingerprinter does not reuse production
+  canonicalization helpers and rejects empty/truncated fields, malformed
+  lengths, alternate field order, duplicate/trailing/unknown fields, and
+  noncanonical version or integer encodings.
+- Mutating each rule table, errata decision, numeric constant/algorithm, RND
+  rule, runtime revision, schema version, option, source byte, or effective
+  limit changes the appropriate identity; stale supplied fingerprints fail.
+- LF, CRLF, and CR inputs that normalize to identical source bytes produce the
+  same source digest, while any normalized-byte difference changes it.
+- Compile-fail/API-boundary tests prove shared mid-end and backend code cannot
+  inspect dialect-specific identity internals or forge an identity.
+- Cross-identity HIR/MIR/runtime/LIR/resource/image composition fails at every
+  boundary with no partial artifact or report presented as successful.
+- Repeated and cross-host computations produce byte-identical IDs and reports.
+
 ### v0.19.0 - Independent BASIC 1 Semantic Oracle
 
 Goal:
@@ -1341,6 +1410,7 @@ Deliverables:
 - BASIC 2 stdin/stdout fixtures.
 - BASIC 2 runtime-error fixtures.
 - BASIC 2 historical-number, function, formatting, and randomness deltas.
+- Independently recomputed BASIC 2 `SemanticContractId` known-answer vectors.
 
 Verification:
 
@@ -1360,12 +1430,16 @@ Deliverables:
   tag or assigned to an explicit follow-up release.
 - BASIC 2 manual-derived fixture suite.
 - BASIC 4 syntax rejection suite in BASIC 2 mode.
+- Final content-bound BASIC 2 `SemanticContractId` and representative
+  `CompilationIdentity` fixtures; neither may equal the BASIC 1 identity.
 
 Verification:
 
 - BASIC 1 fixture suite passes.
 - BASIC 2 fixture suite passes.
 - Cross-version rejection suite passes.
+- Every BASIC 2 fixture/report carries the final BASIC 2 identity, while BASIC
+  1 fixtures retain their unchanged identity.
 
 ## Phase 4: Dartmouth BASIC 4 Complete Expansion
 
@@ -1471,6 +1545,7 @@ Deliverables:
 - BASIC 4 stdin/stdout fixtures.
 - BASIC 4 runtime-error fixtures.
 - BASIC 4 historical-number, function, formatting, and randomness deltas.
+- Independently recomputed BASIC 4 `SemanticContractId` known-answer vectors.
 
 Verification:
 
@@ -1490,6 +1565,8 @@ Deliverables:
   tag or assigned to an explicit follow-up release.
 - BASIC 4 manual-derived fixture suite.
 - Cross-version matrix for BASIC 1, BASIC 2, and BASIC 4.
+- Final content-bound BASIC 4 `SemanticContractId` and representative
+  `CompilationIdentity` fixtures distinct from BASIC 1 and BASIC 2.
 
 Verification:
 
@@ -1497,6 +1574,8 @@ Verification:
 - BASIC 2 fixture suite passes.
 - BASIC 4 fixture suite passes.
 - Cross-version rejection suite passes.
+- Every fixture/report carries the exact edition identity and cross-edition
+  artifact composition fails closed.
 
 ### v0.34.1 - Closed Target Capability And ABI Integration
 
@@ -2057,9 +2136,9 @@ not only individual fragments, frames, arrays, or buffers.
 
 Deliverables:
 
-- A typed pre-serialization `ResourcePlan<Target>` bound to source/profile
-  identity, `TargetServiceContractId`, validated runtime plan, LIR, machine
-  plan, and image layout.
+- A typed pre-serialization `ResourcePlan<Target>` bound to the exact opaque
+  `CompilationIdentity`, `TargetServiceContractId`, validated runtime plan,
+  LIR, machine plan, and image layout.
 - A mandatory `ResourceCertificate<Target>` constructor contract. Independent
   image verification computes `image_digest = hash(executable_bytes)` and then
   computes a domain-separated certificate digest over the canonical resource
@@ -2095,8 +2174,16 @@ Verification:
 - Overflow, alignment, missing fact, duplicate/shared allocation, recursion,
   cycle, service-revision, target, and digest mismatches fail independently.
 - Mutating any contributing plan, executable byte, service-contract
-  fingerprint, or verifier version invalidates the certificate capability.
+  fingerprint, compilation identity, or verifier version invalidates the
+  certificate capability.
 - Certificate generation is deterministic and bounded in time/memory.
+- Independently derived known-answer vectors cover canonical resource plans
+  with empty/minimum/maximum legal collections, lengths, frames, buffers, and
+  image regions plus representative complete target plans.
+- A strict independent resource-plan decoder rejects malformed lengths,
+  alternate field order, duplicate/trailing/unknown fields, noncanonical
+  versions/integers, missing compilation identity, and wrong identity domains
+  without calling production canonicalization helpers.
 - Final production completeness remains required at `v0.72.1`; this stop
   freezes the proof contract before backend implementation.
 
@@ -2130,7 +2217,8 @@ Deliverables:
   unchanged.
 - Verified-image reports bind the exact executable digest, certificate digest,
   target, format, layout, permissions, entry point, relocations, imports,
-  hardening, verifier version, and `TargetServiceContractId` fingerprint.
+  hardening, verifier version, `CompilationIdentity`, and
+  `TargetServiceContractId` fingerprint.
 
 Verification:
 
@@ -2145,6 +2233,11 @@ Verification:
 - Successful executable publication bytes exactly match `image_digest`; any
   separate certificate/report artifact binds that digest without being part of
   its input.
+- Checked-in known-answer vectors prove image and certificate domain separation
+  for empty, minimum, maximum, and representative executable/resource inputs.
+  Swapped domains, reused digests, malformed lengths, alternate field order,
+  duplicate fields, trailing bytes, and noncanonical versions all fail under a
+  strict implementation independent from production digest assembly.
 - Repeated verification, certification, and publication are deterministic and
   do not weaken destination permissions.
 
@@ -3143,9 +3236,10 @@ Deliverables:
 
 - Final certificates for Dartmouth BASIC 1, 2, and 4 across Linux x86,
   x86_64, AArch32, AArch64, Windows x86_64, and macOS AArch64.
-- Certificates bind exact service-contract revision, runtime fragments, call
-  graph, machine frames, spills, control stacks, arrays/DATA, scratch/buffers,
-  image regions, writable memory, verified-image digest, and hardening profile.
+- Certificates bind exact semantic contract, compilation identity,
+  service-contract revision/fingerprint, runtime fragments, call graph, machine
+  frames, spills, control stacks, arrays/DATA, scratch/buffers, image regions,
+  writable memory, verified-image digest, and hardening profile.
 - Maximum and representative manual-derived programs for each profile/target.
 - Cross-target comparison reports explain ABI/frame/image differences without
   changing portable language/runtime bounds.
@@ -3160,6 +3254,8 @@ Verification:
   with each certificate.
 - Removing any fragment, frame, buffer, region, revision, or digest fact fails
   the matrix gate.
+- Substituting source, edition, semantics, options, limits, or schema identity
+  from another otherwise-valid matrix entry fails independently.
 - Maximum-bound fixtures remain within documented compiler/runtime/image limits.
 - Native compatibility evidence is linked to the exact verified-image digest
   and certificate without becoming a compiler implementation dependency.
@@ -3216,6 +3312,7 @@ Report source compatibility clearly.
 Deliverables:
 
 - Version report.
+- Semantic-contract and compilation-identity report.
 - Feature usage report.
 - Unsupported-feature report.
 - Control-flow report.
@@ -3234,6 +3331,8 @@ Deliverables:
 
 - Target report.
 - Format report.
+- Compilation identity, target-service fingerprint, executable digest, and
+  resource-certificate digest report.
 - Syscall report.
 - Runtime fragment report.
 - Dynamic dependency report.

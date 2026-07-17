@@ -85,10 +85,10 @@ crates/languages/elderheim-dartmouth-basic
 
 ```text
 source bytes
-  -> normalized source capability
+  -> normalized source capability + normalized source digest
   -> dialect lexer and CST
   -> dialect AST
-  -> validated dialect semantic HIR
+  -> validated dialect semantic HIR + opaque CompilationIdentity
   -> validated target-neutral Elderheim MIR
   -> validated TargetSpec + TargetServiceContractId
   -> derive runtime requirements
@@ -126,6 +126,17 @@ regions and typed relocations. Layout assigns file and virtual addresses before
 relocations are resolved; relaxation and layout use a bounded monotonic
 fixed-point process with a hard convergence limit.
 
+`SemanticContractId` is a content fingerprint over the selected edition's
+canonical rule tables, errata decisions, historical numeric model/constants,
+RND behavior, and observable runtime contract. `CompilationIdentity` adds the
+normalized source digest, frontend/MIR/LIR schema versions, relevant compiler
+options/transforms, and complete effective limits. Frontends construct these
+opaque identities; shared MIR, runtime, backend, writer, and verifier code may
+only preserve, compare, and report them. Every artifact boundary rejects an
+identity mismatch, and shared IR never inspects dialect fields to choose
+behavior. The normalized source digest is a separate domain-separated
+cryptographic digest over normalized bytes, never the diagnostic `SourceId`.
+
 `TargetServiceContractId` versions architecture/mode, OS version range, service
 ABI, entry, I/O, failure, termination, register, stack, memory, and error rules.
 It combines a logical revision with a domain-separated fingerprint recomputed
@@ -139,8 +150,9 @@ The whole-program resource plan composes native frames/spills, runtime and
 language control stacks, scratch and I/O buffers, arrays, DATA, writable state,
 call depth, and mapped image memory before serialization. Independent image
 verification supplies the final byte digest and produces `VerifiedImage` with
-the finalized `ResourceCertificate`. Missing, stale, cyclic/unbounded, or
-mismatched facts prevent publication.
+the finalized `ResourceCertificate`. Both bind the exact
+`CompilationIdentity`. Missing, stale, cyclic/unbounded, or mismatched facts
+prevent publication.
 
 The certificate is metadata beside the executable bytes, not embedded within
 them. Verification first hashes the immutable executable bytes, then hashes the
@@ -337,6 +349,7 @@ Reports are part of the product, not a side feature.
 Planned reports:
 
 - dialect report
+- semantic-contract and compilation-identity report
 - token and parse summary
 - control-flow graph
 - unreachable line report

@@ -19,6 +19,10 @@ Elderheim treats compiler output as security-sensitive.
   runtimes.
 - Dialect confusion where one Dartmouth BASIC version silently accepts another
   version's semantics.
+- Valid artifacts from different source, semantic, option, limit, IR-schema, or
+  target-service contracts being mixed into one apparently valid compilation.
+- A faulty shared canonicalizer making production and verification agree on the
+  same ambiguous encoding or digest domain.
 - Cache or report logic treating non-cryptographic source identifiers as proof
   that two source byte streams are identical.
 - Source-controlled IR identifiers causing algorithmic-complexity denial of
@@ -36,6 +40,11 @@ Elderheim treats compiler output as security-sensitive.
 - No third-party dependencies in the foundation.
 - Explicit target and format layers.
 - Explicit Dartmouth BASIC version profiles.
+- Opaque content-bound semantic and compilation identities preserved through
+  every artifact boundary and rejected on mismatch.
+- Independently derived canonical-encoding known-answer vectors plus strict
+  decoders that reject ambiguity, duplication, trailing data, malformed
+  lengths, noncanonical versions, and digest-domain substitution.
 - `SourceId` is not a security, cache-integrity, or source-equality boundary.
   Diagnostic and cursor source-id checks are best-effort misuse detection
   inside one trusted compilation session, not adversarial equality proofs.
