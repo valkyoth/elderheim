@@ -126,7 +126,8 @@ public frontend boundary, convert frontend locations to absolute normalized
 source spans, and prove exact two-way corpus-manifest parity. Subsequent
 `0.13.x` stops settle CST/semantic-HIR ownership, mandatory pipeline
 capabilities, unified budgets, sealed editions, and historical numeric
-semantics before numeric parser growth resumes in `0.14.0`.
+semantics plus two-way manual provenance before numeric parser growth resumes
+in `0.14.0`.
 
 No Dartmouth BASIC full parser, semantic validator, or executable writer is
 implemented yet. The roadmap intentionally starts with compiler substrate, then

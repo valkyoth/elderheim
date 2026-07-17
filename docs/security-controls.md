@@ -37,13 +37,20 @@ Planned compiler-output controls:
   displacements.
 - Mandatory typed pipeline capabilities; no stage can be skipped or resumed
   after failure.
+- Runtime requirements and a validated target runtime plan precede combined
+  user/runtime LIR construction and final LIR validation.
 - Typed block-structured MIR and target-parametric LIR with transactional
   bounded builders.
 - Closed targets, target capabilities, typed relocations, and no ad hoc patching
   or public raw-opcode emission.
+- Layout assigns final file and virtual addresses before relocation resolution;
+  every patch is bounded, non-overlapping, sentinel-checked, exact-once, and
+  sealed before serialization.
 - Executable writers that serialize fields explicitly from private validated
   plans and are checked by independent image reparsers.
-- Segment verification with no RWX output.
+- Secure ELF, PE, and Mach-O profiles enforce position/load policy, no RWX
+  output, and format-appropriate load hardening; tiny profiles are not 1.0
+  production outputs.
 - Declarative runtime-fragment manifests and fragment/service inventories in
   generated binary reports.
 - Incremental malformed-input and boundary testing at every feature stop, plus

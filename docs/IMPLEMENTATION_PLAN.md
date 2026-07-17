@@ -89,11 +89,15 @@ source bytes
   -> dialect AST
   -> validated dialect semantic HIR
   -> validated target-neutral Elderheim MIR
+  -> derive runtime requirements
+  -> validated RuntimePlan<Target>
+  -> lower user program and runtime fragments into one bounded LIR builder
   -> validated target-parametric LIR
-  -> runtime fragment selection
-  -> validated target instruction encoding
-  -> checked relocation resolution
-  -> validated executable image plan
+  -> symbolic target instruction regions and typed relocations
+  -> bounded relaxation and validated executable image layout
+  -> assign file offsets and virtual addresses
+  -> checked relocation resolution and sealed regions
+  -> bounded executable serialization
   -> independent executable reparse and verification
   -> standalone executable
 ```
@@ -109,6 +113,13 @@ encoding, image planning, or final image verification. Each backend or writer
 accepts only the validated output type of its immediate predecessor. The
 parser cannot emit CPU bytes, and operating-system services appear only through
 target capability lowering and declared runtime fragments.
+
+Runtime requirements are derived from validated MIR before LIR construction.
+The selected `RuntimePlan<Target>` and user program lower into the same bounded
+LIR builder, so final LIR validation covers both. Encoding produces symbolic
+regions and typed relocations. Layout assigns file and virtual addresses before
+relocations are resolved; relaxation and layout use a bounded monotonic
+fixed-point process with a hard convergence limit.
 
 ## 4. Compiler-First Strategy
 
@@ -189,7 +200,7 @@ checked against the relevant manual:
 
 - `PRINT` string literals and `END`
 - `LET`
-- integer expressions
+- historical numeric expressions
 - `GOTO`
 - `IF THEN`
 - `FOR` / `NEXT`
@@ -223,9 +234,9 @@ target cannot enter another target's backend.
 Runtime helpers are fragments selected by use:
 
 - `write_static`
-- `print_i64`
+- `print_number`
 - `read_line`
-- `parse_i64`
+- `parse_number`
 - `bounds_fail`
 - `div_zero_fail`
 
@@ -246,8 +257,9 @@ reserved and unforgeable by source programs.
 - Linux `aarch64` ELF64
 - Windows `x86_64` PE64
 - macOS Apple Silicon `aarch64` Mach-O 64
-- direct `_start`
-- direct `write`, `read`, and `exit` syscalls as needed
+- direct validated target-specific process entry
+- direct validated target service transitions for output, input, and
+  termination
 - no generated-program libc dependency
 - no generated-program external BASIC runtime dependency
 
@@ -268,6 +280,19 @@ records, and atomic emission into bounded sinks. No production API accepts raw
 opcodes, arbitrary bytes, or untyped patch offsets. Exact manual-derived
 vectors and an independently implemented decoder cover the emitted subset.
 
+Backend preparation validates liveness, physical-register assignment or a
+documented fixed-register strategy, spill slots, frame size, stack alignment,
+caller/callee-saved state, condition flags, runtime clobbers, and per-target CPU
+feature baselines before instruction construction. Every physical register use
+must have a dominating definition.
+
+MIR transformations are optional and minimal for 1.0. Every pass consumes
+validated MIR, builds a new result transactionally, validates it again, and
+proves before/after observable-trace agreement in the independent interpreter.
+No pass mutates validated MIR in place. Constant folding uses the historical
+numeric model, and dead-code handling preserves compatibility and unreachable
+line reports.
+
 ## 9. Reports
 
 Reports are part of the product, not a side feature.
@@ -280,7 +305,7 @@ Planned reports:
 - unreachable line report
 - runtime-fragment inventory
 - generated-binary dependency report
-- syscall inventory
+- target service inventory
 - compatibility warnings
 - version-specific unsupported-feature diagnostics
 
@@ -309,6 +334,19 @@ Independent oracles include a pure Rust Dartmouth semantic interpreter, MIR
 trace interpreter, emitted-instruction-subset decoder/interpreter, and
 executable image reparser. Manual fixtures carry edition, source identifier,
 page or rule reference, expected result, and expected rejection mode.
+
+The semantic oracle is complete for BASIC 1 by `v0.19.0` and expands with the
+BASIC 2 and BASIC 4 semantic stops. Each encoder ships its independent decoder
+with its first instruction subset, and each executable format extends the
+independent image parser with its first writer. The late oracle milestone is a
+cumulative agreement gate, not the first oracle implementation.
+
+Every user-controlled algorithm has a documented worst-case bound. Expression
+parsing, name/line resolution, CFG and dominance analysis, runtime dependency
+closure, register allocation, branch relaxation, interval layout, and
+independent verification use bounded worklists and iteration caps. No
+unbounded fixed point is permitted, and quadratic behavior is rejected unless
+the input cap makes the measured worst case explicitly acceptable.
 
 Production compiler, backend, writer, and runtime crates permanently use
 crate-local `#![forbid(unsafe_code)]`. Policy gates reject `build.rs`, FFI,
