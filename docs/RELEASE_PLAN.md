@@ -849,6 +849,12 @@ Deliverables:
   validated constructors. Each supported target binds exactly one canonical
   service-contract ID and fingerprint; unknown, ambiguous, superseded,
   forged, or cross-target combinations cannot construct a supported value.
+- Strict decoding yields only an untrusted `ParsedTargetServiceContract`.
+  Validation must match every field against a recognized sealed contract before
+  producing `SupportedTargetServiceContract`; only that capability can
+  construct `TargetServiceContractId`, `SupportedTarget`, or `TargetSpec`.
+- A well-formed canonical encoding and matching fingerprint do not make an
+  unknown, unsupported, or obsolete service contract valid.
 - If any promised target lacks a stable direct contract, this stop is blocked
   and requires an explicit project-scope resolution release before `v0.14.0`;
   later backend work cannot reinterpret the no-import rule.
@@ -877,6 +883,9 @@ Verification:
   duplicate fields, trailing bytes, unknown fields, and noncanonical version
   or integer encodings. It does not call the production canonical encoder or
   fingerprint helper when recomputing vector results.
+- Self-consistent fingerprints for unknown revisions, altered OS ranges, or
+  otherwise unsupported but well-formed contracts remain untrusted and cannot
+  construct any supported target capability.
 
 ### v0.14.0 - BASIC 1 LET, Variables, And Numbers
 
@@ -1227,16 +1236,31 @@ Deliverables:
   domain tags, digest algorithms, and output widths for both identities.
   Unknown fields, ambiguous encodings, alternate algorithms, and partial
   identities are rejected.
-- Frontend-owned validated semantic HIR constructs the identity. Semantic HIR,
+- Strict decoding yields untrusted parsed semantic/configuration values, never
+  an ID or validated capability. Exact recognition and semantic validation
+  produce sealed `SupportedSemanticContract` and
+  `ValidatedCompileConfiguration` capabilities covering supported schema,
+  transformation-set, option, and limit values.
+- `CompilationIdentity` construction consumes `SupportedSemanticContract`,
+  `ValidatedCompileConfiguration`, and the validated normalized-source digest;
+  hashing follows validation and cannot promote unsupported content.
+- Frontend-owned validated semantic HIR receives the identity. Semantic HIR,
   MIR, `RuntimePlan`, final LIR, `ResourcePlan`, `ResourceCertificate`,
   `VerifiedImage`, oracle fixtures, compatibility evidence, and reports carry
   the same opaque identity without reconstruction from partial fields.
 - Shared IR, optimization, runtime, and backend crates may compare, copy, and
   report the opaque identity but cannot inspect Dartmouth rule fields to choose
   behavior. Dialect decisions remain in the language frontend.
-- Builders and transformations reject inputs with different identities, and
-  any failure or mutation invalidates the candidate artifact rather than
-  retaining the predecessor identity.
+- Builders reject inputs with different identities. Transformations consume
+  one validated predecessor and build a separate candidate transactionally.
+- A successful semantics-preserving pass named by the identity's original
+  validated transformation set retains that predecessor identity only after
+  complete output validation. Changing semantic rules, source, options,
+  effective limits, schema, or the selected transformation set constructs a
+  new identity before compilation continues.
+- Failed, partial, unlisted, or semantics-changing transformations publish no
+  replacement artifact. Output cannot copy an identity except from its single
+  validated predecessor through the sealed transformation interface.
 - BASIC 1 receives a complete identity at this stop. BASIC 2 and BASIC 4 must
   receive distinct complete identities as their edition deltas close at
   `v0.27.0` and `v0.34.0`; an incomplete profile cannot claim one.
@@ -1250,6 +1274,9 @@ Verification:
   canonicalization helpers and rejects empty/truncated fields, malformed
   lengths, alternate field order, duplicate/trailing/unknown fields, and
   noncanonical version or integer encodings.
+- A valid fingerprint over a well-formed but unrecognized semantic contract,
+  schema, transformation set, option, or limit configuration cannot construct
+  either supported capability or identity.
 - Mutating each rule table, errata decision, numeric constant/algorithm, RND
   rule, runtime revision, schema version, option, source byte, or effective
   limit changes the appropriate identity; stale supplied fingerprints fail.
@@ -1259,6 +1286,9 @@ Verification:
   inspect dialect-specific identity internals or forge an identity.
 - Cross-identity HIR/MIR/runtime/LIR/resource/image composition fails at every
   boundary with no partial artifact or report presented as successful.
+- Listed semantics-preserving transformations retain the exact identity after
+  revalidation; changing the selected pass set changes the identity, while a
+  failed/unlisted pass yields no replacement artifact.
 - Repeated and cross-host computations produce byte-identical IDs and reports.
 
 ### v0.19.0 - Independent BASIC 1 Semantic Oracle
@@ -2208,6 +2238,19 @@ Deliverables:
 - `VerifiedImage` contains immutable executable bytes and certificate metadata
   as separate fields. There is no constructor, feature, test helper, or
   deserialization path for a certificate-free `VerifiedImage`.
+- Deserializing executable bytes, reports, fingerprints, resource plans, or
+  certificates yields only explicitly untrusted parsed values. No serialized
+  field, matching digest, or round trip reconstructs `VerifiedImage` or another
+  validation capability.
+- Re-verification independently reparses executable bytes, validates the
+  resource plan, recomputes all digests/fingerprints, and matches recognized
+  `SupportedSemanticContract`, `ValidatedCompileConfiguration`, and
+  `SupportedTargetServiceContract` capabilities before constructing
+  `VerifiedImage`.
+- Resource/image hashes prove deterministic identity and internal consistency,
+  not producer authenticity. External artifact signing is a separate concern
+  from format-required loader signature metadata and requires an explicit
+  future scope/version decision before implementation.
 - CLI/filesystem output adapters accept only `VerifiedImage` and publish through
   a same-directory temporary file plus atomic replacement where supported.
   Executable bytes are the program output; certificate/report artifacts remain
@@ -2226,6 +2269,10 @@ Verification:
   bytes, and uncertified verifier output cannot reach publication adapters.
 - Constructor and deserialization tests prove a missing, empty, stale, forged,
   wrong-target, or wrong-image certificate cannot produce `VerifiedImage`.
+- Round-tripping a valid report/certificate drops all in-memory capabilities;
+  only complete re-verification can recover a new `VerifiedImage`.
+- Self-consistent executable/certificate sets using unsupported semantic,
+  compile-configuration, or target-service contracts fail recognition.
 - Verifier mutation tests prevent publication for every modeled image,
   resource-plan, certificate, and contract-fingerprint defect.
 - Filesystem failure injection covers create, short write, flush, permission,

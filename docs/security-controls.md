@@ -35,6 +35,9 @@ Initial controls:
   Shared compiler layers preserve this identity opaquely and reject mismatches.
   Its normalized-source digest is cryptographic and separate from diagnostic
   `SourceId` misuse detection.
+- Hashing follows validation: only sealed supported semantic/target contracts
+  and validated schemas, transformation sets, options, and limits can construct
+  identities. Well-formed self-consistent unsupported data remains untrusted.
 - MIR and LIR validation must remain subquadratic and bounded by operation
   limits under adversarial ID layouts.
 - Executable layout validation must keep file offsets and virtual addresses in
@@ -77,6 +80,13 @@ Planned compiler-output controls:
 - Canonical semantic, target-service, resource-plan, image, and certificate
   encodings require independently derived checked-in known-answer vectors and
   strict decoders that do not reuse production canonicalization helpers.
+- Deserialized executable bytes, reports, fingerprints, plans, and certificates
+  never reconstruct validation capabilities. Complete re-verification must
+  parse, validate, recompute, and match recognized supported contracts.
+- Identity hashes and resource certificates prove deterministic consistency,
+  not producer authenticity. Any future artifact-signing feature requires a
+  separate explicit scope decision and must not be conflated with loader
+  signature metadata.
 - Secure ELF, PE, and Mach-O profiles enforce position/load policy, no RWX
   output, and format-appropriate load hardening; tiny profiles are not 1.0
   production outputs.

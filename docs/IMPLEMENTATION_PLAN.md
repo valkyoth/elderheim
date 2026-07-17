@@ -130,21 +130,33 @@ fixed-point process with a hard convergence limit.
 canonical rule tables, errata decisions, historical numeric model/constants,
 RND behavior, and observable runtime contract. `CompilationIdentity` adds the
 normalized source digest, frontend/MIR/LIR schema versions, relevant compiler
-options/transforms, and complete effective limits. Frontends construct these
-opaque identities; shared MIR, runtime, backend, writer, and verifier code may
-only preserve, compare, and report them. Every artifact boundary rejects an
+options/transforms, and complete effective limits. Untrusted decoded values
+must first validate into sealed `SupportedSemanticContract` and
+`ValidatedCompileConfiguration` capabilities; identity hashing consumes those
+capabilities and never substitutes for support validation. Frontends construct
+the opaque identity; shared MIR, runtime, backend, writer, and verifier code may
+only preserve, compare, and report it. Every artifact boundary rejects an
 identity mismatch, and shared IR never inspects dialect fields to choose
 behavior. The normalized source digest is a separate domain-separated
 cryptographic digest over normalized bytes, never the diagnostic `SourceId`.
 
+A transformation consumes one validated predecessor and builds a new candidate
+transactionally. A fully revalidated semantics-preserving pass already listed
+in the identity's transformation set retains that exact identity. Changing the
+selected set or any bound source, semantics, schema, option, or limit creates a
+new identity; failed, partial, or unlisted passes publish nothing and cannot
+copy an identity through an unchecked path.
+
 `TargetServiceContractId` versions architecture/mode, OS version range, service
 ABI, entry, I/O, failure, termination, register, stack, memory, and error rules.
 It combines a logical revision with a domain-separated fingerprint recomputed
-from a deterministic canonical contract representation. The same ID and
-fingerprint are bound into target specs, runtime plans, fragment manifests,
-LIR, machine plans, resource certificates, verified images, and compatibility
-evidence. Broad target-name or logical-revision equality never substitutes for
-canonical fingerprint equality.
+from a deterministic canonical contract representation. Decoding produces an
+untrusted parsed value; exact recognition and validation produce the sealed
+service-contract capability required to construct the ID and target spec. The
+same ID and fingerprint are bound into target specs, runtime plans, fragment
+manifests, LIR, machine plans, resource certificates, verified images, and
+compatibility evidence. Broad target-name, logical-revision, or matching-hash
+equality never substitutes for supported-contract validation.
 
 The whole-program resource plan composes native frames/spills, runtime and
 language control stacks, scratch and I/O buffers, arrays, DATA, writable state,
@@ -163,6 +175,11 @@ both fields and has no certificate-free constructor, avoiding a digest cycle.
 `SerializedImage` is internal staging data and cannot reach the CLI/filesystem
 adapter. Only `VerifiedImage` can be published. Verification failure discards
 the staging buffer and leaves any existing requested output unchanged.
+Serialized executable bytes, reports, fingerprints, plans, and certificates
+are untrusted inputs when read back. They cannot reconstruct a capability;
+re-verification must parse and validate every layer, recompute every identity,
+and match supported semantic, compile-configuration, and target-service
+contracts. Certificates establish consistency, not producer authenticity.
 
 ## 4. Compiler-First Strategy
 
