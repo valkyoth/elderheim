@@ -201,9 +201,10 @@ Pentest classes:
 | v0.13.2 | CST/semantic-HIR ownership and a mandatory complete pipeline are enforced by types. | P1 |
 | v0.13.3 | Compilation budgets and transactional bounded builders are unified. | P1 |
 | v0.13.4 | Dartmouth edition profiles and manual-backed semantic tables are sealed. | P2 |
-| v0.13.5 | BASIC 1 historical numeric semantics are specified and executable in a reference model. | P2 |
-| v0.13.6 | Manual provenance and two-way language-rule coverage ledgers are complete. | P2 |
-| v0.13.7 | Versioned direct target-service contracts have complete no-import feasibility evidence. | P5 |
+| v0.13.5 | The typed no_std digest subsystem passes standard and domain-separated vectors. | P1 |
+| v0.13.6 | BASIC 1 historical numeric semantics are specified and executable in a reference model. | P2 |
+| v0.13.7 | Manual provenance and two-way language-rule coverage ledgers are complete. | P2 |
+| v0.13.8 | Versioned direct target-service contracts have complete no-import feasibility evidence. | P5 |
 | v0.14.0 | BASIC 1 variables, numbers, and expressions parse correctly. | P2 |
 | v0.15.0 | BASIC 1 control-flow parser rejects later-version syntax. | P2 |
 | v0.16.0 | BASIC 1 semantic validation and CFG reports pass. | P2 |
@@ -751,7 +752,90 @@ Verification:
   feature.
 - Profile snapshots and manual-rule links are deterministic.
 
-### v0.13.5 - BASIC 1 Historical Numeric Model
+### v0.13.5 - Typed Digest Subsystem
+
+Goal:
+
+Freeze one audited, domain-safe cryptographic digest foundation before manual,
+semantic, target-service, source, image, or certificate fingerprints become
+compiler contracts.
+
+Deliverables:
+
+- A dedicated `crates/elderheim-digest` crate that is safe Rust, `no_std`,
+  allocation-free in the primitive, free of build scripts/FFI/native code, and
+  has no third-party runtime dependencies.
+- Exactly one production algorithm for the 1.0 line: SHA-256 as specified by
+  [NIST FIPS 180-4](https://csrc.nist.gov/pubs/fips/180-4/upd1/final), exposed
+  as the frozen Elderheim algorithm ID `sha-256-fips180-4-v1`.
+- An explicit algorithm migration policy. NIST's
+  [announced revision of FIPS 180-4](https://www.nist.gov/news-events/news/2023/03/decision-revise-fips-180-4-secure-hash-standard-shs)
+  and future cryptographic guidance are reviewed during tooling/security
+  updates, but algorithm IDs, bytes, or domains never change without a separate
+  roadmap version, compatibility decision, and new known-answer vectors.
+- A private streaming SHA-256 state with checked byte/bit-length accounting.
+  Every update preflights conversion, addition, and the SHA-256 message-length
+  bound before mutating state; overflow leaves the state unchanged.
+- Streaming domain constructors require a checked declared input length.
+  Updates cannot exceed it, and finalization requires exact consumption, so the
+  versioned envelope can be emitted without buffering an unbounded preimage.
+- Sealed `DigestDomain` variants for normalized source, manual provenance,
+  semantic contract, compilation identity, target-service contract, resource
+  plan, executable image, and resource certificate. Callers cannot supply raw
+  domain strings, numbers, prefixes, or algorithm identifiers.
+- A fixed versioned domain-preimage envelope with explicit byte order and
+  checked length fields. It is independent of host endianness, pointer width,
+  map order, filenames, and filesystem metadata.
+- Non-interchangeable output types: `SourceDigest`, `ManualFingerprint`,
+  `SemanticFingerprint`, `CompilationFingerprint`,
+  `TargetServiceFingerprint`, `ResourcePlanDigest`, `ImageDigest`, and
+  `CertificateDigest`.
+- No public generic digest bytes, generic `Digest` result, cross-domain cast,
+  caller-selected algorithm, or constructor from unchecked `[u8; 32]`. Sealed
+  domain-typed streaming/one-shot APIs return only their associated output type.
+- A bounded canonical-input sink interface with checked length accounting and
+  transactional failure behavior. Sink/canonical-encoder failure publishes no
+  partial typed digest or reusable success state.
+- Canonical lowercase report encoding for each typed output. Strict report
+  decoding yields only an `UntrustedDigestClaim<Domain>`, never a validated
+  typed digest; malformed length, alphabet, case, prefix, domain, or
+  algorithm/version is rejected.
+- Canonical contract/image validators may share this audited SHA-256 primitive,
+  but writer and verifier paths independently assemble and parse their canonical
+  preimages. They cannot share domain-specific canonical encoders, decoders, or
+  field-order helpers merely because the digest primitive is shared.
+
+Verification:
+
+- Standard SHA-256 known-answer vectors cover empty, short, multi-block, and
+  long messages, including the NIST vectors committed with provenance.
+- Padding/length tests cover 0, 1, 55, 56, 63, 64, 65, and bounded large input
+  sizes; a test-only checked counter seam proves limit-minus-one, limit, and
+  overflow behavior without allocating an impossible message.
+- One-shot and every meaningful chunk partition agree, including zero-length
+  updates, byte-at-a-time input, block boundaries, and finalization boundaries.
+- Elderheim known-answer vectors cover every sealed domain and typed output.
+  Identical payloads in every pair of domains produce independently recorded,
+  non-interchangeable results.
+- Compile-fail/API tests reject raw domains, arbitrary algorithms, generic
+  result extraction, unchecked byte construction, and cross-domain assignment.
+- Failure injection at each bounded-sink/update/finalize boundary proves state
+  and output atomicity; repeat finalization or update-after-finalize fails
+  deterministically.
+- Declared-length underflow, overrun, conversion overflow, and exact-boundary
+  completion fail or succeed deterministically without returning partial output.
+- Independent reference vectors and a separately assembled test preimage catch
+  domain-prefix, length, endianness, padding, and field-order defects without
+  duplicating the production SHA-256 implementation.
+- Deterministic property/fuzz campaigns cover chunked-versus-single-shot
+  equivalence, length boundaries, malformed typed encodings, domain
+  substitution, and sink failures. Fuzz tooling is excluded from production
+  dependency graphs and release artifacts.
+- The crate passes `#![forbid(unsafe_code)]`, no_std checks, dependency-policy
+  checks, mutation tests for compression/padding/domain logic, and the 500-line
+  per-source-file gate.
+
+### v0.13.6 - BASIC 1 Historical Numeric Model
 
 Goal:
 
@@ -780,7 +864,7 @@ Verification:
 - Mutation around every numeric boundary yields a result or structured error,
   never a panic or partial semantic value.
 
-### v0.13.6 - Manual Provenance And Coverage Ledger
+### v0.13.7 - Manual Provenance And Coverage Ledger
 
 Goal:
 
@@ -791,9 +875,10 @@ Deliverables:
 
 - Stable provenance metadata for each manual: normalized title, edition,
   publication date, scan or text-export form, page-numbering convention, and a
-  content fingerprint when legally permissible.
-- A documented fingerprint algorithm and normalization policy that does not
-  depend on local filenames or filesystem metadata.
+  typed `ManualFingerprint` when legally permissible.
+- A documented manual canonicalization policy that does not depend on local
+  filenames or filesystem metadata and feeds only the sealed manual-provenance
+  domain frozen by `v0.13.5`.
 - An errata and ambiguity register with stable IDs, evidence, selected
   interpretation, affected editions, and compatibility consequences.
 - A two-way rule ledger: every implemented/rejected language rule maps to a
@@ -815,7 +900,7 @@ Verification:
 - Documentation contains Elderheim-authored summaries rather than copied
   manual prose.
 
-### v0.13.7 - Versioned Direct Target-Service Feasibility
+### v0.13.8 - Versioned Direct Target-Service Feasibility
 
 Goal:
 
@@ -829,11 +914,12 @@ Deliverables:
   and independent revisions for process entry, output, input, failure, and
   termination.
 - `TargetServiceContractId` combines the human-reviewed logical revision with a
-  domain-separated content fingerprint of that canonical representation. The
+  typed `TargetServiceFingerprint` of that canonical representation. The
   fingerprint is recomputed during validation rather than trusted as metadata.
-- The canonical field order, integer/string encoding, domain tag, digest
-  algorithm, and output width are fixed and versioned; ambiguous encodings and
-  alternate algorithms are rejected.
+- Canonical field order and integer/string encoding are fixed here; domain,
+  algorithm, envelope, and output width come only from the sealed digest
+  subsystem frozen at `v0.13.5`. Ambiguous encodings and alternate algorithms
+  are rejected.
 - Each contract records register inputs/results/clobbers, stack state, accessible
   memory, pointer/length rules, error results, retry/progress rules, and exit
   behavior.
@@ -1220,22 +1306,22 @@ before the independent oracle becomes a release gate.
 Deliverables:
 
 - A `SemanticContractId` containing a logical schema revision plus a
-  domain-separated fingerprint of a deterministic canonical semantic contract.
+  typed `SemanticFingerprint` of a deterministic canonical semantic contract.
 - The semantic contract binds the Dartmouth edition; complete edition rule
   tables; selected errata/ambiguity decisions; historical-number model,
   representation, algorithms, constants, and failure rules; parsing/formatting
   rules; deterministic RND contract; and portable observable-runtime revision.
-- A separate opaque `CompilationIdentity` binds `SemanticContractId`, normalized
-  source digest, frontend/MIR/LIR schema versions, semantics-affecting compiler
+- A separate opaque `CompilationIdentity` binds `SemanticContractId`, typed
+  `SourceDigest`, frontend/MIR/LIR schema versions, semantics-affecting compiler
   options and transformation set, and the complete effective `CompileLimits`
-  configuration.
+  configuration into `CompilationFingerprint`.
 - The normalized source digest is a domain-separated cryptographic digest of
   normalized source bytes under a fixed algorithm; it is distinct from the
   diagnostic-only `SourceId` and is never reconstructed from that identifier.
-- Fixed and versioned canonical field order, integer/string/list encoding,
-  domain tags, digest algorithms, and output widths for both identities.
-  Unknown fields, ambiguous encodings, alternate algorithms, and partial
-  identities are rejected.
+- Fixed and versioned canonical field order and integer/string/list encoding
+  for both identities. Their sealed domains, SHA-256 algorithm ID, envelope,
+  and typed widths come from `v0.13.5`; unknown fields, ambiguous encodings,
+  alternate algorithms, and partial identities are rejected.
 - Strict decoding yields untrusted parsed semantic/configuration values, never
   an ID or validated capability. Exact recognition and semantic validation
   produce sealed `SupportedSemanticContract` and
@@ -1611,20 +1697,20 @@ Verification:
 
 Goal:
 
-Integrate the already-closed target and service-contract types from `v0.13.7`
+Integrate the already-closed target and service-contract types from `v0.13.8`
 with runtime capabilities and freeze the ABI vocabulary before target-near
 lowering begins.
 
 Deliverables:
 
 - Runtime, LIR, backend, and report APIs accept only the closed
-  `SupportedTarget` and `TargetSpec` values proven at `v0.13.7`; no second or
+  `SupportedTarget` and `TargetSpec` values proven at `v0.13.8`; no second or
   weaker target-construction path is introduced.
 - The existing closed target identity binds architecture, mode, operating
   system, executable format/class, endianness, ABI, service convention,
   pointer width, logical service revision, and canonical contract fingerprint.
 - `TargetSpec`, target capabilities, `RuntimePlan<Target>`, and compatibility
-  reports carry the exact `TargetServiceContractId` proven at `v0.13.7`.
+  reports carry the exact `TargetServiceContractId` proven at `v0.13.8`.
 - Typed target capabilities declare available write, read, terminate, memory,
   stack, and failure services.
 - A complete per-target process-entry, output, input, termination, and failure
@@ -2170,12 +2256,14 @@ Deliverables:
   `CompilationIdentity`, `TargetServiceContractId`, validated runtime plan,
   LIR, machine plan, and image layout.
 - A mandatory `ResourceCertificate<Target>` constructor contract. Independent
-  image verification computes `image_digest = hash(executable_bytes)` and then
-  computes a domain-separated certificate digest over the canonical resource
-  plan, image digest, target-service contract fingerprint, and verifier version.
-- Canonical resource-plan encoding plus fixed, versioned image/certificate
-  digest algorithm identifiers, domain tags, and output widths. Algorithm or
-  encoding changes invalidate existing certificates instead of being inferred.
+  image verification computes typed `ResourcePlanDigest` and `ImageDigest`
+  values, then computes `CertificateDigest` over the canonical certificate
+  preimage binding those values, compilation identity, target-service
+  fingerprint, and verifier version.
+- Canonical resource/certificate encoding is fixed and versioned here. Digest
+  algorithms, envelopes, domains, and typed output widths come only from
+  `v0.13.5`; algorithm or encoding changes invalidate existing certificates
+  instead of being inferred.
 - The certificate is immutable metadata carried beside executable bytes. It is
   not embedded in those bytes, so its image-digest binding cannot create a
   self-referential hashing cycle.
@@ -2235,6 +2323,9 @@ Deliverables:
 - The independent parser/verifier consumes staging bytes plus the validated
   image and resource plans. It is the only constructor of `VerifiedImage` and
   must create and bind the final resource certificate in the same operation.
+- Writer and verifier share the audited SHA-256 primitive and typed digest
+  outputs, but independently assemble/parse image, resource, and certificate
+  preimages without sharing canonical field encoders.
 - `VerifiedImage` contains immutable executable bytes and certificate metadata
   as separate fields. There is no constructor, feature, test helper, or
   deserialization path for a certificate-free `VerifiedImage`.
@@ -3007,7 +3098,7 @@ Deliverables:
 - PE32+ optional header.
 - `.text`, `.rdata`, `.data`, and `.bss` section layout.
 - Entry point validation.
-- No import directory or dynamic OS-library binding, as frozen at `v0.13.7`.
+- No import directory or dynamic OS-library binding, as frozen at `v0.13.8`.
 - No external BASIC runtime.
 - Explicit non-production tiny-profile report listing omitted base relocation,
   ASLR, NX, and other hardened-image properties.

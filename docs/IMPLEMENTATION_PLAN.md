@@ -62,6 +62,9 @@ crates/elderheim
 crates/elderheim-core
   spans, diagnostics, limits, IDs, byte sinks
 
+crates/elderheim-digest
+  no_std SHA-256 primitive, sealed domains, typed digests, bounded digest sinks
+
 crates/elderheim-ir
   dialect-free MIR/LIR contracts, validators, bounded builders, lowering contracts
 
@@ -126,6 +129,15 @@ regions and typed relocations. Layout assigns file and virtual addresses before
 relocations are resolved; relaxation and layout use a bounded monotonic
 fixed-point process with a hard convergence limit.
 
+All cryptographic identities use `elderheim-digest`: one frozen SHA-256
+primitive, sealed versioned domains, and non-interchangeable output types. The
+digest crate is below `elderheim-core` in the dependency graph so source
+normalization can produce `SourceDigest` without a cycle. It has no knowledge
+of Dartmouth rules, target contracts, resource plans, or executable formats.
+Those owners assemble their own canonical preimages and independent validators
+assemble/parse them separately; both may share the audited compression and
+padding primitive without sharing domain-specific canonicalization logic.
+
 `SemanticContractId` is a content fingerprint over the selected edition's
 canonical rule tables, errata decisions, historical numeric model/constants,
 RND behavior, and observable runtime contract. `CompilationIdentity` adds the
@@ -139,6 +151,9 @@ only preserve, compare, and report it. Every artifact boundary rejects an
 identity mismatch, and shared IR never inspects dialect fields to choose
 behavior. The normalized source digest is a separate domain-separated
 cryptographic digest over normalized bytes, never the diagnostic `SourceId`.
+The concrete outputs are typed `SourceDigest`, `SemanticFingerprint`, and
+`CompilationFingerprint` values, not generic bytes or caller-selected
+algorithms.
 
 A transformation consumes one validated predecessor and builds a new candidate
 transactionally. A fully revalidated semantics-preserving pass already listed
@@ -157,6 +172,8 @@ same ID and fingerprint are bound into target specs, runtime plans, fragment
 manifests, LIR, machine plans, resource certificates, verified images, and
 compatibility evidence. Broad target-name, logical-revision, or matching-hash
 equality never substitutes for supported-contract validation.
+Target service validation uses only typed `TargetServiceFingerprint` values;
+the target layer cannot choose a raw domain or algorithm.
 
 The whole-program resource plan composes native frames/spills, runtime and
 language control stacks, scratch and I/O buffers, arrays, DATA, writable state,
@@ -167,10 +184,11 @@ the finalized `ResourceCertificate`. Both bind the exact
 prevent publication.
 
 The certificate is metadata beside the executable bytes, not embedded within
-them. Verification first hashes the immutable executable bytes, then hashes the
-canonical resource plan plus that image digest, target-service fingerprint, and
-verifier version under a separate certificate domain. `VerifiedImage` carries
-both fields and has no certificate-free constructor, avoiding a digest cycle.
+them. Verification first produces typed `ResourcePlanDigest` and `ImageDigest`
+values, then hashes the canonical certificate preimage containing those values,
+the compilation identity, target-service fingerprint, and verifier version into
+`CertificateDigest`. `VerifiedImage` carries these non-interchangeable fields
+and has no certificate-free constructor, avoiding a digest cycle.
 
 `SerializedImage` is internal staging data and cannot reach the CLI/filesystem
 adapter. Only `VerifiedImage` can be published. Verification failure discards

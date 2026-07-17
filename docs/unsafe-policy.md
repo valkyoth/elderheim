@@ -22,6 +22,9 @@ Production rules:
   are forbidden.
 - Serialize machine instructions and executable fields through checked safe
   Rust APIs and bounded byte sinks.
+- Implement digest compression, padding, domain envelopes, and typed outputs in
+  safe Rust under `#![forbid(unsafe_code)]`; no accelerated FFI, assembly, native
+  object, or unchecked generic-digest escape path is permitted.
 - Independently decode or reparse generated instructions and executable images
   before publication.
 

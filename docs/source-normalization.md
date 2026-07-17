@@ -58,6 +58,10 @@ fixtures. It is not a cryptographic digest.
 `SourceId` must not be used as a security boundary, cache-integrity boundary,
 or proof that two source inputs are identical.
 
+At `v0.13.5`, normalized source additionally receives a cryptographic
+`SourceDigest` from the shared typed digest subsystem. `SourceId` remains the
+diagnostic identifier and is never promoted or converted into that digest.
+
 ## Source Construction
 
 `Source::from_normalized` is the public constructor for diagnostic source

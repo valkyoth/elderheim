@@ -11,11 +11,14 @@ Initial controls:
   assembly, opaque native objects, and process-spawned toolchain stages.
 - No external crates in `v0.1.0`.
 - Explicit modularity policy with a 500-line hard source-file limit.
+- A dedicated safe-Rust `no_std` typed digest crate freezes SHA-256, sealed
+  domains, checked streaming lengths, and non-interchangeable digest outputs
+  before the first cryptographic identity milestone.
 - No LLVM, Cranelift, assembler, linker, or transpiler backend dependency in
   the planned generated-program path.
 - Generated programs have no dynamic or static OS-library imports. Only
   documented stable direct target service transitions are eligible; an
-  infeasible target service contract blocks at `v0.13.7` rather than
+  infeasible target service contract blocks at `v0.13.8` rather than
   weakening this rule implicitly.
 - Every supported target service contract has an exact revisioned identity
   bound through target selection, runtime planning, fragment selection, LIR,
@@ -80,6 +83,9 @@ Planned compiler-output controls:
 - Canonical semantic, target-service, resource-plan, image, and certificate
   encodings require independently derived checked-in known-answer vectors and
   strict decoders that do not reuse production canonicalization helpers.
+- Independent encoders/verifiers may share the audited digest primitive but
+  must independently assemble and parse canonical domain preimages; duplicating
+  SHA-256 implementations is not treated as validator independence.
 - Deserialized executable bytes, reports, fingerprints, plans, and certificates
   never reconstruct validation capabilities. Complete re-verification must
   parse, validate, recompute, and match recognized supported contracts.

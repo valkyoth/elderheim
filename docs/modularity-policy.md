@@ -6,6 +6,9 @@ Rules:
 
 - The `elderheim` crate is a facade and CLI shell, not the implementation home.
 - Shared compiler contracts live directly under `crates/`.
+- Cryptographic digest primitives, sealed domains, and typed digest outputs live
+  only in the planned `crates/elderheim-digest`; domain-specific canonical
+  preimage encoders remain in their owning crates.
 - The active language crate is `crates/languages/elderheim-dartmouth-basic`.
 - Dartmouth BASIC versions 1, 2, and 4 must keep version rules explicit.
 - Future language-family crates may be added only when the project has source

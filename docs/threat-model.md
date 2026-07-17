@@ -23,6 +23,8 @@ Elderheim treats compiler output as security-sensitive.
   target-service contracts being mixed into one apparently valid compilation.
 - A faulty shared canonicalizer making production and verification agree on the
   same ambiguous encoding or digest domain.
+- Parallel hash implementations or caller-selected domain tags causing source,
+  semantic, target, image, and certificate digests to drift or cross domains.
 - A correctly hashed but unsupported semantic, compile-configuration, or target
   contract being mistaken for a supported validation capability.
 - Externally supplied reports, certificates, fingerprints, resource plans, or
@@ -54,6 +56,9 @@ Elderheim treats compiler output as security-sensitive.
 - Independently derived canonical-encoding known-answer vectors plus strict
   decoders that reject ambiguity, duplication, trailing data, malformed
   lengths, noncanonical versions, and digest-domain substitution.
+- One shared typed digest primitive with sealed domains and non-interchangeable
+  outputs; independent validators share only the primitive and independently
+  assemble/parse canonical preimages.
 - `SourceId` is not a security, cache-integrity, or source-equality boundary.
   Diagnostic and cursor source-id checks are best-effort misuse detection
   inside one trusted compilation session, not adversarial equality proofs.

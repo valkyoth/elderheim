@@ -6,6 +6,9 @@ Policy:
 
 - Admit dependencies only after a documented review.
 - Prefer no_std-compatible crates when a dependency is unavoidable.
+- The planned `elderheim-digest` foundation implements the frozen SHA-256
+  primitive internally in safe Rust with no third-party runtime dependency;
+  digest-domain users must not add parallel hash dependencies.
 - Keep generated Dartmouth BASIC programs free of external compiler, linker,
   runtime, libc, LLVM, Cranelift, and BASIC runtime dependencies.
 - Run `cargo deny check` and `cargo audit` through `scripts/checks.sh`.
