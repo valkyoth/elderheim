@@ -51,6 +51,7 @@ The final supported release path is meant to be self-contained:
 - No C compiler is required.
 - No external assembler is required.
 - No external linker is required for the supported release path.
+- No dynamic or static OS-library import is used by generated programs.
 - No Cranelift or LLVM backend is used.
 - Old source code compiles through `elderheim` itself.
 

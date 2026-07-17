@@ -13,6 +13,10 @@ Initial controls:
 - Explicit modularity policy with a 500-line hard source-file limit.
 - No LLVM, Cranelift, assembler, linker, or transpiler backend dependency in
   the planned generated-program path.
+- Generated programs have no dynamic or static OS-library imports. Only
+  documented stable direct target service transitions are eligible; an
+  infeasible Windows/macOS service contract blocks at `v0.34.1` rather than
+  weakening this rule implicitly.
 - Human-facing compiler snapshots and reports must escape untrusted source
   control bytes before writing terminal, CI log, or report text. Escape syntax
   must be canonical and distinguish literal backslashes from generated escapes.
@@ -48,6 +52,8 @@ Planned compiler-output controls:
   sealed before serialization.
 - Executable writers that serialize fields explicitly from private validated
   plans and are checked by independent image reparsers.
+- Serialized images remain private staging buffers. Only an independently
+  verified image capability can reach atomic CLI/filesystem publication.
 - Secure ELF, PE, and Mach-O profiles enforce position/load policy, no RWX
   output, and format-appropriate load hardening; tiny profiles are not 1.0
   production outputs.

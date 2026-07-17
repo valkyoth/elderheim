@@ -33,6 +33,7 @@ The generated executable path is strict:
 - No system linker.
 - No libc.
 - No external BASIC runtime.
+- No dynamic or static OS-library imports in generated programs.
 - Direct machine-code emission.
 - Direct executable-format writing.
 
@@ -93,13 +94,14 @@ source bytes
   -> validated RuntimePlan<Target>
   -> lower user program and runtime fragments into one bounded LIR builder
   -> validated target-parametric LIR
+  -> validated register/frame/machine-state plan with arithmetic guards
   -> symbolic target instruction regions and typed relocations
-  -> bounded relaxation and validated executable image layout
-  -> assign file offsets and virtual addresses
+  -> bounded relaxation and provisional image layout planning
+  -> assign file offsets and virtual addresses into ValidatedImageLayout
   -> checked relocation resolution and sealed regions
-  -> bounded executable serialization
-  -> independent executable reparse and verification
-  -> standalone executable
+  -> internal bounded SerializedImage staging buffer
+  -> independent executable reparse and verification into VerifiedImage
+  -> atomic user output publication
 ```
 
 Every public frontend starts from a dialect-bound normalized-source capability;
@@ -120,6 +122,10 @@ LIR builder, so final LIR validation covers both. Encoding produces symbolic
 regions and typed relocations. Layout assigns file and virtual addresses before
 relocations are resolved; relaxation and layout use a bounded monotonic
 fixed-point process with a hard convergence limit.
+
+`SerializedImage` is internal staging data and cannot reach the CLI/filesystem
+adapter. Only `VerifiedImage` can be published. Verification failure discards
+the staging buffer and leaves any existing requested output unchanged.
 
 ## 4. Compiler-First Strategy
 
@@ -273,6 +279,10 @@ W^X, target/class agreement, output budgets, and instruction-boundary entry
 points. Writers use explicit endian field operations, emit the exact planned
 size, and are followed by an independent parser/verifier that compares emitted
 bytes with the plan.
+
+All 1.0 target profiles are little-endian. Field writers still carry explicit
+format/endianness types so a future target cannot silently inherit the current
+matrix's byte order.
 
 Instruction encoders use sealed architecture/mode types, width-specific
 registers and operands, instruction-specific constructors, checked relocation

@@ -50,6 +50,7 @@ compiler-language profile and are not treated as deferred BASIC 4 features.
 - No system linker.
 - No libc dependency in generated programs.
 - No external BASIC runtime dependency in generated programs.
+- No dynamic or static OS-library imports in generated programs.
 - Compatibility reports.
 - Generated-binary dependency reports.
 - Security and release evidence.
@@ -100,6 +101,11 @@ Every release must have:
 - Independent semantic, decoder, and image-parser oracles arrive with the first
   production layer they verify and expand at every applicable stop. Late
   security milestones are cumulative agreement gates, not first validation.
+- External emulators and native target execution may provide separately
+  recorded compatibility evidence and may be required before claiming final
+  target support, but cannot be compiler implementation/test dependencies.
+  In-process instruction interpreters and image reparsers provide mandatory
+  deterministic verification at implementation stops.
 
 Local commits may be made regularly while work is progressing. Maintainers push
 the branch and tags. Tags are release events and require the release procedure in
@@ -232,48 +238,57 @@ Pentest classes:
 | v0.35.0 | A validated runtime plan and user program lower together into fully validated LIR. | P3 |
 | v0.36.0 | Write and exit runtime behavior is platform-abstracted. | P3 |
 | v0.37.0 | Historical-number formatting runtime passes bounds and golden tests. | P3 |
+| v0.37.1 | Complete edition-specific PRINT statement layout emits exact byte streams. | P3 |
 | v0.38.0 | Input runtime passes valid and invalid input tests. | P3 |
+| v0.38.1 | Production historical arithmetic and comparison runtime matches the oracle. | P3 |
+| v0.38.2 | Production numeric functions and deterministic RND runtime match the oracle. | P3 |
 | v0.39.0 | DATA and array runtime passes bounds tests. | P3 |
 | v0.39.1 | Executable image domain types and checked layout planning invariants pass. | P4 |
 | v0.39.2 | Bounded writers and independent image reparsing reject plan/byte mismatches. | P4 |
 | v0.39.3 | Runtime memory, service-loop, DATA, array, and control-stack safety passes. | P3 |
 | v0.39.4 | Position independence, load-bias, image-base, and hardening policy is frozen. | P4 |
+| v0.39.5 | Only independently verified images can be atomically published to user output. | P4 |
 | v0.40.0-elderheim | ELF writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.41.0 | ELF64 tiny profile is layout-verified. | P4 |
 | v0.42.0 | ELF32 tiny profile is layout-verified. | P4 |
 | v0.43.0 | Secure ELF64 profile enforces segment permissions. | P4 |
 | v0.44.0 | Secure ELF32 profile enforces segment permissions and address bounds. | P4 |
-| v0.44.1 | Typed encoders, relocations, atomic emission, and independent decoding contracts pass. | P5 |
-| v0.44.2 | Relaxation/layout converges before every relocation is resolved and sealed exactly once. | P5 |
-| v0.44.3 | Register allocation, frame layout, machine-state, ABI, and CPU-baseline validation pass. | P5 |
+| v0.44.1 | Register allocation, frame layout, machine-state, ABI, and CPU-baseline validation pass. | P5 |
+| v0.44.2 | Typed encoders, relocations, atomic emission, and independent decoding contracts pass. | P5 |
+| v0.44.3 | Relaxation/layout converges before every relocation is resolved and sealed exactly once. | P5 |
+| v0.44.4 | Typed arithmetic guards and failure lowering contracts precede backend encoding. | P5 |
 | v0.45.0 | x86_64 encoder exact-byte tests pass. | P5 |
 | v0.46.0 | x86_64 relocation boundary tests pass. | P5 |
-| v0.47.0 | Linux x86_64 hello-world binary smoke passes. | P5 |
-| v0.48.0 | Linux x86_64 Dartmouth core fixture suite passes. | P5 |
+| v0.46.1 | x86_64 arithmetic trap-equivalence traces match historical semantics. | P5 |
+| v0.47.0 | x86_64 ELF64 in-process hello smoke passes; native evidence is separate. | P5 |
+| v0.48.0 | x86_64 interpreter Dartmouth core suite passes; native evidence is separate. | P5 |
 | v0.49.0 | x86 32-bit encoder exact-byte tests pass. | P5 |
 | v0.50.0-elderheim | x86 32-bit relocation boundary tests pass. | P5 |
-| v0.51.0 | Linux x86 32-bit hello-world binary smoke passes. | P5 |
-| v0.52.0 | Linux x86 32-bit Dartmouth core fixture suite passes. | P5 |
+| v0.50.1 | x86 32-bit arithmetic trap-equivalence traces match historical semantics. | P5 |
+| v0.51.0 | x86 ELF32 in-process hello smoke passes; native evidence is separate. | P5 |
+| v0.52.0 | x86 interpreter Dartmouth core suite passes; native evidence is separate. | P5 |
 | v0.53.0 | AArch64 encoder exact-word tests pass. | P5 |
 | v0.54.0 | AArch64 relocation boundary tests pass. | P5 |
-| v0.55.0 | Linux AArch64 hello-world binary smoke passes. | P5 |
-| v0.56.0 | Linux AArch64 Dartmouth core fixture suite passes. | P5 |
+| v0.54.1 | AArch64 arithmetic trap-equivalence traces match historical semantics. | P5 |
+| v0.55.0 | AArch64 ELF64 in-process hello smoke passes; native evidence is separate. | P5 |
+| v0.56.0 | AArch64 interpreter Dartmouth core suite passes; native evidence is separate. | P5 |
 | v0.57.0 | AArch32 encoder exact-word tests pass. | P5 |
 | v0.58.0 | AArch32 relocation boundary tests pass. | P5 |
-| v0.59.0 | Linux AArch32 hello-world binary smoke passes. | P5 |
-| v0.60.0-elderheim | Linux AArch32 Dartmouth core fixture suite passes. | P5 |
+| v0.58.1 | AArch32 arithmetic trap-equivalence traces match historical semantics. | P5 |
+| v0.59.0 | AArch32 ELF32 in-process hello smoke passes; native evidence is separate. | P5 |
+| v0.60.0-elderheim | AArch32 interpreter Dartmouth core suite passes; native evidence is separate. | P5 |
 | v0.61.0 | PE writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.62.0 | PE64 tiny profile is layout-verified. | P4 |
 | v0.62.1 | Secure PE64 enables the approved image-base, relocation, NX, and ASLR policy. | P4 |
 | v0.63.0 | Windows x86_64 ABI lowering tests pass. | P5 |
-| v0.64.0 | Windows x86_64 hello-world binary smoke passes. | P5 |
-| v0.65.0 | Windows x86_64 Dartmouth core fixture suite passes. | P5 |
+| v0.64.0 | Windows x86_64 PE in-process hello smoke passes; native evidence is separate. | P5 |
+| v0.65.0 | Windows x86_64 interpreter Dartmouth suite passes; native evidence is separate. | P5 |
 | v0.66.0 | Mach-O writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.67.0 | Mach-O AArch64 tiny profile is layout-verified. | P4 |
 | v0.67.1 | Secure Mach-O AArch64 position-independent layout and load metadata pass. | P4 |
 | v0.68.0 | macOS AArch64 ABI lowering tests pass. | P5 |
-| v0.69.0 | macOS AArch64 hello-world binary smoke passes. | P5 |
-| v0.70.0-elderheim | macOS AArch64 Dartmouth core fixture suite passes. | P5 |
+| v0.69.0 | macOS AArch64 Mach-O in-process hello smoke passes; native evidence is separate. | P5 |
+| v0.70.0-elderheim | macOS AArch64 interpreter Dartmouth suite passes; native evidence is separate. | P5 |
 | v0.71.0 | Cross-platform runtime conformance matches the frozen observable contract. | P6 |
 | v0.72.0 | Cross-platform output matrix is represented and documented. | P6 |
 | v0.73.0 | CLI target selection tests pass for every 1.0 target. | P6 |
@@ -713,6 +728,8 @@ Deliverables:
 - Central manual-derived tables for line-number rules, keywords, statement
   availability, identifiers, arrays/default bounds, PRINT, DATA/READ, and
   control-flow behavior.
+- Edition-specific initial-state rules for scalars, arrays, DATA cursors, loop
+  variables, subroutine state, and deterministic randomness.
 - Explicit introduced, removed, and behavior-changed metadata per edition.
 - BASIC 3 remains a named but unconstructable unsupported edition with a stable
   primary-source diagnostic.
@@ -849,6 +866,10 @@ Deliverables:
 - Line label resolver.
 - Control-flow graph.
 - Reachability report.
+- Edition-aware initialization lowering: any manual-defined implicit initial
+  value becomes an explicit semantic-HIR/MIR entry definition.
+- Arrays, DATA cursors, loop variables, subroutine state, and RND state follow
+  the sealed edition profile rather than modern-language assumptions.
 - Stable language/stage diagnostic codes with manual-rule identifiers.
 - Bounded multi-diagnostic analysis that invalidates semantic output if any
   error is present.
@@ -858,6 +879,8 @@ Verification:
 - Missing target diagnostics.
 - Unreachable line report tests.
 - BASIC 1 feature matrix tests.
+- Historically valid implicit-initialization fixtures lower to explicit entry
+  definitions, while genuinely undefined uses retain stable diagnostics.
 - Primary/secondary absolute-span golden tests and deterministic diagnostic
   ordering at the configured budget.
 
@@ -882,6 +905,8 @@ Deliverables:
   capabilities, and exits.
 - No Unix syscall, concrete register, relocation, ABI, or executable-format
   concepts in MIR.
+- MIR definite assignment remains strict and edition-neutral because the
+  frontend explicitly materializes every profile-defined initial state.
 
 Verification:
 
@@ -889,6 +914,8 @@ Verification:
   type mismatch, undefined data, bad call signatures, unterminated blocks,
   malformed successors, unreachable invalid blocks, missing capabilities, and
   absent reachable exits.
+- Scalar, array, DATA, loop, subroutine, and RND initialization fixtures prove
+  edition-valid source is not rejected by MIR's machine-level rules.
 - Maximum-size valid CFGs remain within recorded time and memory bounds.
 - Raw MIR mutation reaches every validator error code without panic.
 - A small-state model agrees with definition/reference, termination,
@@ -1428,11 +1455,17 @@ Deliverables:
   stack, and failure services.
 - A complete per-target process-entry, output, input, termination, and failure
   path that satisfies the portable observable runtime contract.
-- A final imports policy for each target: forbidden or explicitly permitted OS
-  service imports, with no external compiler/runtime/tool dependency hidden by
-  that choice.
-- Required signature, load-command, import, relocation, image-base, and
-  hardening metadata plus a direct Elderheim-owned serialization plan.
+- External compiler, runtime, tool, C-library, and BASIC-runtime dependencies
+  are forbidden.
+- Dynamic and static OS-library imports are forbidden for supported generated
+  programs; PE import tables and Mach-O dynamic-library bindings are not an
+  alternate runtime path.
+- Validated direct target service transitions are permitted only when the
+  target contract is documented and stable for the supported OS versions.
+- Undocumented or version-unstable service mechanisms are forbidden.
+- Required signature, load-command, relocation, image-base, hardening, and
+  explicit no-import metadata plus a direct Elderheim-owned serialization
+  plan.
 - Evidence that each selected service interface is stable enough for the
   supported OS/version contract; undocumented unstable service transitions are
   not accepted merely to avoid imports.
@@ -1450,8 +1483,9 @@ Verification:
 - Feasibility fixtures prove each target can represent entry, I/O, errors, and
   termination under the no-C/no-system-tool generated-output constraints.
 - Any target-policy conflict blocks this stop and receives an explicit
-  resolution release; import, console, signing, or loader policy cannot remain
-  undecided for later PE/Mach-O milestones.
+  project-scope resolution release; import, console, signing, or loader policy
+  cannot remain undecided or be relaxed implicitly in later PE/Mach-O
+  milestones.
 
 ### v0.34.2 - Target-Parametric LIR And Services
 
@@ -1521,9 +1555,15 @@ others.
 
 Deliverables:
 
-- A sealed backend trait consuming validated target LIR and producing a
-  bounded encoded-program plan plus typed relocations and instruction-boundary
-  entry tokens.
+- A sealed preparation trait consuming validated target LIR and producing a
+  validated architecture-specific register/frame/machine-state plan.
+- A sealed encoder trait consuming only that validated machine plan and
+  producing a bounded encoded-region plan plus typed relocations and
+  instruction-boundary entry tokens.
+- Architecture-neutral lifecycle interfaces for `EncodedRegionPlan`, typed
+  relocation records, symbols, and instruction-boundary tokens. Pre-encoder
+  layout/writer stops use synthetic instances only; they do not claim real
+  machine encoding.
 - Architecture-owned register, operand, instruction, relocation, and immediate
   types behind the common lifecycle contract.
 - No shared raw-byte, arbitrary-opcode, untyped patch-offset, generic register,
@@ -1538,6 +1578,8 @@ Verification:
 
 - Mock x86 and AArch backends prove the common contract without sharing
   architecture-specific operands.
+- Synthetic encoded-region fixtures prove layout APIs without bypassing the
+  later machine-state and production encoder stops.
 - Cross-architecture values cannot type-check at backend boundaries.
 - Range, convergence, output-budget, and failure-atomicity contract tests pass.
 - Backend reports bind target, architecture, ABI/services, regions, symbols,
@@ -1610,7 +1652,8 @@ libraries.
 
 Deliverables:
 
-- `print_number` implementing the frozen BASIC 1 formatting contract.
+- `print_number` implementing the frozen edition-selected BASIC 1, 2, and 4
+  formatting contracts.
 - Sign, spacing, significant-digit, exponent, rounding, and newline behavior.
 - Fixed maximum buffer and checked pointer/length policy.
 - Numeric domain/failure mapping to the portable runtime contract.
@@ -1622,6 +1665,39 @@ Verification:
 - Maximum-size, rounding-boundary, short-buffer, and cross-host deterministic
   output tests.
 
+### v0.37.1 - Complete PRINT Layout Runtime
+
+Goal:
+
+Implement the stateful, edition-specific layout of complete PRINT statements,
+not only isolated label or number formatting.
+
+Deliverables:
+
+- A `print_layout` runtime contract consuming typed label/number items and
+  separator decisions from validated semantic lowering.
+- Blank PRINT, mixed labels and historical numbers, numeric spacing,
+  comma/zone positioning, trailing separators, and newline suppression.
+- Manual-defined line wrapping or continuation behavior and persistent output
+  column state across fragment calls.
+- Sealed profile decisions for every PRINT behavior that changes across
+  Dartmouth BASIC 1, 2, and 4.
+- Checked column/zone arithmetic, bounded output chunks, and no hidden host
+  terminal-width or locale dependency.
+- Runtime inventory/report entries distinguish item formatting from statement
+  layout state.
+
+Verification:
+
+- Exact complete output-byte fixtures cover blank PRINT, each separator,
+  mixed labels/numbers, zone boundaries, trailing separators, wraps,
+  continuation, and consecutive statements.
+- Fragment-call partitioning cannot change the emitted byte stream or column
+  state.
+- Cross-edition fixtures prove profile-specific layout and rejection behavior.
+- Column overflow, output-budget, partial-write, and state-corruption mutations
+  fail deterministically and match the independent semantic oracle.
+
 ### v0.38.0 - Input Runtime
 
 Goal:
@@ -1632,7 +1708,8 @@ math libraries.
 Deliverables:
 
 - `read_line`.
-- `parse_number` using the frozen historical numeric model.
+- `parse_number` using the frozen edition-selected BASIC 1, 2, and 4 historical
+  numeric models.
 - Input error exit path.
 - Maximum input-line and numeric-token sizes.
 - Bounded partial-read, EOF, delimiter, and service-error behavior.
@@ -1643,6 +1720,71 @@ Verification:
 - Invalid input tests.
 - Oversized line/token, zero-progress, partial-read, EOF, exponent-boundary, and
   retry-limit tests.
+
+### v0.38.1 - Historical Numeric Operations Runtime
+
+Goal:
+
+Implement production generated-program arithmetic and comparisons with exactly
+the historical model already proven by the independent reference oracle.
+
+Deliverables:
+
+- Runtime/LIR operations for add, subtract, multiply, divide, exponentiation,
+  comparisons, conversions, `INT`, and `ABS` over `HistoricalNumber`.
+- Sealed edition selection for every arithmetic, comparison, conversion,
+  precision, and failure behavior that differs among BASIC 1, 2, and 4.
+- Deterministic precision, rounding, signed-zero/applicability, overflow,
+  underflow, division-by-zero, conversion, and comparison behavior.
+- No host floating-point, host math library, libc, CPU-exception, or undefined
+  instruction behavior defines source-language results.
+- Checked bounded scratch/state requirements and fragment manifests for every
+  production numeric operation.
+- Explicit typed success/failure results that route through the portable
+  runtime error contract and cannot return partially initialized numbers.
+
+Verification:
+
+- Production LIR/runtime traces match every independent numeric and semantic
+  oracle vector exactly.
+- Boundary and randomized deterministic vectors cover all arithmetic,
+  comparison, conversion, overflow, underflow, and division failure paths.
+- Failure injection publishes no partial LIR/runtime state.
+- Cross-target instruction interpreters produce identical observable numeric
+  traces without relying on native CPU traps.
+
+### v0.38.2 - Numeric Functions And Deterministic RND Runtime
+
+Goal:
+
+Implement production generated-program functions and randomness with the same
+deterministic semantics as the independent reference model.
+
+Deliverables:
+
+- Runtime/LIR implementations of `ATN`, `COS`, `EXP`, `LOG`, `SIN`, `SQR`, and
+  `TAN`, plus any edition-ledger function delta not already covered at
+  `v0.38.1`.
+- Deterministic approximation constants, iteration bounds, range reduction,
+  precision, and rounding without host math libraries.
+- Production `RND` state, seed/reseed behavior, sequence, range, and
+  repeatability under sealed edition rules.
+- Domain/range/overflow/underflow failures mapped to the portable runtime error
+  contract.
+- Fixed scratch/state bounds and runtime manifests for every function and RND
+  fragment.
+
+Verification:
+
+- Production LIR/runtime traces match all independent function and RND oracle
+  vectors exactly across hosts and target interpreters.
+- Domain boundaries, approximation transitions, iteration caps, seed edges,
+  repeated calls, and state initialization are exhaustively or deterministically
+  sampled under recorded bounds.
+- Removing RND initialization or corrupting function scratch state fails
+  validation or produces the edition-defined runtime error, never host behavior.
+- No external math, randomness, native runtime, or CPU exception dependency is
+  present in generated-binary reports.
 
 ### v0.39.0 - Data And Array Runtime
 
@@ -1712,7 +1854,8 @@ Deliverables:
 - A bounded output sink reserving against the planned exact file size.
 - Writers accept only sealed regions whose typed relocations were resolved
   against the final validated layout.
-- Explicit little-endian field writers; Rust structs are never cast to bytes.
+- Format/endianness-typed field writers; every 1.0 target explicitly selects
+  little-endian output, and Rust structs are never cast to bytes.
 - Atomic writer completion: failure publishes no image and success requires the
   emitted byte count to equal the plan exactly.
 - A deliberately independent image parser/verifier that reparses emitted bytes
@@ -1777,7 +1920,7 @@ Deliverables:
 - ELF executable type and load-bias policy, including whether secure ELF
   profiles are position independent.
 - PE image-base, base-relocation metadata, NX/ASLR/control-flow hardening flags,
-  and import-address implications.
+  no-import structure, and direct-service implications.
 - Mach-O PIE, segment/load-command, relocation/rebase, and signature/load
   metadata policy.
 - Tiny profiles are explicitly marked non-production and report every omitted
@@ -1793,6 +1936,41 @@ Verification:
   imports, signature/load metadata, NX, ASLR, or W^X status.
 - Each 1.0 target has a feasible secure profile before format-specific work
   continues.
+
+### v0.39.5 - Verified Image Publication Boundary
+
+Goal:
+
+Make independent image verification a capability boundary that cannot be
+bypassed by the CLI, filesystem adapter, tests, or future APIs.
+
+Deliverables:
+
+- Explicit lifecycle types: `ValidatedImageLayout`, `SealedRegions`, internal
+  `SerializedImage`, and externally publishable `VerifiedImage`.
+- `SerializedImage` remains private staging data and cannot implement or reach
+  user-output APIs.
+- The independent parser/verifier consumes staging bytes plus the validated
+  plan and is the only constructor of `VerifiedImage`.
+- CLI/filesystem output adapters accept only `VerifiedImage` and publish through
+  a same-directory temporary file plus atomic replacement where supported.
+- Verification, write, flush, permission, or replacement failure discards
+  staging/temporary data and leaves any existing destination unchanged.
+- Verified-image reports bind the exact byte digest, target, format, layout,
+  permissions, entry point, relocations, imports, hardening, and verifier
+  version.
+
+Verification:
+
+- Compile-fail API tests prove raw plans, sealed regions, and serialized staging
+  bytes cannot reach publication adapters.
+- Verifier mutation tests prevent publication for every modeled image defect.
+- Filesystem failure injection covers create, short write, flush, permission,
+  rename/replace, and cleanup paths without corrupting an existing output.
+- Successful publication bytes exactly match the verified digest and no
+  temporary file remains.
+- Repeated publication is deterministic and does not weaken destination
+  permissions.
 
 ## Phase 6: ELF Writers
 
@@ -1895,86 +2073,7 @@ Verification:
 - ELF32 segment permission tests.
 - Address overflow rejection tests.
 
-### v0.44.1 - Typed Encoder And Relocation Security Contract
-
-Goal:
-
-Make illegal instruction/operand combinations and unsafe relocation patching
-unrepresentable before the first production encoder subset is implemented.
-
-Deliverables:
-
-- Sealed architecture/mode encoders such as `Encoder<X86_64>`,
-  `Encoder<X86_32>`, `Encoder<AArch64>`, and `Encoder<AArch32>`.
-- Architecture-owned width-specific registers, immediates, relative offsets,
-  address forms, and instruction-specific constructors.
-- Explicit x86 ModRM/SIB and REX/high-byte restrictions plus AArch alignment,
-  scaled-immediate, branch, literal-pool, and veneer invariants.
-- Atomic instruction emission into a temporary maximum-instruction buffer
-  before committing to the bounded encoded-program sink.
-- Typed relocations binding kind, patch region/range, place address, target,
-  addend, encoded width, architecture, and overflow policy.
-- Non-overlapping patch ranges; each patch site belongs to its declared
-  instruction/data field and is resolved exactly once.
-- Required placeholder sentinels checked before patching.
-- Branch/call targets restricted to instruction boundaries and data targets to
-  their declared object ranges.
-- Header, padding, and writable-storage targets rejected unless the relocation
-  kind explicitly permits that destination class.
-- Checked subtraction and explicit fit tests; no displacement truncation.
-- Bounded monotonic branch relaxation with a convergence limit.
-- An independent decoder/interpreter interface for the emitted subset and
-  checked-in ISA-manual vector provenance.
-
-Verification:
-
-- Compile-fail tests reject wrong-width registers/immediates, cross-mode
-  operands, invalid address forms, and untyped patch offsets.
-- Exact manual vectors cover every legal operand class selected for the next
-  encoder stop.
-- `decode(encode(instruction)) == instruction` for exhaustive finite operand
-  classes and bounded representative wide classes.
-- Relocation endpoints, branch-to-instruction-end arithmetic, overflow,
-  relaxation convergence, and sink-failure atomicity tests pass.
-- No public production path emits arbitrary raw opcode bytes.
-
-### v0.44.2 - Relaxation, Layout, And Relocation Sealing
-
-Goal:
-
-Resolve relocations only after symbolic encoded regions have a converged final
-layout, then prevent any later address-changing mutation.
-
-Deliverables:
-
-- Encoding produces immutable symbolic regions, instruction boundaries,
-  symbols, and unresolved typed relocations rather than final addresses.
-- A bounded monotonic fixed-point loop coordinates branch relaxation, veneer or
-  literal-pool decisions, region sizes, alignment, and image layout.
-- A hard iteration cap and progress metric; non-convergence is a structured
-  compiler error with no partial image.
-- Final file offsets and virtual addresses are assigned before relocation
-  arithmetic begins.
-- Checked relocation application verifies non-overlap, expected placeholder,
-  field ownership, destination class/range, architecture width, and exact-once
-  resolution.
-- Resolution seals region sizes and bytes. Any later layout or byte mutation
-  invalidates the capability and requires planning from symbolic input again.
-
-Verification:
-
-- Synthetic short/long branch and AArch veneer/literal-pool cases converge to
-  stable layouts within the documented bound.
-- Deliberate oscillation, non-progress, iteration overflow, displacement
-  overflow, overlapping patches, duplicate resolution, sentinel mismatch, and
-  invalid destination classes fail independently.
-- Branch/call targets must be instruction boundaries; data targets must remain
-  inside the declared object.
-- Repeated planning produces identical layouts, patches, sealed bytes, and
-  reports.
-- The independent decoder and image reparser agree with every resolved field.
-
-### v0.44.3 - Register Allocation And Machine-State Validation
+### v0.44.1 - Register Allocation And Machine-State Validation
 
 Goal:
 
@@ -2009,6 +2108,121 @@ Verification:
   behavior for representative control-flow and runtime-call programs.
 - Allocation and frame reports are deterministic across repeated runs.
 
+### v0.44.2 - Typed Encoder And Relocation Security Contract
+
+Goal:
+
+Make illegal instruction/operand combinations and unsafe relocation patching
+unrepresentable after machine-state preparation and before the first production
+encoder subset is implemented.
+
+Deliverables:
+
+- Sealed architecture/mode encoders such as `Encoder<X86_64>`,
+  `Encoder<X86_32>`, `Encoder<AArch64>`, and `Encoder<AArch32>`.
+- Architecture-owned width-specific registers, immediates, relative offsets,
+  address forms, and instruction-specific constructors.
+- Explicit x86 ModRM/SIB and REX/high-byte restrictions plus AArch alignment,
+  scaled-immediate, branch, literal-pool, and veneer invariants.
+- Atomic instruction emission into a temporary maximum-instruction buffer
+  before committing to the bounded encoded-program sink.
+- Typed relocations binding kind, patch region/range, place address, target,
+  addend, encoded width, architecture, and overflow policy.
+- Non-overlapping patch ranges; each patch site belongs to its declared
+  instruction/data field and is resolved exactly once.
+- Required placeholder sentinels checked before patching.
+- Branch/call targets restricted to instruction boundaries and data targets to
+  their declared object ranges.
+- Header, padding, and writable-storage targets rejected unless the relocation
+  kind explicitly permits that destination class.
+- Checked subtraction and explicit fit tests; no displacement truncation.
+- An independent decoder/interpreter for the emitted subset and checked-in
+  ISA-manual vector provenance.
+
+Verification:
+
+- Compile-fail tests reject wrong-width registers/immediates, cross-mode
+  operands, invalid address forms, and untyped patch offsets.
+- Exact manual vectors cover every legal operand class selected for the next
+  encoder stop.
+- `decode(encode(instruction)) == instruction` for exhaustive finite operand
+  classes and bounded representative wide classes.
+- Negative decoder tests reject truncation, trailing bytes, invalid/redundant
+  prefixes, noncanonical encodings, wrong mode, and instruction-boundary
+  confusion.
+- Relocation field, placeholder, range, and sink-failure atomicity tests pass.
+- No public production path emits arbitrary raw opcode bytes.
+
+### v0.44.3 - Relaxation, Layout, And Relocation Sealing
+
+Goal:
+
+Resolve relocations only after symbolic encoded regions have a converged final
+layout, then prevent any later address-changing mutation.
+
+Deliverables:
+
+- Encoding produces immutable symbolic regions, instruction boundaries,
+  symbols, and unresolved typed relocations rather than final addresses.
+- A bounded monotonic fixed-point loop coordinates branch relaxation, veneer or
+  literal-pool decisions, region sizes, alignment, and provisional image
+  layout.
+- A hard iteration cap and progress metric; non-convergence is a structured
+  compiler error with no partial image.
+- Final file offsets and virtual addresses produce `ValidatedImageLayout`
+  before relocation arithmetic begins.
+- Checked relocation application verifies non-overlap, expected placeholder,
+  field ownership, destination class/range, architecture width, and exact-once
+  resolution.
+- Resolution seals region sizes and bytes. Any later layout or byte mutation
+  invalidates the capability and requires planning from symbolic input again.
+
+Verification:
+
+- Synthetic short/long branch and AArch veneer/literal-pool cases converge to
+  stable layouts within the documented bound.
+- Deliberate oscillation, non-progress, iteration overflow, displacement
+  overflow, overlapping patches, duplicate resolution, sentinel mismatch, and
+  invalid destination classes fail independently.
+- Branch/call targets must be instruction boundaries; data targets must remain
+  inside the declared object.
+- Repeated planning produces identical layouts, patches, sealed bytes, and
+  reports.
+- The independent decoder and image reparser agree with every resolved field.
+
+### v0.44.4 - Arithmetic Trap Equivalence
+
+Goal:
+
+Define the typed guard and failure-lowering contract that every concrete target
+must implement before runnable backend fixtures.
+
+Deliverables:
+
+- Guarded lowering contracts for division by zero, signed division overflow,
+  conversion overflow, invalid shifts/immediates, and historical-number
+  domain/range failures.
+- Architecture-neutral lowering templates route every modeled failure to the
+  typed production numeric/runtime error path before a potentially trapping
+  operation can execute.
+- Machine-state validation proves guard conditions dominate the protected
+  operation and that failure blocks cannot return into user code.
+- The contract forbids architecture-specific trap/exception exposure unless an
+  explicitly modeled and safely handled target contract permits it.
+- Generated-binary reports list guarded arithmetic operations and runtime
+  failure fragments.
+
+Verification:
+
+- Synthetic machine-state/interpreter fixtures exercise every success boundary
+  and trap condition in the lowering contract.
+- Contract traces match the historical numeric and semantic oracles exactly for
+  division, conversion, shifts, and function failures.
+- Removing, bypassing, or misordering a guard fails machine-state/LIR
+  validation or differential tests.
+- Architecture-specific proof remains mandatory at `v0.46.1`, `v0.50.1`,
+  `v0.54.1`, and `v0.58.1`; this contract stop is not backend completion.
+
 ## Phase 7: x86 Backends
 
 ### v0.45.0 - x86_64 Encoder Core
@@ -2032,6 +2246,8 @@ Verification:
 - Exact-byte instruction tests.
 - Relocation placeholder tests.
 - Encoder/decoder round trips and machine-trace agreement tests.
+- Decoder rejection tests for truncation, trailing bytes, invalid/noncanonical
+  encodings, wrong mode, and instruction-boundary confusion.
 
 ### v0.46.0 - x86_64 Relocations
 
@@ -2051,6 +2267,30 @@ Verification:
 - Relocation boundary tests.
 - Out-of-range rejection tests.
 
+### v0.46.1 - x86_64 Arithmetic Trap Equivalence
+
+Goal:
+
+Prove concrete x86_64 lowering cannot expose CPU arithmetic traps in place of
+historical numeric semantics.
+
+Deliverables:
+
+- x86_64 guarded sequences for division by zero, signed division overflow,
+  conversion overflow, invalid shifts/immediates, and modeled domain/range
+  failures.
+- Guard dominance, flags, register/clobber, and runtime-error transfer validated
+  against the x86_64 machine-state plan.
+- No uncontrolled `#DE`, invalid conversion, or exception-dependent result.
+
+Verification:
+
+- The independent x86_64 decoder/interpreter exercises every success and trap
+  boundary and matches numeric/semantic oracle traces exactly.
+- Guard removal, flag corruption, boundary inversion, and failure-return
+  mutations are detected.
+- No test exits through an uncontrolled CPU exception or OS signal path.
+
 ### v0.47.0 - Linux x86_64 Hello World
 
 Goal:
@@ -2065,7 +2305,9 @@ Deliverables:
 
 Verification:
 
-- Generated binary prints `HELLO`.
+- In-process x86_64 instruction/image interpretation prints `HELLO` as the
+  mandatory deterministic gate.
+- Native Linux x86_64 execution is separate compatibility evidence.
 - Report shows no dynamic linker and no external libraries.
 
 ### v0.48.0 - Linux x86_64 Dartmouth Core
@@ -2083,7 +2325,8 @@ Deliverables:
 
 Verification:
 
-- Generated fixture suite passes on x86_64 Linux.
+- Generated fixture suite passes in the in-process x86_64 interpreter.
+- Native Linux x86_64 execution is separate compatibility evidence.
 
 ### v0.49.0 - x86 32-bit Encoder Core
 
@@ -2105,6 +2348,8 @@ Verification:
 - Exact-byte instruction tests.
 - ABI documentation tests.
 - Encoder/decoder round trips and machine-trace agreement tests.
+- Decoder rejection tests for truncation, trailing bytes, invalid/noncanonical
+  encodings, wrong mode, and instruction-boundary confusion.
 
 ### v0.50.0-elderheim - x86 32-bit Relocations
 
@@ -2124,6 +2369,31 @@ Verification:
 - Relocation boundary tests.
 - Address overflow rejection tests.
 
+### v0.50.1 - x86 32-bit Arithmetic Trap Equivalence
+
+Goal:
+
+Prove concrete x86 32-bit lowering cannot expose CPU arithmetic traps in place
+of historical numeric semantics.
+
+Deliverables:
+
+- x86 32-bit guarded sequences for division by zero, signed division overflow,
+  conversion overflow, invalid shifts/immediates, and modeled domain/range
+  failures.
+- Guard dominance, flags, register/clobber, stack, and runtime-error transfer
+  validated against the x86 32-bit machine-state plan.
+- No uncontrolled divide exception, invalid conversion, or
+  exception-dependent result.
+
+Verification:
+
+- The independent x86 32-bit decoder/interpreter exercises every success and
+  trap boundary and matches numeric/semantic oracle traces exactly.
+- Guard removal, flag corruption, boundary inversion, and failure-return
+  mutations are detected.
+- No test exits through an uncontrolled CPU exception or OS signal path.
+
 ### v0.51.0 - Linux x86 32-bit Hello World
 
 Goal:
@@ -2138,8 +2408,10 @@ Deliverables:
 
 Verification:
 
-- Generated binary prints `HELLO` on a Linux environment with 32-bit execution
-  support or emulator.
+- In-process x86 32-bit instruction/image interpretation prints `HELLO` as the
+  mandatory deterministic gate.
+- Native Linux x86 loader execution is recorded separately as compatibility
+  evidence when suitable hardware/CI is available.
 
 ### v0.52.0 - Linux x86 32-bit Dartmouth Core
 
@@ -2156,7 +2428,8 @@ Deliverables:
 
 Verification:
 
-- Generated fixture suite passes on x86 32-bit Linux or emulator.
+- Generated fixture suite passes in the in-process x86 32-bit interpreter.
+- Native Linux x86 execution is separate compatibility evidence.
 
 ## Phase 8: AArch Backends
 
@@ -2180,6 +2453,8 @@ Verification:
 - Exact-word instruction tests.
 - ABI documentation tests.
 - Encoder/decoder round trips and machine-trace agreement tests.
+- Decoder rejection tests for truncation, trailing words, invalid/noncanonical
+  encodings, wrong mode, and instruction-boundary confusion.
 
 ### v0.54.0 - AArch64 Relocations
 
@@ -2199,6 +2474,31 @@ Verification:
 - Relocation boundary tests.
 - Out-of-range rejection tests.
 
+### v0.54.1 - AArch64 Arithmetic Trap Equivalence
+
+Goal:
+
+Prove concrete AArch64 lowering cannot expose architectural arithmetic behavior
+in place of historical numeric semantics.
+
+Deliverables:
+
+- AArch64 guarded sequences for division by zero, conversion overflow, invalid
+  shifts/immediates, and modeled domain/range failures.
+- Guard dominance, condition flags, register/clobber, stack, and runtime-error
+  transfer validated against the AArch64 machine-state plan.
+- Architectural non-trapping edge results are normalized to the historical
+  model rather than leaking target-specific behavior.
+
+Verification:
+
+- The independent AArch64 decoder/interpreter exercises every success and
+  failure boundary and matches numeric/semantic oracle traces exactly.
+- Guard removal, condition corruption, boundary inversion, and failure-return
+  mutations are detected.
+- No test exposes an uncontrolled architectural exception or divergent
+  target-specific arithmetic result.
+
 ### v0.55.0 - Linux AArch64 Hello World
 
 Goal:
@@ -2213,7 +2513,9 @@ Deliverables:
 
 Verification:
 
-- Generated binary prints `HELLO` on AArch64 Linux or emulator.
+- In-process AArch64 instruction/image interpretation prints `HELLO` as the
+  mandatory deterministic gate.
+- Native AArch64 Linux execution is separate compatibility evidence.
 
 ### v0.56.0 - Linux AArch64 Dartmouth Core
 
@@ -2230,7 +2532,8 @@ Deliverables:
 
 Verification:
 
-- Generated fixture suite passes on AArch64 Linux or emulator.
+- Generated fixture suite passes in the in-process AArch64 interpreter.
+- Native AArch64 Linux execution is separate compatibility evidence.
 
 ### v0.57.0 - AArch32 Encoder Core
 
@@ -2252,6 +2555,8 @@ Verification:
 - Exact-word instruction tests.
 - ABI documentation tests.
 - Encoder/decoder round trips and machine-trace agreement tests.
+- Decoder rejection tests for truncation, trailing words, invalid/noncanonical
+  encodings, wrong mode, and instruction-boundary confusion.
 
 ### v0.58.0 - AArch32 Relocations
 
@@ -2271,6 +2576,31 @@ Verification:
 - Relocation boundary tests.
 - Out-of-range rejection tests.
 
+### v0.58.1 - AArch32 Arithmetic Trap Equivalence
+
+Goal:
+
+Prove concrete AArch32 lowering cannot expose architectural arithmetic behavior
+in place of historical numeric semantics.
+
+Deliverables:
+
+- AArch32/selected-mode guarded sequences for division by zero, conversion
+  overflow, invalid shifts/immediates, and modeled domain/range failures.
+- Guard dominance, condition flags, register/clobber, stack, and runtime-error
+  transfer validated against the AArch32 machine-state plan.
+- Architecture/mode-specific edge results are normalized to the historical
+  model rather than leaking target behavior.
+
+Verification:
+
+- The independent AArch32 decoder/interpreter exercises every success and
+  failure boundary and matches numeric/semantic oracle traces exactly.
+- Guard removal, condition corruption, boundary inversion, mode confusion, and
+  failure-return mutations are detected.
+- No test exposes an uncontrolled architectural exception or divergent
+  target-specific arithmetic result.
+
 ### v0.59.0 - Linux AArch32 Hello World
 
 Goal:
@@ -2285,7 +2615,9 @@ Deliverables:
 
 Verification:
 
-- Generated binary prints `HELLO` on AArch32 Linux or emulator.
+- In-process AArch32 instruction/image interpretation prints `HELLO` as the
+  mandatory deterministic gate.
+- Native AArch32 Linux execution is separate compatibility evidence.
 
 ### v0.60.0-elderheim - Linux AArch32 Dartmouth Core
 
@@ -2302,7 +2634,8 @@ Deliverables:
 
 Verification:
 
-- Generated fixture suite passes on AArch32 Linux or emulator.
+- Generated fixture suite passes in the in-process AArch32 interpreter.
+- Native AArch32 Linux execution is separate compatibility evidence.
 
 ## Phase 9: Windows And Mac Output
 
@@ -2340,7 +2673,7 @@ Deliverables:
 - PE32+ optional header.
 - `.text`, `.rdata`, `.data`, and `.bss` section layout.
 - Entry point validation.
-- The frozen `v0.34.1` import/service policy and directly written metadata.
+- No import directory or dynamic OS-library binding, as frozen at `v0.34.1`.
 - No external BASIC runtime.
 - Explicit non-production tiny-profile report listing omitted base relocation,
   ASLR, NX, and other hardened-image properties.
@@ -2363,19 +2696,19 @@ Deliverables:
   approved policy permits rebasing.
 - Approved ASLR, NX, high-entropy address, control-flow, and terminal-server
   flags where applicable to the supported Windows contract.
-- Import/service directories and section permissions exactly matching the
-  `v0.34.1` feasibility decision.
-- No RWX section, executable writable data, undeclared import, or relocation
-  into headers/padding.
+- No import/service directory or dynamic OS-library binding; section
+  permissions exactly match the `v0.34.1` feasibility decision.
+- No RWX section, executable writable data, import, or relocation into
+  headers/padding.
 - Independent parser verification of every security-relevant optional-header
-  flag, directory, section, import, and base-relocation block.
+  flag, directory, section, absence of imports, and base-relocation block.
 
 Verification:
 
 - Exact-byte secure PE fixtures and generated-binary reports pass.
 - Rebase simulations and relocation mutations prove exact-once bounded patching
   at permitted destinations.
-- Missing/contradictory hardening flags, invalid imports, RWX permissions,
+- Missing/contradictory hardening flags, injected imports, RWX permissions,
   malformed directories, and image-base overflow fail independently.
 - The secure profile, not the tiny profile, is required by Windows 1.0 fixture
   and release gates.
@@ -2412,8 +2745,10 @@ Deliverables:
 
 Verification:
 
-- Generated executable prints `HELLO` on Windows 11 or Windows Server 2025,
-  or under an approved Windows CI/emulation path.
+- In-process Windows x86_64 instruction/PE interpretation prints `HELLO` as the
+  mandatory deterministic gate.
+- Native Windows 11 and Windows Server 2025 execution is recorded separately as
+  compatibility evidence.
 
 ### v0.65.0 - Windows x86_64 Dartmouth Core
 
@@ -2431,7 +2766,9 @@ Deliverables:
 
 Verification:
 
-- Generated fixture suite passes on Windows x86_64.
+- Generated fixture suite passes in the in-process Windows x86_64/PE
+  interpreter.
+- Native Windows x86_64 execution is separate compatibility evidence.
 
 ### v0.66.0 - Mach-O Writer Core
 
@@ -2536,8 +2873,9 @@ Deliverables:
 
 Verification:
 
-- Generated executable prints `HELLO` on Apple Silicon macOS or an approved
-  macOS CI path.
+- In-process AArch64/Mach-O interpretation prints `HELLO` as the mandatory
+  deterministic gate.
+- Native Apple Silicon macOS execution is separate compatibility evidence.
 
 ### v0.70.0-elderheim - macOS AArch64 Dartmouth Core
 
@@ -2555,7 +2893,8 @@ Deliverables:
 
 Verification:
 
-- Generated fixture suite passes on Apple Silicon macOS.
+- Generated fixture suite passes in the in-process AArch64/Mach-O interpreter.
+- Native Apple Silicon macOS execution is separate compatibility evidence.
 
 ### v0.71.0 - Cross-Platform Runtime Conformance
 
@@ -2589,7 +2928,8 @@ Deliverables:
 - Linux ELF32/ELF64 matrix.
 - Windows PE64 matrix.
 - macOS Mach-O aarch64 matrix.
-- CI/emulation requirements document.
+- Native compatibility-evidence and optional emulator policy document; neither
+  is an implementation dependency.
 - Known platform limitation list.
 
 Verification:
@@ -2772,15 +3112,20 @@ Prove that supported programs behave the same across targets.
 
 Deliverables:
 
-- Fixture runner for Linux x86, Linux x86_64, Linux AArch32, Linux AArch64,
-  Windows x86_64, and macOS AArch64.
+- In-process instruction/image fixture runner for Linux x86, Linux x86_64,
+  Linux AArch32, Linux AArch64, Windows x86_64, and macOS AArch64.
 - Output comparison.
 - Exit-code comparison.
 - Runtime-fragment comparison.
+- Separately recorded native compatibility evidence for every target support
+  claim; emulator evidence is labeled and cannot replace native evidence at
+  final 1.0 acceptance.
 
 Verification:
 
 - Cross-target fixture suite passes.
+- Native evidence is reviewed separately without entering compiler execution or
+  deterministic oracle paths.
 
 ### v0.82.1 - Independent Semantic And Output Oracles
 
@@ -2804,8 +3149,8 @@ Deliverables:
 
 Verification:
 
-- Semantic HIR, MIR, LIR/instruction, and native target traces agree for every
-  applicable fixture.
+- Semantic HIR, MIR, and in-process LIR/instruction target traces agree for
+  every applicable fixture; native evidence is compared separately.
 - Deliberate defects in each production layer are detected by at least one
   independent oracle test.
 - Oracle implementations share data formats only, not validator, lowerer,
@@ -3101,6 +3446,8 @@ Verification:
 - `scripts/generate-sbom.sh`.
 - Full Dartmouth version fixture matrix.
 - Full Linux, Windows, and macOS target fixture matrix.
+- Native execution compatibility evidence for every claimed 1.0 target;
+  emulator-only evidence is insufficient for final support acceptance.
 - Pentest report status `PASS`.
 
 Post-1.0 directions:
