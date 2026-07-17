@@ -128,9 +128,12 @@ fixed-point process with a hard convergence limit.
 
 `TargetServiceContractId` versions architecture/mode, OS version range, service
 ABI, entry, I/O, failure, termination, register, stack, memory, and error rules.
-The same ID is bound into target specs, runtime plans, fragment manifests, LIR,
-machine plans, resource certificates, verified images, and compatibility
-evidence. Broad target-name equality never substitutes for revision equality.
+It combines a logical revision with a domain-separated fingerprint recomputed
+from a deterministic canonical contract representation. The same ID and
+fingerprint are bound into target specs, runtime plans, fragment manifests,
+LIR, machine plans, resource certificates, verified images, and compatibility
+evidence. Broad target-name or logical-revision equality never substitutes for
+canonical fingerprint equality.
 
 The whole-program resource plan composes native frames/spills, runtime and
 language control stacks, scratch and I/O buffers, arrays, DATA, writable state,
@@ -138,6 +141,12 @@ call depth, and mapped image memory before serialization. Independent image
 verification supplies the final byte digest and produces `VerifiedImage` with
 the finalized `ResourceCertificate`. Missing, stale, cyclic/unbounded, or
 mismatched facts prevent publication.
+
+The certificate is metadata beside the executable bytes, not embedded within
+them. Verification first hashes the immutable executable bytes, then hashes the
+canonical resource plan plus that image digest, target-service fingerprint, and
+verifier version under a separate certificate domain. `VerifiedImage` carries
+both fields and has no certificate-free constructor, avoiding a digest cycle.
 
 `SerializedImage` is internal staging data and cannot reach the CLI/filesystem
 adapter. Only `VerifiedImage` can be published. Verification failure discards

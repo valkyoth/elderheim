@@ -20,6 +20,8 @@ Initial controls:
 - Every supported target service contract has an exact revisioned identity
   bound through target selection, runtime planning, fragment selection, LIR,
   machine planning, executable verification, and compatibility evidence.
+  Validation recomputes its content fingerprint from a canonical contract form
+  so an unchanged logical revision cannot conceal changed service semantics.
 - Human-facing compiler snapshots and reports must escape untrusted source
   control bytes before writing terminal, CI log, or report text. Escape syntax
   must be canonical and distinguish literal backslashes from generated escapes.
@@ -61,6 +63,10 @@ Planned compiler-output controls:
   language control stacks, storage, buffers, and mapped image memory. Image
   verification binds the final resource certificate to the verified digest
   before publication.
+- Resource certificates are metadata beside executable bytes. The executable
+  digest is computed first and the certificate digest then binds that digest,
+  the canonical resource plan, service-contract fingerprint, and verifier
+  version without self-referential image hashing.
 - Secure ELF, PE, and Mach-O profiles enforce position/load policy, no RWX
   output, and format-appropriate load hardening; tiny profiles are not 1.0
   production outputs.

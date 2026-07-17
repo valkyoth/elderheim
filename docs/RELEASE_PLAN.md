@@ -232,7 +232,7 @@ Pentest classes:
 | v0.32.0 | BASIC 4 MIR/runtime delta passes without older-version regressions. | P2 |
 | v0.33.0 | The independent semantic oracle executes BASIC 1, BASIC 2, and BASIC 4 fixtures. | P2 |
 | v0.34.0 | BASIC 1, 2, and 4 compatibility sweeps all pass. | P2 |
-| v0.34.1 | Supported targets, capabilities, service conventions, and ABIs are closed and validated. | P3 |
+| v0.34.1 | Closed target types are integrated with capabilities, service conventions, and ABIs. | P3 |
 | v0.34.2 | LIR is target-parametric and rejects cross-target service lowering. | P3 |
 | v0.34.3 | Runtime manifests prove dependencies, symbols, bounds, clobbers, and target compatibility. | P3 |
 | v0.34.4 | A shared backend contract supports x86 and AArch without raw-byte or x86-shaped leakage. | P5 |
@@ -249,8 +249,8 @@ Pentest classes:
 | v0.39.2 | Bounded writers and independent image reparsing reject plan/byte mismatches. | P4 |
 | v0.39.3 | Runtime memory, service-loop, DATA, array, and control-stack safety passes. | P3 |
 | v0.39.4 | Position independence, load-bias, image-base, and hardening policy is frozen. | P4 |
-| v0.39.5 | Only independently verified images can be atomically published to user output. | P4 |
-| v0.39.6 | Whole-program resource certificate contracts and composition validation pass. | P5 |
+| v0.39.5 | Whole-program resource certificate contracts and composition validation pass. | P5 |
+| v0.39.6 | Only resource-certified, independently verified images can be atomically published. | P5 |
 | v0.40.0-elderheim | ELF writer core passes exact-byte and invalid-layout tests. | P4 |
 | v0.41.0 | ELF64 tiny profile is layout-verified. | P4 |
 | v0.42.0 | ELF32 tiny profile is layout-verified. | P4 |
@@ -823,9 +823,16 @@ before further language and backend investment assumes that target is feasible.
 
 Deliverables:
 
-- A closed `TargetServiceContractId` containing architecture, execution mode,
-  OS family and supported version range, service ABI revision, and independent
-  revisions for process entry, output, input, failure, and termination.
+- A canonical target-service contract representation containing architecture,
+  execution mode, OS family and supported version range, service ABI revision,
+  and independent revisions for process entry, output, input, failure, and
+  termination.
+- `TargetServiceContractId` combines the human-reviewed logical revision with a
+  domain-separated content fingerprint of that canonical representation. The
+  fingerprint is recomputed during validation rather than trusted as metadata.
+- The canonical field order, integer/string encoding, domain tag, digest
+  algorithm, and output width are fixed and versioned; ambiguous encodings and
+  alternate algorithms are rejected.
 - Each contract records register inputs/results/clobbers, stack state, accessible
   memory, pointer/length rules, error results, retry/progress rules, and exit
   behavior.
@@ -837,16 +844,22 @@ Deliverables:
 - In-process service-state models and checked-in minimal entry/write/input/
   failure/exit transition vectors for every target. They establish feasibility
   without claiming a complete encoder or native executable.
-- `TargetSpec` binds exactly one service-contract ID. Unknown, ambiguous,
-  superseded, or cross-target IDs are not constructable as supported targets.
+- Closed `SupportedTarget` and `TargetSpec` types with private fields and
+  validated constructors. Each supported target binds exactly one canonical
+  service-contract ID and fingerprint; unknown, ambiguous, superseded,
+  forged, or cross-target combinations cannot construct a supported value.
 - If any promised target lacks a stable direct contract, this stop is blocked
   and requires an explicit project-scope resolution release before `v0.14.0`;
   later backend work cannot reinterpret the no-import rule.
 
 Verification:
 
-- Contract IDs and revisions round-trip deterministically and change whenever
-  any observable ABI/service rule changes.
+- Canonical contract bytes, logical IDs, and fingerprints round-trip
+  deterministically and are independent of map order, host, and filesystem
+  metadata.
+- Independent fingerprint recomputation rejects a stale supplied fingerprint
+  even when the logical revision was not updated, and proves every observable
+  ABI/service rule change changes the effective contract identity.
 - Target, mode, OS range, revision, register, stack, memory, and error-rule
   mutation tests fail validation independently.
 - In-process vectors cover entry, successful/partial/failed output and input,
@@ -1485,19 +1498,22 @@ Verification:
 - BASIC 4 fixture suite passes.
 - Cross-version rejection suite passes.
 
-### v0.34.1 - Closed Targets, Capabilities, And ABIs
+### v0.34.1 - Closed Target Capability And ABI Integration
 
 Goal:
 
-Prevent unsupported target combinations and freeze the service/ABI vocabulary
-before target-near lowering begins.
+Integrate the already-closed target and service-contract types from `v0.13.7`
+with runtime capabilities and freeze the ABI vocabulary before target-near
+lowering begins.
 
 Deliverables:
 
-- Replace publicly constructible target fields with a closed
-  `SupportedTarget` value or private fields plus validated constructors.
-- Target identity binds architecture, mode, operating system, executable
-  format/class, endianness, ABI, service convention, and pointer width.
+- Runtime, LIR, backend, and report APIs accept only the closed
+  `SupportedTarget` and `TargetSpec` values proven at `v0.13.7`; no second or
+  weaker target-construction path is introduced.
+- The existing closed target identity binds architecture, mode, operating
+  system, executable format/class, endianness, ABI, service convention,
+  pointer width, logical service revision, and canonical contract fingerprint.
 - `TargetSpec`, target capabilities, `RuntimePlan<Target>`, and compatibility
   reports carry the exact `TargetServiceContractId` proven at `v0.13.7`.
 - Typed target capabilities declare available write, read, terminate, memory,
@@ -1529,8 +1545,8 @@ Verification:
 - Forged and cross-target combinations fail before LIR construction.
 - Capability snapshots are stable and contain no implicit host assumptions.
 - Linux services cannot enter Windows/macOS plans and vice versa.
-- Service-contract revision mismatch fails even when architecture, OS, and
-  executable format otherwise match.
+- Service-contract revision or content-fingerprint mismatch fails even when
+  architecture, OS, and executable format otherwise match.
 - Feasibility fixtures prove each target can represent entry, I/O, errors, and
   termination under the no-C/no-system-tool generated-output constraints.
 - Any target-policy conflict blocks this stop and receives an explicit
@@ -1955,7 +1971,8 @@ Deliverables:
 - A deliberately independent image parser/verifier that reparses emitted bytes
   and compares target, format/class, headers, mapped ranges, permissions,
   entry point, and file/memory sizes with the plan.
-- Deterministic verified-image and dependency reports.
+- Deterministic image-verification staging and dependency reports. These
+  reports do not create a publishable image capability before `v0.39.6`.
 
 Verification:
 
@@ -2031,42 +2048,7 @@ Verification:
 - Each 1.0 target has a feasible secure profile before format-specific work
   continues.
 
-### v0.39.5 - Verified Image Publication Boundary
-
-Goal:
-
-Make independent image verification a capability boundary that cannot be
-bypassed by the CLI, filesystem adapter, tests, or future APIs.
-
-Deliverables:
-
-- Explicit lifecycle types: `ValidatedImageLayout`, `SealedRegions`, internal
-  `SerializedImage`, and externally publishable `VerifiedImage`.
-- `SerializedImage` remains private staging data and cannot implement or reach
-  user-output APIs.
-- The independent parser/verifier consumes staging bytes plus the validated
-  plan and is the only constructor of `VerifiedImage`.
-- CLI/filesystem output adapters accept only `VerifiedImage` and publish through
-  a same-directory temporary file plus atomic replacement where supported.
-- Verification, write, flush, permission, or replacement failure discards
-  staging/temporary data and leaves any existing destination unchanged.
-- Verified-image reports bind the exact byte digest, target, format, layout,
-  permissions, entry point, relocations, imports, hardening, and verifier
-  version plus `TargetServiceContractId`.
-
-Verification:
-
-- Compile-fail API tests prove raw plans, sealed regions, and serialized staging
-  bytes cannot reach publication adapters.
-- Verifier mutation tests prevent publication for every modeled image defect.
-- Filesystem failure injection covers create, short write, flush, permission,
-  rename/replace, and cleanup paths without corrupting an existing output.
-- Successful publication bytes exactly match the verified digest and no
-  temporary file remains.
-- Repeated publication is deterministic and does not weaken destination
-  permissions.
-
-### v0.39.6 - Whole-Program Resource Certificate Contract
+### v0.39.5 - Whole-Program Resource Certificate Contract
 
 Goal:
 
@@ -2078,9 +2060,16 @@ Deliverables:
 - A typed pre-serialization `ResourcePlan<Target>` bound to source/profile
   identity, `TargetServiceContractId`, validated runtime plan, LIR, machine
   plan, and image layout.
-- Independent verification finalizes `ResourceCertificate<Target>` by binding
-  the resource plan to the verified-image digest; `VerifiedImage` carries that
-  certificate before publication.
+- A mandatory `ResourceCertificate<Target>` constructor contract. Independent
+  image verification computes `image_digest = hash(executable_bytes)` and then
+  computes a domain-separated certificate digest over the canonical resource
+  plan, image digest, target-service contract fingerprint, and verifier version.
+- Canonical resource-plan encoding plus fixed, versioned image/certificate
+  digest algorithm identifiers, domain tags, and output widths. Algorithm or
+  encoding changes invalidate existing certificates instead of being inferred.
+- The certificate is immutable metadata carried beside executable bytes. It is
+  not embedded in those bytes, so its image-digest binding cannot create a
+  self-referential hashing cycle.
 - Checked maximum native stack usage over the complete user/runtime call graph,
   including spill frames, saved registers, call-site alignment, service frames,
   and target ABI overhead.
@@ -2105,10 +2094,59 @@ Verification:
   scratch, buffers, and image regions compose to exact expected bounds.
 - Overflow, alignment, missing fact, duplicate/shared allocation, recursion,
   cycle, service-revision, target, and digest mismatches fail independently.
-- Mutating any contributing plan invalidates the certificate capability.
+- Mutating any contributing plan, executable byte, service-contract
+  fingerprint, or verifier version invalidates the certificate capability.
 - Certificate generation is deterministic and bounded in time/memory.
 - Final production completeness remains required at `v0.72.1`; this stop
   freezes the proof contract before backend implementation.
+
+### v0.39.6 - Resource-Certified Verified Image Publication Boundary
+
+Goal:
+
+Make resource certification and independent image verification one mandatory
+capability boundary that cannot be bypassed by the CLI, filesystem adapter,
+tests, or future APIs.
+
+Deliverables:
+
+- Explicit lifecycle types: `ValidatedImageLayout`, `SealedRegions`, internal
+  `SerializedImage`, validated `ResourcePlan<Target>`, mandatory
+  `ResourceCertificate<Target>`, and externally publishable `VerifiedImage`.
+- `SerializedImage` remains private staging data and cannot implement or reach
+  user-output APIs.
+- The independent parser/verifier consumes staging bytes plus the validated
+  image and resource plans. It is the only constructor of `VerifiedImage` and
+  must create and bind the final resource certificate in the same operation.
+- `VerifiedImage` contains immutable executable bytes and certificate metadata
+  as separate fields. There is no constructor, feature, test helper, or
+  deserialization path for a certificate-free `VerifiedImage`.
+- CLI/filesystem output adapters accept only `VerifiedImage` and publish through
+  a same-directory temporary file plus atomic replacement where supported.
+  Executable bytes are the program output; certificate/report artifacts remain
+  separate metadata and never alter the hashed executable byte stream.
+- Verification, certification, write, flush, permission, or replacement
+  failure discards staging/temporary data and leaves any existing destination
+  unchanged.
+- Verified-image reports bind the exact executable digest, certificate digest,
+  target, format, layout, permissions, entry point, relocations, imports,
+  hardening, verifier version, and `TargetServiceContractId` fingerprint.
+
+Verification:
+
+- Compile-fail API tests prove raw plans, sealed regions, serialized staging
+  bytes, and uncertified verifier output cannot reach publication adapters.
+- Constructor and deserialization tests prove a missing, empty, stale, forged,
+  wrong-target, or wrong-image certificate cannot produce `VerifiedImage`.
+- Verifier mutation tests prevent publication for every modeled image,
+  resource-plan, certificate, and contract-fingerprint defect.
+- Filesystem failure injection covers create, short write, flush, permission,
+  rename/replace, and cleanup paths without corrupting an existing output.
+- Successful executable publication bytes exactly match `image_digest`; any
+  separate certificate/report artifact binds that digest without being part of
+  its input.
+- Repeated verification, certification, and publication are deterministic and
+  do not weaken destination permissions.
 
 ## Phase 6: ELF Writers
 
@@ -2220,9 +2258,12 @@ machine-state planning, instruction encoding, or relocation layout.
 
 Deliverables:
 
-- Guarded target-LIR contracts for division by zero, signed division overflow,
-  conversion overflow, invalid shifts/immediates, and historical-number
-  domain/range failures.
+- Guarded target-LIR contracts only for dynamic execution conditions: division
+  by zero, signed division overflow, conversion range failures, dynamically
+  computed invalid shift counts, and historical-number domain/range failures.
+- Illegal instruction immediates, impossible static shift counts, unsupported
+  operand widths, and unencodable constant forms are compiler validation
+  errors. They never lower to runtime guards or runtime failure fragments.
 - Architecture-neutral lowering templates route every modeled failure to the
   typed production numeric/runtime error path before a potentially trapping
   operation can execute.
@@ -2242,6 +2283,8 @@ Verification:
   division, conversion, shifts, and function failures.
 - Missing, duplicate, bypassed, or mismatched guard identities fail target-LIR
   validation before machine planning.
+- Invalid static immediate/operand fixtures fail compilation before machine
+  planning and cannot appear in runtime traces or generated-binary reports.
 - Architecture-specific proof remains mandatory at `v0.46.1`, `v0.50.1`,
   `v0.54.1`, and `v0.58.1`; this contract stop is not backend completion.
 
@@ -2418,8 +2461,10 @@ historical numeric semantics.
 Deliverables:
 
 - x86_64 guarded sequences for division by zero, signed division overflow,
-  conversion overflow, invalid shifts/immediates, and modeled domain/range
-  failures.
+  dynamic conversion range failures, dynamically computed invalid shift
+  counts, and modeled domain/range failures.
+- Illegal static immediates and operand forms are rejected by encoder
+  validation and are never represented as runtime guard paths.
 - Guard dominance, flags, register/clobber, and runtime-error transfer validated
   against the x86_64 machine-state plan.
 - No uncontrolled `#DE`, invalid conversion, or exception-dependent result.
@@ -2520,8 +2565,10 @@ of historical numeric semantics.
 Deliverables:
 
 - x86 32-bit guarded sequences for division by zero, signed division overflow,
-  conversion overflow, invalid shifts/immediates, and modeled domain/range
-  failures.
+  dynamic conversion range failures, dynamically computed invalid shift
+  counts, and modeled domain/range failures.
+- Illegal static immediates and operand forms are rejected by encoder
+  validation and are never represented as runtime guard paths.
 - Guard dominance, flags, register/clobber, stack, and runtime-error transfer
   validated against the x86 32-bit machine-state plan.
 - No uncontrolled divide exception, invalid conversion, or
@@ -2624,8 +2671,11 @@ in place of historical numeric semantics.
 
 Deliverables:
 
-- AArch64 guarded sequences for division by zero, conversion overflow, invalid
-  shifts/immediates, and modeled domain/range failures.
+- AArch64 guarded sequences for division by zero, dynamic conversion range
+  failures, dynamically computed invalid shift counts, and modeled domain/range
+  failures.
+- Illegal static immediates and operand forms are rejected by encoder
+  validation and are never represented as runtime guard paths.
 - Guard dominance, condition flags, register/clobber, stack, and runtime-error
   transfer validated against the AArch64 machine-state plan.
 - Architectural non-trapping edge results are normalized to the historical
@@ -2726,8 +2776,11 @@ in place of historical numeric semantics.
 
 Deliverables:
 
-- AArch32/selected-mode guarded sequences for division by zero, conversion
-  overflow, invalid shifts/immediates, and modeled domain/range failures.
+- AArch32/selected-mode guarded sequences for division by zero, dynamic
+  conversion range failures, dynamically computed invalid shift counts, and
+  modeled domain/range failures.
+- Illegal static immediates and operand forms are rejected by encoder
+  validation and are never represented as runtime guard paths.
 - Guard dominance, condition flags, register/clobber, stack, and runtime-error
   transfer validated against the AArch32 machine-state plan.
 - Architecture/mode-specific edge results are normalized to the historical
